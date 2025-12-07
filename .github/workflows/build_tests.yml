@@ -1,0 +1,60 @@
+name: build tests
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  windows_builds:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        submodules: true
+
+    - uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.10.1'
+
+    - name: windows build
+      shell: cmd
+      run: |
+         call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+         cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release -G Ninja
+         ninja -C ${{github.workspace}}/build
+
+    - name: delete previous build
+      run: Remove-Item ${{github.workspace}}/build -recurse
+
+    - name: windows build - no options
+      shell: cmd
+      run: |
+        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release -DWITH_INTEL=OFF -DWITH_AMD=OFF -DWITH_GPD_FAN=OFF -G Ninja
+        ninja -C ${{github.workspace}}/build
+
+  linux_builds:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.10.1'
+
+      - name: linux build
+        run: |
+          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release
+          make -C ${{github.workspace}}/build
+
+      - name: remove previous build
+        run: rm -R ${{github.workspace}}/build
+
+      - name: linux build - no options
+        run: |
+          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release -DWITH_INTEL=OFF -DWITH_AMD=OFF -DWITH_GPD_FAN=OFF -DENABLE_DBUS_SERVICES=OFF -DWITH_SYSTEMD_NOTIFY=OFF
+          make -C ${{github.workspace}}/build

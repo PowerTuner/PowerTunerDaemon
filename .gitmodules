@@ -1,0 +1,12 @@
+[submodule "src/external/RyzenAdj"]
+	path = src/external/RyzenAdj
+	url = https://github.com/PowerTuner/RyzenAdj
+[submodule "src/external/libcpuid"]
+	path = src/external/libcpuid
+	url = https://github.com/anrieff/libcpuid
+[submodule "src/external/libPWTWin32"]
+	path = src/external/libPWTWin32
+	url = https://github.com/PowerTuner/libPWTWin32
+[submodule "src/external/libPWTShared"]
+	path = src/external/libPWTShared
+	url = https://github.com/PowerTuner/libPWTShared
