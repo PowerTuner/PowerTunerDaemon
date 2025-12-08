@@ -42,6 +42,11 @@ jobs:
         with:
           submodules: true
 
+      - name: install required libs
+        run: |
+          sudo apt-get update
+          sudo apt-get install libpci-dev libsystemd-dev libkmod-dev
+
       - uses: jurplel/install-qt-action@v4
         with:
           version: '6.10.1'

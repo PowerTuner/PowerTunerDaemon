@@ -195,6 +195,9 @@ requirements:
 - gcc or clang
 - cmake
 - qt6-base
+- kmod (**libkmod-dev** for debian based distros, or **kmod** for ArchLinux)
+- libpci (WITH_AMD=ON, **libpci-dev** for debian based distros, or **pciutils** for ArchLinux)
+- systemd-libs (WITH_SYSTEMD_NOTIFY=ON, **libsystemd-dev** for debian based distros, or **systemd-libs** for ArchLinux)
 
 ```text
 $ cd PowerTunerDaemon
