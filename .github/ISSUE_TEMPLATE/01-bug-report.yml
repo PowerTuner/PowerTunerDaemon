@@ -1,0 +1,83 @@
+name: "[Bug Report] PowerTuner Daemon"
+description: "PowerTuner Daemon"
+labels: 'bug'
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > [!IMPORTANT]
+        > Fields marked with asterisk (*) are required.
+  - type: markdown
+    attributes:
+      value: '---'
+  - type: checkboxes
+    attributes:
+      label: Requirements
+      options:
+        - label: I am using one of the official release packages
+          required: true
+  - type: markdown
+    attributes:
+      value: '---'
+  - type: input
+    attributes:
+      label: Daemon Version
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: CPU
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: GPU
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: '---'
+  - type: dropdown
+    attributes:
+      label: Windows OS
+      options:
+        - Not using Windows
+        - Windows 11 25H2
+        - Windows 11 24H2
+        - Windows 11 23H2
+        - Windows 11 22H2
+        - Windows 11 21H2
+        - Windows 10 22H2
+        - Other (Please specify)
+      default: 0
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Other Windows build
+      description: "Specify your Windows build number if not present on the list"
+  - type: markdown
+    attributes:
+      value: '---'
+  - type: dropdown
+    attributes:
+      label: Linux OS
+      options:
+        - Not using Linux
+        - Linux (Please specify)
+      default: 0
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Linux distro name and version
+      description: "Specify your Linux distro name and release version"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Description and steps to reproduce
+      description: |
+        Please describe the issue and steps to reproduce accurately, screenshots or videos may help too.
+    validations:
+      required: true
