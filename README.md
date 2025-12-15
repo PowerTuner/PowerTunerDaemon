@@ -69,17 +69,18 @@ Fan control:
 
 Sysfs:
 
-- CPUs hotplug
+- CPUs hotplug (or parking)
 - CPU frequency
 - CPU scaling governor
 - CPU idle governor
-- Symmetric Multi Threading (SMT)
+- Symmetric Multi Threading (SMT) control
 - Misc. power management (USB, I2C, block devices, ...)
 - Block devices queue scheduler
 - Intel GPU frequency
 - AMD GPU power dpm force performance level
 - AMD GPU legacy power dpm state
 - AMD GPU frequency (SCLK)
+- AMD PState scaling driver
 - GPD fan control (requires [gpd_fan dkms](https://github.com/Cryolitia/gpd-fan-driver) or linux 6.18+)
 
 ## CPU features
@@ -110,7 +111,7 @@ _from [CPUModel.h](https://github.com/PowerTuner/PowerTunerDaemon/blob/main/src/
 
 ### AMD
 
-- RyzenAdj ([PowerTuner fork](https://github.com/PowerTuner/RyzenAdj))
+- RyzenAdj ([PowerTuner fork](https://github.com/PowerTuner/RyzenAdj), see README for Linux instructions)
 - CPU P-State
 - Performance boost control
 - CPPC (_Collaborative Processor Performance Control_)
