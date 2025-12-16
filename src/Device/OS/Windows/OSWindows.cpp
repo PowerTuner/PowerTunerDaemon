@@ -23,8 +23,8 @@
 #include <combaseapi.h>
 #include <powrprof.h>
 
-#include "libryzenadj/win32/OlsApi.h"
-#include "libryzenadj/win32/OlsDef.h"
+#include "../../../external/winring0/OlsApi.h"
+#include "../../../external/winring0/OlsDef.h"
 
 namespace PWTD::WIN {
     OSWindows::OSWindows() {

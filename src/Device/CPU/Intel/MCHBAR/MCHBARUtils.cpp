@@ -23,8 +23,8 @@ extern "C" {
 }
 #elif defined(_WIN32)
 #include "pwtWin32/win.h"
-#include "libryzenadj/win32/OlsApi.h"
-#include "libryzenadj/win32/OlsDef.h"
+#include "../../../../external/winring0/OlsApi.h"
+#include "../../../../external/winring0/OlsDef.h"
 #include "../Include/CPUModel.h"
 #endif
 

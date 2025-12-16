@@ -26,6 +26,7 @@ set(ENABLE_DOCS OFF)
 set(LIBCPUID_DISABLE_DEPRECATED ON)
 set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(src/external/libcpuid EXCLUDE_FROM_ALL)
+unset(BUILD_SHARED_LIBS)
 
 set(PROJECT_SOURCES
 	src/Device/Device.h
@@ -168,7 +169,7 @@ elseif (WIN32)
 	)
 
 	list(APPEND LINK_DIRS
-		src/external/RyzenAdj/win32
+		src/external/winring0
 	)
 endif ()
 
@@ -244,6 +245,7 @@ if (WITH_AMD)
 
 	set(BUILD_SHARED_LIBS OFF)
 	add_subdirectory(src/external/RyzenAdj EXCLUDE_FROM_ALL)
+	unset(BUILD_SHARED_LIBS)
 
 	list(APPEND PRIV_DEFS WITH_AMD)
 	list(APPEND LINK_LIBS RYADJ::RyzenAdjLib)
