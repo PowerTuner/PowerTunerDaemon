@@ -22,6 +22,21 @@
 #include "ProfileDiskManager.h"
 #include "../Utils/AppDataPath.h"
 #include "pwtShared/Utils.h"
+#include "ProfileUtils/FAN/ProfileFanUtils.h"
+#ifdef __linux__
+#include "ProfileUtils/OS/ProfileLinuxUtils.h"
+#elif defined(_WIN32)
+#include "ProfileUtils/OS/ProfileWindowsUtils.h"
+#endif
+#ifdef WITH_INTEL
+#include "ProfileUtils/Vendor/ProfileIntelUtils.h"
+#endif
+#ifdef WITH_AMD
+#include "ProfileUtils/Vendor/ProfileAMDUtils.h"
+#ifdef __linux__
+#include "ProfileUtils/OS/ProfileLinuxAMDUtils.h"
+#endif
+#endif
 
 namespace PWTD {
     ProfileDiskManager::ProfileDiskManager(const QByteArray &hash, const PWTS::CPUVendor vendor) {
@@ -53,420 +68,6 @@ namespace PWTD {
 
         QObject::connect(fsWatcher.get(), &QFileSystemWatcher::directoryChanged, this, &ProfileDiskManager::onDirChanged);
         QObject::connect(fsWatcherEvtTimer.get(), &QTimer::timeout, this, &ProfileDiskManager::onFsWatcherTimerTimeout);
-    }
-
-#ifdef __linux__
-    void ProfileDiskManager::serializeLinuxData(QDataStream &ds, const PWTS::ClientPacket &packet) const {
-        ds << linuxDataVersion <<
-            packet.linuxData->smtState <<
-            packet.linuxData->cpuIdleGovernor <<
-            packet.linuxData->blockDevicesQueSched <<
-            packet.linuxData->miscPMDevices <<
-            packet.linuxData->intelGpuData <<
-            packet.linuxData->amdGpuData;
-
-        ds << packet.linuxData->threadData.size();
-
-        for (const auto &thdData: packet.linuxData->threadData)
-            serializeLinuxThreadData(ds, thdData);
-    }
-
-    void ProfileDiskManager::serializeLinuxThreadData(QDataStream &ds, const PWTS::LNX::LinuxThreadData &thdData) const {
-        ds << thdData.cpuFrequency <<
-            thdData.scalingGovernor <<
-            thdData.cpuOnlineStatus;
-    }
-
-    void ProfileDiskManager::deserializeLinuxData(QDataStream &ds, DiskData &profile) const {
-        qsizetype numThreads;
-        int version;
-
-        profile.linuxD = QSharedPointer<PWTS::LNX::LinuxData>::create();
-
-        ds >> version >>
-            profile.linuxD->smtState >>
-            profile.linuxD->cpuIdleGovernor >>
-            profile.linuxD->blockDevicesQueSched >>
-            profile.linuxD->miscPMDevices >>
-            profile.linuxD->intelGpuData >>
-            profile.linuxD->amdGpuData;
-
-        ds >> numThreads;
-
-        for (qsizetype i=0; i<numThreads; ++i)
-            deserializeLinuxThreadData(ds, profile, version);
-    }
-
-    void ProfileDiskManager::deserializeLinuxThreadData(QDataStream &ds, const DiskData &profile, const int version) const {
-        PWTS::LNX::LinuxThreadData thdData {};
-
-        ds >> thdData.cpuFrequency >>
-            thdData.scalingGovernor >>
-            thdData.cpuOnlineStatus;
-
-        profile.linuxD->threadData.append(thdData);
-    }
-
-    void ProfileDiskManager::loadLinuxProfileToDaemonPacket(const QSharedPointer<PWTS::LNX::LinuxData> &profile, const QSharedPointer<PWTS::LNX::LinuxData> &packet) const {
-        packet->smtState = profile->smtState;
-        packet->cpuIdleGovernor = profile->cpuIdleGovernor;
-        packet->miscPMDevices = profile->miscPMDevices;
-
-        for (const auto &[dev, data]: profile->blockDevicesQueSched.asKeyValueRange()) {
-            if (!packet->blockDevicesQueSched.contains(dev))
-                continue;
-
-            packet->blockDevicesQueSched[dev].scheduler = data.scheduler;
-        }
-
-        for (const auto &[gpuIdx, gpuData]: profile->intelGpuData.asKeyValueRange()) {
-            if (!packet->intelGpuData.contains(gpuIdx)) {
-                if (logger->isLevel(PWTS::LogLevel::Warning))
-                    logger->write(QString("Cannot load Intel GPU data for card %1, missing on device").arg(gpuIdx));
-
-                continue;
-            }
-
-            packet->intelGpuData[gpuIdx].frequency = gpuData.frequency;
-            packet->intelGpuData[gpuIdx].boostFrequency = gpuData.boostFrequency;
-        }
-
-        for (const auto &[gpuIdx, gpuData]: profile->amdGpuData.asKeyValueRange()) {
-            if (!packet->amdGpuData.contains(gpuIdx)) {
-                if (logger->isLevel(PWTS::LogLevel::Warning))
-                    logger->write(QString("Cannot load AMD GPU data for card %1, missing on device").arg(gpuIdx));
-
-                continue;
-            }
-
-            packet->amdGpuData[gpuIdx].dpmForcePerfLevel = gpuData.dpmForcePerfLevel;
-            packet->amdGpuData[gpuIdx].powerDpmState = gpuData.powerDpmState;
-        }
-
-        for (int i=0,l=profile->threadData.size(); i<l; ++i) {
-            packet->threadData[i].cpuFrequency = profile->threadData[i].cpuFrequency;
-            packet->threadData[i].scalingGovernor = profile->threadData[i].scalingGovernor;
-            packet->threadData[i].cpuOnlineStatus = profile->threadData[i].cpuOnlineStatus;
-        }
-    }
-#elif defined(_WIN32)
-    void ProfileDiskManager::serializeWindowsData(QDataStream &ds, const PWTS::ClientPacket &packet) const {
-        ds << windowsDataVersion <<
-            packet.windowsData->activeScheme <<
-            packet.windowsData->schemes <<
-            packet.windowsData->replaceDefaultSchemes <<
-            packet.windowsData->resetSchemesDefault;
-    }
-
-    void ProfileDiskManager::deserializeWindowsData(QDataStream &ds, DiskData &profile) const {
-        profile.windowsD = QSharedPointer<PWTS::WIN::WindowsData>::create();
-        int version;
-
-        ds >> version >>
-            profile.windowsD->activeScheme >>
-            profile.windowsD->schemes >>
-            profile.windowsD->replaceDefaultSchemes >>
-            profile.windowsD->resetSchemesDefault;
-    }
-
-    void ProfileDiskManager::loadWindowsProfileToDaemonPacket(const QSharedPointer<PWTS::WIN::WindowsData> &profile, const QSharedPointer<PWTS::WIN::WindowsData> &packet) const {
-        packet->activeScheme = profile->activeScheme;
-        packet->schemes = profile->schemes;
-        packet->replaceDefaultSchemes = profile->replaceDefaultSchemes;
-        packet->resetSchemesDefault = profile->resetSchemesDefault;
-    }
-#endif
-#ifdef WITH_INTEL
-    void ProfileDiskManager::serializeIntelData(QDataStream &ds, const PWTS::ClientPacket &packet) const {
-        ds << intelDataVersion <<
-            packet.intelData->pkgPowerLimit <<
-            packet.intelData->vrCurrentCfg <<
-            packet.intelData->pp1CurrentCfg <<
-            packet.intelData->turboPowerCurrentLimit <<
-            packet.intelData->turboRatioLimit <<
-            packet.intelData->miscProcFeatures <<
-            packet.intelData->powerCtl <<
-            packet.intelData->miscPwrMgmt <<
-            packet.intelData->hwpRequestPkg <<
-            packet.intelData->undervoltData <<
-            packet.intelData->pp0Priority <<
-            packet.intelData->pp1Priority <<
-            packet.intelData->energyPerfBias <<
-            packet.intelData->hwpEnable <<
-            packet.intelData->hwpPkgCtlPolarity <<
-            packet.intelData->mchbarPkgRaplLimit;
-
-        ds << packet.intelData->coreData.size() <<
-            packet.intelData->threadData.size();
-
-        for (const auto &coreData: packet.intelData->coreData)
-            serializeIntelCoreData(ds, coreData);
-
-        for (const auto &thdData: packet.intelData->threadData)
-            serializeIntelThreadData(ds, thdData);
-    }
-
-    void ProfileDiskManager::serializeIntelCoreData(QDataStream &ds, const PWTS::Intel::IntelCoreData &coreData) const {
-        ds << coreData.pkgCstConfigControl;
-    }
-
-    void ProfileDiskManager::serializeIntelThreadData(QDataStream &ds, const PWTS::Intel::IntelThreadData &thdData) const {
-        ds << thdData.hwpRequest;
-    }
-
-    void ProfileDiskManager::deserializeIntelData(QDataStream &ds, DiskData &profile) const {
-        qsizetype numCores, numThreads;
-        int version;
-
-        profile.intelD = QSharedPointer<PWTS::Intel::IntelData>::create();
-
-        ds >> version >>
-            profile.intelD->pkgPowerLimit >>
-            profile.intelD->vrCurrentCfg >>
-            profile.intelD->pp1CurrentCfg >>
-            profile.intelD->turboPowerCurrentLimit >>
-            profile.intelD->turboRatioLimit >>
-            profile.intelD->miscProcFeatures >>
-            profile.intelD->powerCtl >>
-            profile.intelD->miscPwrMgmt >>
-            profile.intelD->hwpRequestPkg >>
-            profile.intelD->undervoltData >>
-            profile.intelD->pp0Priority >>
-            profile.intelD->pp1Priority >>
-            profile.intelD->energyPerfBias >>
-            profile.intelD->hwpEnable >>
-            profile.intelD->hwpPkgCtlPolarity >>
-            profile.intelD->mchbarPkgRaplLimit;
-
-        ds >> numCores >> numThreads;
-
-        for (qsizetype i=0; i<numCores; ++i)
-            deserializeIntelCoreData(ds, profile, version);
-
-        for (qsizetype i=0; i<numThreads; ++i)
-            deserializeIntelThreadData(ds, profile, version);
-    }
-
-    void ProfileDiskManager::deserializeIntelCoreData(QDataStream &ds, const DiskData &profile, int version) const {
-        PWTS::Intel::IntelCoreData coreData {};
-
-        ds >> coreData.pkgCstConfigControl;
-
-        profile.intelD->coreData.append(coreData);
-    }
-
-    void ProfileDiskManager::deserializeIntelThreadData(QDataStream &ds, const DiskData &profile, const int version) const {
-        PWTS::Intel::IntelThreadData thdData {};
-
-        ds >> thdData.hwpRequest;
-
-        profile.intelD->threadData.append(thdData);
-    }
-
-    void ProfileDiskManager::loadIntelProfileToDaemonPacket(const QSharedPointer<PWTS::Intel::IntelData> &profile, const QSharedPointer<PWTS::Intel::IntelData> &packet) const {
-        packet->pkgPowerLimit = profile->pkgPowerLimit;
-        packet->vrCurrentCfg = profile->vrCurrentCfg;
-        packet->pp1CurrentCfg = profile->pp1CurrentCfg;
-        packet->turboPowerCurrentLimit = profile->turboPowerCurrentLimit;
-        packet->turboRatioLimit = profile->turboRatioLimit;
-        packet->miscProcFeatures = profile->miscProcFeatures;
-        packet->powerCtl = profile->powerCtl;
-        packet->miscPwrMgmt = profile->miscPwrMgmt;
-        packet->hwpRequestPkg = profile->hwpRequestPkg;
-        packet->undervoltData = profile->undervoltData;
-        packet->pp0Priority = profile->pp0Priority;
-        packet->pp1Priority = profile->pp1Priority;
-        packet->energyPerfBias = profile->energyPerfBias;
-        packet->hwpEnable = profile->hwpEnable;
-        packet->hwpPkgCtlPolarity = profile->hwpPkgCtlPolarity;
-        packet->mchbarPkgRaplLimit = profile->mchbarPkgRaplLimit;
-
-        for (int i=0,l=profile->coreData.size(); i<l; ++i) {
-            packet->coreData[i].pkgCstConfigControl = profile->coreData[i].pkgCstConfigControl;
-        }
-
-        for (int i=0,l=profile->threadData.size(); i<l; ++i) {
-            packet->threadData[i].hwpRequest = profile->threadData[i].hwpRequest;
-        }
-    }
-#endif
-#ifdef WITH_AMD
-    void ProfileDiskManager::serializeAMDData(QDataStream &ds, const PWTS::ClientPacket &packet) const {
-        ds << amdDataVersion <<
-            packet.amdData->stapmLimit <<
-            packet.amdData->fastLimit <<
-            packet.amdData->slowLimit <<
-            packet.amdData->tctlTemp <<
-            packet.amdData->apuSlow <<
-            packet.amdData->apuSkinTemp <<
-            packet.amdData->dgpuSkinTemp <<
-            packet.amdData->vrmCurrent <<
-            packet.amdData->vrmSocCurrent <<
-            packet.amdData->vrmMaxCurrent <<
-            packet.amdData->vrmSocMaxCurrent <<
-            packet.amdData->staticGfxClock <<
-            packet.amdData->minGfxClock <<
-            packet.amdData->maxGfxClock <<
-            packet.amdData->powerProfile <<
-            packet.amdData->cppcEnableBit;
-
-        ds << packet.amdData->coreData.size() <<
-            packet.amdData->threadData.size();
-
-        for (const auto &coreData: packet.amdData->coreData)
-            serializeAMDCoreData(ds, coreData);
-
-        for (const auto &thdData: packet.amdData->threadData)
-            serializeAMDThreadData(ds, thdData);
-    }
-
-    void ProfileDiskManager::serializeAMDCoreData(QDataStream &ds, const PWTS::AMD::AMDCoreData &coreData) const {
-        ds << coreData.curveOptimizer;
-    }
-
-    void ProfileDiskManager::serializeAMDThreadData(QDataStream &ds, const PWTS::AMD::AMDThreadData &thdData) const {
-        ds << thdData.cppcRequest <<
-            thdData.pstateCmd <<
-            thdData.corePerfBoost;
-    }
-
-    void ProfileDiskManager::deserializeAMDData(QDataStream &ds, DiskData &profile) const {
-        qsizetype numCores, numThreads;
-        int version;
-
-        profile.amdD = QSharedPointer<PWTS::AMD::AMDData>::create();
-
-        ds >> version >>
-            profile.amdD->stapmLimit >>
-            profile.amdD->fastLimit >>
-            profile.amdD->slowLimit >>
-            profile.amdD->tctlTemp >>
-            profile.amdD->apuSlow >>
-            profile.amdD->apuSkinTemp >>
-            profile.amdD->dgpuSkinTemp >>
-            profile.amdD->vrmCurrent >>
-            profile.amdD->vrmSocCurrent >>
-            profile.amdD->vrmMaxCurrent >>
-            profile.amdD->vrmSocMaxCurrent >>
-            profile.amdD->staticGfxClock >>
-            profile.amdD->minGfxClock >>
-            profile.amdD->maxGfxClock >>
-            profile.amdD->powerProfile >>
-            profile.amdD->cppcEnableBit;
-
-        ds >> numCores >> numThreads;
-
-        for (qsizetype i=0; i<numCores; ++i)
-            deserializeAMDCoreData(ds, profile, version);
-
-        for (qsizetype i=0; i<numThreads; ++i)
-            deserializeAMDThreadData(ds, profile, version);
-    }
-
-    void ProfileDiskManager::deserializeAMDCoreData(QDataStream &ds, const DiskData &profile, const int version) const {
-        PWTS::AMD::AMDCoreData coreData {};
-
-        ds >> coreData.curveOptimizer;
-
-        profile.amdD->coreData.append(coreData);
-    }
-
-    void ProfileDiskManager::deserializeAMDThreadData(QDataStream &ds, const DiskData &profile, const int version) const {
-        PWTS::AMD::AMDThreadData thdData {};
-
-        ds >> thdData.cppcRequest >>
-            thdData.pstateCmd >>
-            thdData.corePerfBoost;
-
-        profile.amdD->threadData.append(thdData);
-    }
-
-    void ProfileDiskManager::loadAMDProfileToDaemonPacket(const QSharedPointer<PWTS::AMD::AMDData> &profile, const QSharedPointer<PWTS::AMD::AMDData> &packet) const {
-        packet->stapmLimit = profile->stapmLimit;
-        packet->fastLimit = profile->fastLimit;
-        packet->slowLimit = profile->slowLimit;
-        packet->tctlTemp = profile->tctlTemp;
-        packet->apuSlow = profile->apuSlow;
-        packet->apuSkinTemp = profile->apuSkinTemp;
-        packet->dgpuSkinTemp = profile->dgpuSkinTemp;
-        packet->vrmCurrent = profile->vrmCurrent;
-        packet->vrmSocCurrent = profile->vrmSocCurrent;
-        packet->vrmMaxCurrent = profile->vrmMaxCurrent;
-        packet->vrmSocMaxCurrent = profile->vrmSocMaxCurrent;
-        packet->staticGfxClock = profile->staticGfxClock;
-        packet->minGfxClock = profile->minGfxClock;
-        packet->maxGfxClock = profile->maxGfxClock;
-        packet->powerProfile = profile->powerProfile;
-        packet->cppcEnableBit = profile->cppcEnableBit;
-
-        for (int i=0,l=profile->coreData.size(); i<l; ++i) {
-            packet->coreData[i].curveOptimizer = profile->coreData[i].curveOptimizer;
-        }
-
-        for (int i=0,l=profile->threadData.size(); i<l; ++i) {
-            packet->threadData[i].cppcRequest = profile->threadData[i].cppcRequest;
-            packet->threadData[i].pstateCmd = profile->threadData[i].pstateCmd;
-            packet->threadData[i].corePerfBoost = profile->threadData[i].corePerfBoost;
-        }
-    }
-#ifdef __linux__
-    void ProfileDiskManager::serializeLinuxAMDData(QDataStream &ds, const PWTS::ClientPacket &packet) const {
-        ds << linuxAmdDataVersion <<
-            packet.linuxAmdData->pstateStatus;
-
-        ds << packet.linuxAmdData->threadData.size();
-
-        for (const auto &thdData: packet.linuxAmdData->threadData)
-            serializeLinuxAMDThreadData(ds, thdData);
-    }
-
-    void ProfileDiskManager::serializeLinuxAMDThreadData(QDataStream &ds, const PWTS::LNX::AMD::LinuxAMDThreadData &thdData) const {
-        ds << thdData.epp;
-    }
-
-    void ProfileDiskManager::deserializeLinuxAMDData(QDataStream &ds, DiskData &profile) const {
-        qsizetype numLAThreads;
-        int version;
-
-        profile.linuxAmdD = QSharedPointer<PWTS::LNX::AMD::LinuxAMDData>::create();
-
-        ds >> version >>
-            profile.linuxAmdD->pstateStatus;
-
-        ds >> numLAThreads;
-
-        for (qsizetype i=0; i<numLAThreads; ++i)
-            deserializeLinuxAMDThreadData(ds, profile, version);
-    }
-
-    void ProfileDiskManager::deserializeLinuxAMDThreadData(QDataStream &ds, const DiskData &profile, const int version) const {
-        PWTS::LNX::AMD::LinuxAMDThreadData thdData {};
-
-        ds >> thdData.epp;
-
-        profile.linuxAmdD->threadData.append(thdData);
-    }
-
-    void ProfileDiskManager::loadLinuxAMDProfileToDaemonPacket(const QSharedPointer<PWTS::LNX::AMD::LinuxAMDData> &profile, const QSharedPointer<PWTS::LNX::AMD::LinuxAMDData> &packet) const {
-        packet->pstateStatus = profile->pstateStatus;
-
-        for (int i=0,l=profile->threadData.size(); i<l; ++i) {
-            packet->threadData[i].epp = profile->threadData[i].epp;
-        }
-    }
-#endif
-#endif
-
-    void ProfileDiskManager::serializeFanData(QDataStream &ds, const PWTS::ClientPacket &packet) const {
-        ds << fanDataVersion <<
-            packet.fanData;
-    }
-
-    void ProfileDiskManager::deserializeFanData(QDataStream &ds, DiskData &profile) const {
-        int version;
-
-        ds >> version >>
-            profile.fanD;
     }
 
     QByteArray ProfileDiskManager::getProfileData(const QString &profile) const {
@@ -525,23 +126,23 @@ namespace PWTD {
         DiskData profile {};
 
 #ifdef __linux__
-        deserializeLinuxData(ds, profile);
+        profile.linuxD = deserializeLinuxData(ds);
 #elif defined(_WIN32)
-        deserializeWindowsData(ds, profile);
+        profile.windowsD = deserializeWindowsData(ds);
 #endif
-        deserializeFanData(ds, profile);
+        profile.fanD = deserializeFanData(ds);
 
         switch (cpuVendor) {
 #ifdef WITH_INTEL
             case PWTS::CPUVendor::Intel:
-                deserializeIntelData(ds, profile);
+                profile.intelD = deserializeIntelData(ds);
                 break;
 #endif
 #ifdef WITH_AMD
             case PWTS::CPUVendor::AMD: {
-                deserializeAMDData(ds, profile);
+                profile.amdD = deserializeAMDData(ds);
 #ifdef __linux__
-                deserializeLinuxAMDData(ds, profile);
+                profile.linuxAmdD = deserializeLinuxAMDData(ds);
 #endif
             }
                 break;

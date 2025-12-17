@@ -51,12 +51,6 @@ namespace PWTD {
         static constexpr char ext[] = "pwt";
         const QString signature = "PWTPF";
         static constexpr int fileVersion = 1;
-        static constexpr int linuxDataVersion = 1;
-        static constexpr int windowsDataVersion = 1;
-        static constexpr int intelDataVersion = 1;
-        static constexpr int amdDataVersion = 1;
-        static constexpr int linuxAmdDataVersion = 1;
-        static constexpr int fanDataVersion = 1;
         QScopedPointer<QFileSystemWatcher> fsWatcher;
         QScopedPointer<QTimer> fsWatcherEvtTimer;
         QSharedPointer<FileLogger> logger;
@@ -66,44 +60,6 @@ namespace PWTD {
 
         [[nodiscard]] QString getFilePath(const QString &name) const { return QString("%1/%2.%3").arg(path, name, ext); }
 
-#ifdef __linux__
-        void serializeLinuxData(QDataStream &ds, const PWTS::ClientPacket &packet) const;
-        void serializeLinuxThreadData(QDataStream &ds, const PWTS::LNX::LinuxThreadData &thdData) const;
-        void deserializeLinuxData(QDataStream &ds, DiskData &profile) const;
-        void deserializeLinuxThreadData(QDataStream &ds, const DiskData &profile, int version) const;
-        void loadLinuxProfileToDaemonPacket(const QSharedPointer<PWTS::LNX::LinuxData> &profile, const QSharedPointer<PWTS::LNX::LinuxData> &packet) const;
-#elif defined(_WIN32)
-        void serializeWindowsData(QDataStream &ds, const PWTS::ClientPacket &packet) const;
-        void deserializeWindowsData(QDataStream &ds, DiskData &profile) const;
-        void loadWindowsProfileToDaemonPacket(const QSharedPointer<PWTS::WIN::WindowsData> &profile, const QSharedPointer<PWTS::WIN::WindowsData> &packet) const;
-#endif
-#ifdef WITH_INTEL
-        void serializeIntelData(QDataStream &ds, const PWTS::ClientPacket &packet) const;
-        void serializeIntelCoreData(QDataStream &ds, const PWTS::Intel::IntelCoreData &coreData) const;
-        void serializeIntelThreadData(QDataStream &ds, const PWTS::Intel::IntelThreadData &thdData) const;
-        void deserializeIntelData(QDataStream &ds, DiskData &profile) const;
-        void deserializeIntelCoreData(QDataStream &ds, const DiskData &profile, int version) const;
-        void deserializeIntelThreadData(QDataStream &ds, const DiskData &profile, int version) const;
-        void loadIntelProfileToDaemonPacket(const QSharedPointer<PWTS::Intel::IntelData> &profile, const QSharedPointer<PWTS::Intel::IntelData> &packet) const;
-#endif
-#ifdef WITH_AMD
-        void serializeAMDData(QDataStream &ds, const PWTS::ClientPacket &packet) const;
-        void serializeAMDCoreData(QDataStream &ds, const PWTS::AMD::AMDCoreData &coreData) const;
-        void serializeAMDThreadData(QDataStream &ds, const PWTS::AMD::AMDThreadData &thdData) const;
-        void deserializeAMDData(QDataStream &ds, DiskData &profile) const;
-        void deserializeAMDCoreData(QDataStream &ds, const DiskData &profile, int version) const;
-        void deserializeAMDThreadData(QDataStream &ds, const DiskData &profile, int version) const;
-        void loadAMDProfileToDaemonPacket(const QSharedPointer<PWTS::AMD::AMDData> &profile, const QSharedPointer<PWTS::AMD::AMDData> &packet) const;
-#ifdef __linux__
-        void serializeLinuxAMDData(QDataStream &ds, const PWTS::ClientPacket &packet) const;
-        void serializeLinuxAMDThreadData(QDataStream &ds, const PWTS::LNX::AMD::LinuxAMDThreadData &thdData) const;
-        void deserializeLinuxAMDData(QDataStream &ds, DiskData &profile) const;
-        void deserializeLinuxAMDThreadData(QDataStream &ds, const DiskData &profile, int version) const;
-        void loadLinuxAMDProfileToDaemonPacket(const QSharedPointer<PWTS::LNX::AMD::LinuxAMDData> &profile, const QSharedPointer<PWTS::LNX::AMD::LinuxAMDData> &packet) const;
-#endif
-#endif
-        void serializeFanData(QDataStream &ds, const PWTS::ClientPacket &packet) const;
-        void deserializeFanData(QDataStream &ds, DiskData &profile) const;
         [[nodiscard]] QByteArray getProfileData(const QString &profile) const;
         [[nodiscard]] DiskData getDiskData(QByteArray &data) const;
         [[nodiscard]] QByteArray createProfileFromPacket(const PWTS::ClientPacket &packet) const;

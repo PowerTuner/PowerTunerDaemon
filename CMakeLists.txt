@@ -77,6 +77,8 @@ set(PROJECT_SOURCES
 	src/Utils/AppDataPath.h
 	src/Utils/AppDataPath.cpp
 
+	src/DiskManagers/ProfileUtils/FAN/ProfileFanUtils.h
+	src/DiskManagers/ProfileUtils/FAN/ProfileFanUtils.cpp
 	src/DiskManagers/ProfileDiskManager.cpp
 	src/DiskManagers/ProfileDiskManager.h
 	src/DiskManagers/DaemonSettingDiskManager.cpp
@@ -120,6 +122,9 @@ if (LINUX)
 
 		src/Service/PowerNotifications/Linux/PowerNotificationsLinux.h
 		src/Service/PowerNotifications/Linux/PowerNotificationsLinux.cpp
+
+		src/DiskManagers/ProfileUtils/OS/ProfileLinuxUtils.h
+		src/DiskManagers/ProfileUtils/OS/ProfileLinuxUtils.cpp
 	)
 
 	if (ENABLE_DBUS_SERVICES)
@@ -157,6 +162,9 @@ elseif (WIN32)
 
 		src/Service/PowerNotifications/Windows/PowerNotificationsWindows.h
 		src/Service/PowerNotifications/Windows/PowerNotificationsWindows.cpp
+
+		src/DiskManagers/ProfileUtils/OS/ProfileWindowsUtils.h
+		src/DiskManagers/ProfileUtils/OS/ProfileWindowsUtils.cpp
 
 		win.rc
 	)
@@ -237,6 +245,9 @@ if (WITH_INTEL)
 
 		src/Device/CPU/Intel/Utils/IntelRegisterUtils.cpp
 		src/Device/CPU/Intel/Utils/IntelRegisterUtils.h
+
+		src/DiskManagers/ProfileUtils/Vendor/ProfileIntelUtils.h
+		src/DiskManagers/ProfileUtils/Vendor/ProfileIntelUtils.cpp
 	)
 endif ()
 
@@ -262,7 +273,17 @@ if (WITH_AMD)
 		src/Device/CPU/AMD/SMU/RyzenAdj.cpp
 		src/Device/CPU/AMD/AMDCPU.h
 		src/Device/CPU/AMD/AMDCPU.cpp
+
+		src/DiskManagers/ProfileUtils/Vendor/ProfileAMDUtils.h
+		src/DiskManagers/ProfileUtils/Vendor/ProfileAMDUtils.cpp
 	)
+
+	if (LINUX)
+		list(APPEND PROJECT_SOURCES
+			src/DiskManagers/ProfileUtils/OS/ProfileLinuxAMDUtils.h
+			src/DiskManagers/ProfileUtils/OS/ProfileLinuxAMDUtils.cpp
+		)
+	endif ()
 endif ()
 
 if (WITH_GPD_FAN)
