@@ -311,7 +311,7 @@ namespace PWTD::AMD {
     void RyzenAdj::applyCoreSettings(const int cpu, const int coreIdx, const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) {
         const PWTS::AMD::AMDCoreData &data = packet.amdData->coreData[cpu];
 
-        if (features.contains(PWTS::Feature::AMD_RY_CO_PER) && !setCurveOptimizerCore(coreIdx, data.curveOptimizer))
+        if (features.contains(PWTS::Feature::AMD_RY_CO_PER) && !setCurveOptimizerCore(cpu, data.curveOptimizer))
             errors.insert(PWTS::DError::W_RY_CO_PER);
     }
 
