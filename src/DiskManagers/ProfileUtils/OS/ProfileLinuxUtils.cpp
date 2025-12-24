@@ -79,8 +79,12 @@ namespace PWTD {
         packet->miscPMDevices = profile->miscPMDevices;
 
         for (const auto &[dev, data]: profile->blockDevicesQueSched.asKeyValueRange()) {
-            if (!packet->blockDevicesQueSched.contains(dev))
+            if (!packet->blockDevicesQueSched.contains(dev)) {
+                if (FileLogger::getInstance()->isLevel(PWTS::LogLevel::Warning))
+                    FileLogger::getInstance()->write(QString("Cannot load queue scheduler for block device: %1, no such device").arg(dev));
+
                 continue;
+            }
 
             packet->blockDevicesQueSched[dev].scheduler = data.scheduler;
         }
@@ -88,7 +92,7 @@ namespace PWTD {
         for (const auto &[gpuIdx, gpuData]: profile->intelGpuData.asKeyValueRange()) {
             if (!packet->intelGpuData.contains(gpuIdx)) {
                 if (FileLogger::getInstance()->isLevel(PWTS::LogLevel::Warning))
-                    FileLogger::getInstance()->write(QString("Cannot load Intel GPU data for card %1, missing on device").arg(gpuIdx));
+                    FileLogger::getInstance()->write(QString("Cannot load Intel GPU data for card %1, no Intel card with this index").arg(gpuIdx));
 
                 continue;
             }
