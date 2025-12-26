@@ -17,6 +17,8 @@
  */
 #pragma once
 
+#include <QVariant>
+
 #include "libryzenadj/ryzenadj.h"
 #include "../../Utils/FileLogger/FileLogger.h"
 #include "pwtShared/Include/Feature.h"
@@ -28,14 +30,10 @@ namespace PWTD::AMD {
     private:
         static constexpr uint32_t curveOptimizerBase = 0x100000;
         QSharedPointer<FileLogger> logger;
+        mutable QHash<int, QVariant> ryTable; // cache for values that may not have a read cmd
         int cpuCoreCount = 0;
-        int ryStaticGfxClock = -1;
-        int ryMinGfxClock = -1;
-        int ryMaxGfxClock = -1;
-        int ryPowerProfile = -1;
-        int ryCOAll = 0;
-        QList<int> ryCOCore;
 
+        void fillRyTableCache() const;
         [[nodiscard]] bool ryzenAdjSet(ADJ_OPT opt, uint32_t value) const;
         [[nodiscard]] bool ryzenAdjSet(ADJ_OPT opt, const PWTS::RWData<int> &data) const;
         [[nodiscard]] bool ryzenAdjSet(ADJ_OPT opt, const PWTS::RWData<uint32_t> &data) const;
@@ -44,14 +42,11 @@ namespace PWTD::AMD {
         [[nodiscard]] bool refreshRyzenAdjTable() const;
         void fillPackageData(const QSet<PWTS::Feature> &features, const PWTS::DaemonPacket &packet) const;
         void fillCoreData(int cpu, const QSet<PWTS::Feature> &features, const PWTS::DaemonPacket &packet) const;
-        void applyPackageSettings(const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors);
-        void applyCoreSettings(int cpu, int coreIdx, const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors);
-        [[nodiscard]] bool setStaticGfxClock(const PWTS::RWData<int> &data);
-        [[nodiscard]] bool setMinGfxClock(const PWTS::RWData<int> &data);
-        [[nodiscard]] bool setMaxGfxClock(const PWTS::RWData<int> &data);
-        [[nodiscard]] bool setPowerProfile(const PWTS::RWData<int> &data);
-        [[nodiscard]] bool setCurveOptimizerAll(const PWTS::RWData<int> &data);
-        [[nodiscard]] bool setCurveOptimizerCore(int cpu, const PWTS::RWData<int> &data);
+        void applyPackageSettings(const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) const;
+        void applyCoreSettings(int cpu, int coreIdx, const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) const;
+        [[nodiscard]] bool setPowerProfile(const PWTS::RWData<int> &data) const;
+        [[nodiscard]] bool setCurveOptimizerAll(const PWTS::RWData<int> &data) const;
+        [[nodiscard]] bool setCurveOptimizerCore(int cpu, const PWTS::RWData<int> &data) const;
 
     public:
         RyzenAdj();
@@ -60,7 +55,7 @@ namespace PWTD::AMD {
         [[nodiscard]] bool init(int numCores);
         [[nodiscard]] QSet<PWTS::Feature> getFeatures();
         void fillPacketData(const QSet<PWTS::Feature> &features, PWTS::DaemonPacket &packet) const;
-        [[nodiscard]] QSet<PWTS::DError> applySettings(const QSet<PWTS::Feature> &features, const QList<int> &coreIdxList, const PWTS::ClientPacket &packet);
+        [[nodiscard]] QSet<PWTS::DError> applySettings(const QSet<PWTS::Feature> &features, const QList<int> &coreIdxList, const PWTS::ClientPacket &packet) const;
         [[nodiscard]] PWTS::ROData<int> getTemperature() const;
     };
 }
