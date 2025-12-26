@@ -195,6 +195,7 @@ namespace PWTD {
         return file;
     }
 
+    // load profile data from file and create a client packet to apply it
     bool ProfileDiskManager::load(const QString &name, PWTS::ClientPacket &packet) const {
         if (path.isEmpty()) {
             if (logger->isLevel(PWTS::LogLevel::Error))
@@ -230,6 +231,7 @@ namespace PWTD {
         return true;
     }
 
+    // load profile data from file and overwrite daemon packet to send to client
     bool ProfileDiskManager::load(const QString &name, PWTS::DaemonPacket &packet) const {
         if (path.isEmpty()) {
             if (logger->isLevel(PWTS::LogLevel::Error))
