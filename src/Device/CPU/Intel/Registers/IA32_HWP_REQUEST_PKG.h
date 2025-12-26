@@ -101,7 +101,7 @@ namespace PWTD::Intel {
 
         [[nodiscard]]
         bool setHWPRequestPkg(const PWTS::RWData<PWTS::Intel::HWPRequestPkg> &data) const {
-            if (!data.isValid())
+            if (!data.isValid() || data.isIgnored())
                 return true;
 
             const PWTS::Intel::HWPRequestPkg hwpReq = data.getValue();

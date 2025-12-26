@@ -127,7 +127,7 @@ namespace PWTD::Intel {
 
         [[nodiscard]]
         bool setHWPRequest(const int cpu, const PWTS::RWData<PWTS::Intel::HWPRequest> &data) const {
-            if (!data.isValid())
+            if (!data.isValid() || data.isIgnored())
                 return true;
 
             const PWTS::Intel::HWPRequest hwpReq = data.getValue();

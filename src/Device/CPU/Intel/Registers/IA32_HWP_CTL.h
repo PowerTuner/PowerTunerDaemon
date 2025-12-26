@@ -78,7 +78,7 @@ namespace PWTD::Intel {
 
         [[nodiscard]]
         bool setHWPCtlBit(const PWTS::RWData<int> &data) const {
-            if (!data.isValid())
+            if (!data.isValid() || data.isIgnored())
                 return true;
 
             ia32HwpCtl regVal {};
