@@ -198,6 +198,8 @@ namespace PWTD {
     void DaemonService::loadProfile(const QString &name) {
         PWTS::DaemonPacket packet = createDaemonPacket();
 
+        packet.hasProfileData = true;
+
         if (!profileDiskMan->load(name, packet)) {
             if (logger->isLevel(PWTS::LogLevel::Error))
                 logger->write(QString("Failed to load profile %1").arg(name));
