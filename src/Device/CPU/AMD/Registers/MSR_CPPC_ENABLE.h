@@ -78,7 +78,7 @@ namespace PWTD::AMD {
 
         [[nodiscard]]
         bool setCPPCEnableBit(const PWTS::RWData<int> &data) const {
-            if (!data.isValid())
+            if (!data.isValid() || data.isIgnored())
                 return true;
 
             cppcEnable regVal {};

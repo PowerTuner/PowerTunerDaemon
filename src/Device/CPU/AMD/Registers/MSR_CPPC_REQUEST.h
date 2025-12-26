@@ -93,7 +93,7 @@ namespace PWTD::AMD {
 
         [[nodiscard]]
         bool setCPPCRequest(const int cpu, const PWTS::RWData<PWTS::AMD::CPPCRequest> &data) const {
-            if (!data.isValid())
+            if (!data.isValid() || data.isIgnored())
                 return true;
 
             const PWTS::AMD::CPPCRequest cppcReq = data.getValue();
