@@ -248,12 +248,8 @@ namespace PWTD::AMD {
                 features.insert(PWTS::Feature::AMD_RY_VRM_SOC_MAX_CURRENT_R);
         }
 
-        if (isWindows() && ryzenadj_can_write(ADJ_OPT_GFX_CLK) == ADJ_OK) {
+        if (isWindows() && ryzenadj_can_write(ADJ_OPT_GFX_CLK) == ADJ_OK)
             features.unite({PWTS::Feature::AMD_RY_STATIC_GFX_CLK_W, PWTS::Feature::AMD_CPU_RY_GROUP});
-
-            if (ryzenadj_can_read(ADJ_OPT_GFX_CLK) == ADJ_OK)
-                features.insert(PWTS::Feature::AMD_RY_STATIC_GFX_CLK_R);
-        }
 
         if (isWindows() && ryzenadj_can_write(ADJ_OPT_MIN_GFXCLK_FREQ) == ADJ_OK) {
             features.unite({PWTS::Feature::AMD_RY_MIN_GFX_CLOCK_W, PWTS::Feature::AMD_CPU_RY_GROUP});
