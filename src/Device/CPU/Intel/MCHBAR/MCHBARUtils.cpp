@@ -43,7 +43,7 @@ namespace PWTD::Intel {
             if (logger->isLevel(PWTS::LogLevel::Error))
                 logger->write(QStringLiteral("pci alloc fail"));
 
-            return -1;
+            return 0;
         }
 
         pci_init(pacc);
@@ -67,7 +67,7 @@ namespace PWTD::Intel {
                 logger->write(QStringLiteral("no pci device found"));
 
             pci_cleanup(pacc);
-            return -1;
+            return 0;
         }
 
         hi = pci_read_word(dev, 0x4a);
@@ -79,13 +79,13 @@ namespace PWTD::Intel {
             if (logger->isLevel(PWTS::LogLevel::Error))
                 logger->write(QStringLiteral("failed to read MCHBAR base address"));
 
-            return -1;
+            return 0;
 
         } else if (!(lo & 0x0001)) {
             if (logger->isLevel(PWTS::LogLevel::Info))
                 logger->write(QStringLiteral("MCHBAR is disabled"));
 
-            return -1;
+            return 0;
         }
 
         return (hi << 16);
@@ -121,21 +121,21 @@ namespace PWTD::Intel {
             if (logger->isLevel(PWTS::LogLevel::Error))
                 logger->write(QString("winring dll error, code: %1").arg(ringDLLStatus));
 
-            return -1;
+            return 0;
         }
 
         if (ReadPciConfigWordEx(dev, 0x4a, &hi) == FALSE || ReadPciConfigWordEx(dev, 0x48, &lo) == FALSE) {
             if (logger->isLevel(PWTS::LogLevel::Error))
                 logger->write(QStringLiteral("failed to read MCHBAR"));
 
-            return -1;
+            return 0;
         }
 
         if (!(lo & 0x0001)) {
             if (logger->isLevel(PWTS::LogLevel::Info))
                 logger->write(QStringLiteral("MCHBAR is disabled"));
 
-            return -1;
+            return 0;
         }
 
         return (hi << 16);
@@ -148,7 +148,7 @@ namespace PWTD::Intel {
 #elif defined(_WIN32)
         return getMCHBARBaseAddressWindows(cpuFamily);
 #else
-        return -1;
+        return 0;
 #endif
     }
 }

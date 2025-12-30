@@ -28,7 +28,7 @@ namespace PWTD::Intel {
     }
 
     bool MCHBAR::init(const int cpuFamily, const int cpuModel) {
-        if (baseAddress == -1 || !MemoryFactory::getInstance()->isAccessible())
+        if (baseAddress == 0 || !MemoryFactory::getInstance()->isAccessible())
             return false;
 
         switch (cpuFamily) {
