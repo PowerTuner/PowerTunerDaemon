@@ -313,6 +313,9 @@ if (${link_dirs_len} GREATER 0)
 	target_link_directories(${PROJECT_NAME} PRIVATE ${LINK_DIRS})
 endif ()
 
+target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:DEBUG>:-Wall -fsanitize=address,undefined -Wno-padded>)
+target_link_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:DEBUG>:-fsanitize=address,undefined>)
+
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${PRIV_DEFS})
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt::Core Qt::Network PWT::Shared cpuid ${LINK_LIBS})
 
