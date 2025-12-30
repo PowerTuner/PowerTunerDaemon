@@ -53,7 +53,7 @@ namespace PWTD {
         const QDirListing dit(basePath, {"*.log"}, QDirListing::IteratorFlag::FilesOnly);
         int i = 0;
 
-        for (const QDirListing::DirEntry &entry: dit)
+        for ([[maybe_unused]] const QDirListing::DirEntry &entry: dit)
             ++i;
 
         return i;
