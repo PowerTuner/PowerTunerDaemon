@@ -25,19 +25,19 @@ namespace PWTD {
     QString getMemorySizeStr(const quint64 size) {
         static constexpr std::array<std::string_view, 6> memUnits {"Bytes", "KB", "MB", "GB", "PB", "TB"};
         double sz = static_cast<double>(size);
-        int sizeIdx = 0;
+        auto unitIt = memUnits.cbegin();
 
         if (size == 0)
             return "";
 
         while (static_cast<quint64>(sz / 1024) > 0) {
             sz /= 1024;
-            ++sizeIdx;
+            ++unitIt;
 
-            if (sizeIdx >= memUnits.size())
+            if (unitIt == memUnits.cend())
                 return "Unknown";
         }
 
-        return QString("%1 %2").arg(QString::number(sz, 'g', 3), memUnits[sizeIdx].data());
+        return QString("%1 %2").arg(QString::number(sz, 'g', 3), unitIt->data());
     }
 }
