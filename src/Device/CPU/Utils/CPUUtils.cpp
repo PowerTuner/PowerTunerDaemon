@@ -22,7 +22,7 @@
 
 namespace PWTD {
     // from rdmsr: https://github.com/intel/msr-tools/blob/master/rdmsr.c
-    static uint64_t _getBitfield(const int maxBit, const unsigned highbit, const unsigned lowbit, uint64_t data) {
+    static uint64_t _getBitfield(const unsigned maxBit, const unsigned highbit, const unsigned lowbit, uint64_t data) {
         const unsigned bits = highbit - lowbit + 1;
 
         if (highbit > maxBit || lowbit > highbit)
@@ -37,7 +37,7 @@ namespace PWTD {
         return data;
     }
 
-    static uint64_t _setBitfield(const int maxBit, const unsigned highbit, const unsigned lowbit, const uint64_t value, uint64_t data) {
+    static uint64_t _setBitfield(const unsigned maxBit, const unsigned highbit, const unsigned lowbit, const uint64_t value, uint64_t data) {
         const unsigned highDiscard = maxBit - highbit;
         uint64_t mask = 0xffffffffffffffff;
         uint64_t vmask;
