@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.23)
 
-project(PowerTunerDaemon VERSION 1.1 DESCRIPTION "Official PowerTuner daemon service" LANGUAGES CXX)
+project(PowerTunerDaemon VERSION 1.2 DESCRIPTION "Official PowerTuner daemon service" LANGUAGES CXX)
 
 option(WITH_INTEL "Enable support for Intel CPUs" ON)
 option(WITH_AMD "Enable support for AMD CPUs" ON)
