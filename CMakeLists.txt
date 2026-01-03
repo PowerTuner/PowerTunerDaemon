@@ -15,6 +15,8 @@ set(CMAKE_AUTOMOC ON)
 set(PRIV_DEFS "")
 set(LINK_LIBS "")
 set(LINK_DIRS "")
+set(DCOMPILE_OPTS "")
+set(DLINK_OPTS "")
 
 find_package(Qt6 6.10 REQUIRED COMPONENTS Core Network)
 
@@ -313,9 +315,16 @@ if (${link_dirs_len} GREATER 0)
 	target_link_directories(${PROJECT_NAME} PRIVATE ${LINK_DIRS})
 endif ()
 
-target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:DEBUG>:-Wall -fsanitize=address,undefined -Wno-padded>)
-target_link_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:DEBUG>:-fsanitize=address,undefined>)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+	list(APPEND DCOMPILE_OPTS /W3 /wo4061)
 
+else (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+	list(APPEND DCOMPILE_OPTS -Wall -fsanitize=address,undefined -Wno-padded)
+	list(APPEND DLINK_OPTS -fsanitize=address,undefined)
+endif ()
+
+target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:DEBUG>:${DCOMPILE_OPTS}>)
+target_link_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:DEBUG>:${DLINK_OPTS}>)
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${PRIV_DEFS})
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt::Core Qt::Network PWT::Shared cpuid ${LINK_LIBS})
 
