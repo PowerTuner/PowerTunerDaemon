@@ -20,7 +20,7 @@
 #include <QSharedPointer>
 
 #include "PowerNotifications.h"
-#ifdef DBUS_SERVICES
+#ifdef ENABLE_DBUS_SERVICES
 #include "Linux/PowerNotificationsLinux.h"
 #elif defined(_WIN32)
 #include "Windows/PowerNotificationsWindows.h"
@@ -36,7 +36,7 @@ namespace PWTD {
 		PowerNotificationsFactory &operator=(const PowerNotificationsFactory &) = delete;
 
 		static QSharedPointer<PowerNotifications> getPowerNotifications() {
-#ifdef DBUS_SERVICES
+#ifdef ENABLE_DBUS_SERVICES
 			return QSharedPointer<LNX::PowerNotificationsLinux>::create();
 #elif defined(_WIN32)
 			return QSharedPointer<WIN::PowerNotificationsWindows>::create();
