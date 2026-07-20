@@ -9,7 +9,7 @@ option(ENABLE_DBUS_SERVICES "Enable support for wake from sleep and battery stat
 option(WITH_SYSTEMD_NOTIFY "Enable systemd notifications, required when running as systemd service" ON)
 
 set(PROJECT_AUTHOR "kylon")
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(PRIV_DEFS "")
