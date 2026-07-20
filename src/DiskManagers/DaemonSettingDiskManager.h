@@ -27,13 +27,14 @@ namespace PWTD {
         const QString signature = "PWTDS";
         QString path;
 
-        DaemonSettingDiskManager();
+        DaemonSettingDiskManager() = default;
 
     public:
         DaemonSettingDiskManager(const DaemonSettingDiskManager &) = delete;
         DaemonSettingDiskManager &operator=(const DaemonSettingDiskManager &) = delete;
 
         [[nodiscard]] static QSharedPointer<DaemonSettingDiskManager> getInstance();
+        void setPath(const QString &dataPath);
         [[nodiscard]] QByteArray load() const;
         [[nodiscard]] bool save(const QByteArray &data) const;
     };

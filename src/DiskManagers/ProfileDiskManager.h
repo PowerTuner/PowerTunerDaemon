@@ -53,7 +53,7 @@ namespace PWTD {
         static constexpr int fileVersion = 1;
         QScopedPointer<QFileSystemWatcher> fsWatcher;
         QScopedPointer<QTimer> fsWatcherEvtTimer;
-        QSharedPointer<FileLogger> logger;
+        std::shared_ptr<FileLogger> logger;
         PWTS::CPUVendor cpuVendor;
         QByteArray deviceHash;
         QString path;
@@ -65,7 +65,7 @@ namespace PWTD {
         [[nodiscard]] QByteArray createProfileFromPacket(const PWTS::ClientPacket &packet) const;
 
     public:
-        ProfileDiskManager(const QByteArray &hash, PWTS::CPUVendor vendor);
+        ProfileDiskManager(const QString &diskPath, const QByteArray &hash, PWTS::CPUVendor vendor);
 
         [[nodiscard]] QString getPath() const { return path; }
 

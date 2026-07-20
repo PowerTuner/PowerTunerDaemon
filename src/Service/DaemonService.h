@@ -34,13 +34,14 @@ namespace PWTD {
     private:
         mutable std::optional<PWTS::ClientPacket> lastClientPacket;
         mutable QString activeProfile;
-        QSharedPointer<FileLogger> logger;
+        std::shared_ptr<FileLogger> logger;
         QSharedPointer<Device> device;
         QScopedPointer<ProfileDiskManager> profileDiskMan;
         QScopedPointer<PWTS::DaemonSettings> daemonSettings;
         QSharedPointer<DaemonSettingDiskManager> daemonSettingDiskMan;
 		QSharedPointer<PowerNotifications> powerNotifications;
         mutable QScopedPointer<QTimer> applyTimer;
+        QString appDataPath;
         QThread *serviceThread = nullptr;
         ServiceWorker *serviceWorker = nullptr;
 
@@ -61,7 +62,7 @@ namespace PWTD {
         void applyDaemonSettings(const QByteArray &data);
 
     public:
-        DaemonService();
+        explicit DaemonService(const QString &dataPath);
         ~DaemonService() override;
 
         void start(bool hasServer, const QString &adr, quint16 port);

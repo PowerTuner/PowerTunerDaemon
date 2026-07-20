@@ -24,7 +24,9 @@
 #include "PowerTunerDaemonLinux.h"
 
 namespace PWTD {
-    PowerTunerDaemonLinux::PowerTunerDaemonLinux() {
+    PowerTunerDaemonLinux::PowerTunerDaemonLinux(const QString &dataPath) {
+        appDataPath = dataPath;
+
         std::signal(SIGTERM, sigterm);
         std::signal(SIGINT, sigterm);
         std::signal(SIGABRT, sigterm);
@@ -49,7 +51,7 @@ namespace PWTD {
     }
 
     int PowerTunerDaemonLinux::run() {
-        service.reset(new DaemonService);
+        service.reset(new DaemonService(appDataPath));
         service->start(!cmdNoClients, cmdAdr, cmdPort);
 #ifdef SYSTEMD_NOTIFY
         if (cmdSystemdDaemon && sd_notify(0, "READY=1") < 0) {

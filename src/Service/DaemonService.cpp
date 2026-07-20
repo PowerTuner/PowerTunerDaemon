@@ -18,18 +18,20 @@
 #include "../../version.h"
 #include "DaemonService.h"
 #include "../Utils/DaemonUtils.h"
-#include "../Utils/AppDataPath.h"
 #include "PowerNotifications/PowerNotificationsFactory.h"
 #include "pwtShared/Utils.h"
 
 namespace PWTD {
-    DaemonService::DaemonService() {
+    DaemonService::DaemonService(const QString &dataPath) {
+        appDataPath = dataPath;
         device = Device::getDevice();
         logger = FileLogger::getInstance();
 		powerNotifications = PowerNotificationsFactory::getPowerNotifications();
         daemonSettingDiskMan = DaemonSettingDiskManager::getInstance();
 
-        profileDiskMan.reset(new ProfileDiskManager(device->getDeviceHash(), device->getCPUVendor()));
+        logger->setOutput(appDataPath);
+        daemonSettingDiskMan->setPath(appDataPath);
+        profileDiskMan.reset(new ProfileDiskManager(dataPath, device->getDeviceHash(), device->getCPUVendor()));
         daemonSettings.reset(new PWTS::DaemonSettings);
     }
 
@@ -140,7 +142,7 @@ namespace PWTD {
         packet.daemonMinorVersion = PWTD_VER_MINOR;
         packet.daemonPwtsMajorVersion = PWTS::getLibMajorVersion();
         packet.daemonPwtsMinorVersion = PWTS::getLibMinorVersion();
-        packet.daemonDataPath = AppDataPath::appDataLocation();
+        packet.daemonDataPath = appDataPath;
         packet.daemonSettings = daemonSettings->getData();
         packet.sysInfo = *(device->getSystemInfo());
         packet.dynSysInfo = device->getDynamicSystemInfo();
@@ -325,7 +327,8 @@ namespace PWTD {
         if (!daemonSettings->load(daemonSettingDiskMan->load()))
             qWarning("Failed to load daemon settings, using defaults");
 
-        logger->init(daemonSettings->getLogLevel(), daemonSettings->getMaxLogFiles());
+        logger->setLevel(daemonSettings->getLogLevel());
+        logger->init();
 
         if (logger->isLevel(PWTS::LogLevel::Service))
             logger->write(QString("Profiles directory: %1").arg(profileDiskMan->getPath()));

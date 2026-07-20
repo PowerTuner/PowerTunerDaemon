@@ -17,7 +17,6 @@
  */
 #pragma once
 
-#include <QCoreApplication>
 #include <QCommandLineParser>
 
 #include "../Service/DaemonService.h"

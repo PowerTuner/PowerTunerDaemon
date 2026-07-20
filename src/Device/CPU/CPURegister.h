@@ -24,7 +24,7 @@ namespace PWTD {
     class CPURegister {
     protected:
         QSharedPointer<MSR> msrUtils;
-        QSharedPointer<FileLogger> logger;
+        std::shared_ptr<FileLogger> logger;
         uint32_t addr;
 
     public:

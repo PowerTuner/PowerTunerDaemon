@@ -16,17 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "PowerTunerDaemon.h"
-#include "../Utils/AppDataPath.h"
 
 namespace PWTD {
     PowerTunerDaemon::PowerTunerDaemon() {
-        const QString appDataPath = AppDataPath::appDataLocation();
-
-        if (appDataPath.isEmpty())
-            qWarning("No writable app data location found, unable to write files to disk");
-        else
-            qWarning() << "App data location: " << appDataPath;
-
         cmdParser.reset(new QCommandLineParser);
     }
 

@@ -22,6 +22,10 @@
 #include "PowerTunerDaemonWindows.h"
 
 namespace PWTD {
+    PowerTunerDaemonWindows::PowerTunerDaemonWindows(const QString &dataPath) {
+        appDataPath = dataPath;
+    }
+
     PowerTunerDaemonWindows::~PowerTunerDaemonWindows() {
         if (svcThread == nullptr)
             return;
@@ -121,7 +125,7 @@ namespace PWTD {
             std::signal(SIGABRT, sigterm);
 
             sigNotifier.reset(new SignalNotifier);
-            service.reset(new DaemonService);
+            service.reset(new DaemonService(appDataPath));
 
             QObject::connect(sigNotifier.get(), &SignalNotifier::sigTermReceived, this, &PowerTunerDaemonWindows::onSigTerm);
 
@@ -129,7 +133,7 @@ namespace PWTD {
 
         } else {
             svcThread = new QThread();
-            svcWorker = new SVCWorker(cmdNoClients, cmdAdr, cmdPort);
+            svcWorker = new SVCWorker(appDataPath, cmdNoClients, cmdAdr, cmdPort);
 
             svcWorker->moveToThread(svcThread);
 

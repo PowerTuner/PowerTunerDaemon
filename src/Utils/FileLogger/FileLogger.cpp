@@ -15,83 +15,49 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <QDir>
+#include <QFileInfo>
 
 #include "FileLogger.h"
-#include "../AppDataPath.h"
 
 namespace PWTD {
-    FileLogger::FileLogger() {
-        basePath = AppDataPath::appDataLocation();
-
-        if (basePath.isEmpty())
-            qWarning("no log file path");
-    }
-
     FileLogger::~FileLogger() {
         logFile.close();
     }
 
-    void FileLogger::deleteOldestLogFile() const {
-        const QDirListing dit(basePath, {"*.log"}, QDirListing::IteratorFlag::FilesOnly);
-        QDateTime birth = QDateTime::currentDateTime();
-        QString oldest;
-
-        for (const QDirListing::DirEntry &entry: dit) {
-            if (entry.fileInfo().birthTime() >= birth)
-                continue;
-
-            birth = entry.fileInfo().birthTime();
-            oldest = entry.filePath();
-        }
-
-        if (!oldest.isEmpty() && !QFile::remove(oldest))
-            qWarning("failed to delete oldest log");
-    }
-
-    int FileLogger::getLogFileCount() const {
-        const QDirListing dit(basePath, {"*.log"}, QDirListing::IteratorFlag::FilesOnly);
-        int i = 0;
-
-        for ([[maybe_unused]] const QDirListing::DirEntry &entry: dit)
-            ++i;
-
-        return i;
-    }
-
-    QSharedPointer<FileLogger> FileLogger::getInstance() {
-        if (instance.isNull())
+    std::shared_ptr<FileLogger> FileLogger::getInstance() {
+        if (!instance)
             instance.reset(new FileLogger);
 
         return instance;
     }
 
-    void FileLogger::init(const PWTS::LogLevel lvl, const int maxFiles) {
-        if (basePath.isEmpty())
+    void FileLogger::init() {
+        if (logDir.isEmpty())
             return;
 
         logFile.close();
 
-        level = lvl;
-        maxLogFiles = maxFiles;
-
         if (level == PWTS::LogLevel::None)
             return;
 
-        const QString logPath = QString("%1/powertunerd-%2.log").arg(basePath, QDateTime::currentDateTime().toString("ddd_MMMM_d_yyyy_hh_mm_ss"));
+        const QString oldLog = QString("%1/powertunerd.log.old").arg(logDir);
+        const QString newLog = QString("%1/powertunerd.log").arg(logDir);
 
-        logFile.setFileName(logPath);
-
-        if (getLogFileCount() >= maxLogFiles)
-            deleteOldestLogFile();
+        QFile::remove(oldLog);
+        QFile::rename(newLog, oldLog);
+        logFile.setFileName(newLog);
 
         if (!logFile.open(QFile::Text | QFile::WriteOnly)) {
-            qWarning() << QString("cannot open log file %1 for write: %2").arg(logPath, logFile.errorString());
+            qWarning() << QString("cannot open log file %1 for write: %2").arg(newLog, logFile.errorString());
             level = PWTS::LogLevel::None;
 
         } else {
             ts.setDevice(&logFile);
         }
+    }
+
+    void FileLogger::setOutput(const QString &path) {
+        logDir = path;
     }
 
     void FileLogger::setLevel(const PWTS::LogLevel lvl) {
@@ -103,11 +69,8 @@ namespace PWTD {
     }
 
     void FileLogger::write(const QString &msg, const std::source_location source) {
-        if (!logFile.isOpen() || level == PWTS::LogLevel::None)
+        if (!logFile.isOpen())
             return;
-
-        if (logFile.size() >= limit)
-            init(level, maxLogFiles);
 
         const QFileInfo srcFInfo {source.file_name()};
 

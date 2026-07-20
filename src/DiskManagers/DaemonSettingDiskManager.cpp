@@ -18,15 +18,14 @@
 #include <QCryptographicHash>
 
 #include "DaemonSettingDiskManager.h"
-#include "../Utils/AppDataPath.h"
 #include "pwtShared/Utils.h"
 
 namespace PWTD {
-    DaemonSettingDiskManager::DaemonSettingDiskManager() {
-        path = AppDataPath::appDataLocation();
+    void DaemonSettingDiskManager::setPath(const QString &dataPath) {
+        if (dataPath.isEmpty())
+            return;
 
-        if (!path.isEmpty())
-            path.append("/powertuner.pwtd");
+        path = QString("%1/powertuner.pwtd").arg(dataPath);
     }
 
     QSharedPointer<DaemonSettingDiskManager> DaemonSettingDiskManager::getInstance() {

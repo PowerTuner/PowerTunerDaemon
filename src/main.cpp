@@ -15,6 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#include  <QDir>
+
 #ifdef __linux__
 #include "Daemon/Linux/PowerTunerDaemonLinux.h"
 #elif defined(_WIN32)
@@ -27,6 +29,33 @@
 #include "DiskManagers/DaemonSettingDiskManager.h"
 #include "Utils/FileLogger/FileLogger.h"
 
+[[nodiscard]]
+static QString getAppDataPath() {
+    const QList<QString> locations = {
+#ifdef _WIN32
+        QString("C:/ProgramData/%1").arg(QCoreApplication::applicationName()),
+#elifdef  __linux__
+        QString("%1/%2").arg("/var/lib", QCoreApplication::applicationName()),
+#endif
+        QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation),
+        QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation),
+        QString("%1/%2").arg(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), QCoreApplication::applicationName())
+    };
+    const QDir qdir;
+
+    for (const QString &loc: locations) {
+        if (!loc.isEmpty() && (qdir.exists(loc) || qdir.mkdir(loc))) {
+            qWarning() << "App data location: " << loc;
+            return loc;
+        }
+
+        qWarning() << QString("%1: %2 is not writable").arg(__func__, loc);
+    }
+
+    qWarning("No writable location found, unable to write files to disk");
+    return "";
+}
+
 int main(int argc, char *argv[]) {
     QCoreApplication::setApplicationName("PowerTunerDaemon");
     qRegisterMetaType<PWTS::DeviceInfoPacket>();
@@ -38,6 +67,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    const QString dataPath = getAppDataPath();
+    const std::shared_ptr<PWTD::FileLogger> logger = PWTD::FileLogger::getInstance();
     const QScopedPointer<PWTD::ProcessStatus> procStatus(new PWTD::ProcessStatus);
     const QLockFile::LockError isRunning = procStatus->isAlreadyRunning();
     QScopedPointer<PWTS::DaemonSettings> settings = QScopedPointer<PWTS::DaemonSettings>(new PWTS::DaemonSettings);
@@ -51,9 +82,11 @@ int main(int argc, char *argv[]) {
     }
 
     if (!settings->load(PWTD::DaemonSettingDiskManager::getInstance()->load()))
-        qWarning("Failed to load daemon settings, using default log settings");
+        qWarning("Failed to load daemon settings, using defaults");
 
-    PWTD::FileLogger::getInstance()->init(settings->getLogLevel(), settings->getMaxLogFiles());
+    logger->setOutput(dataPath);
+    logger->setLevel(settings->getLogLevel());
+    logger->init();
 
     device = PWTD::Device::getDevice();
     if (!device->isCPUSupported()) {
@@ -69,9 +102,9 @@ int main(int argc, char *argv[]) {
 
     settings.reset();
 #ifdef __linux__
-    daemonSvc.reset(new PWTD::PowerTunerDaemonLinux);
-#elif defined(_WIN32)
-    daemonSvc.reset(new PWTD::PowerTunerDaemonWindows);
+    daemonSvc.reset(new PWTD::PowerTunerDaemonLinux(dataPath));
+#elifdef _WIN32
+    daemonSvc.reset(new PWTD::PowerTunerDaemonWindows(dataPath));
 #endif
 
     daemonSvc->setupCmdArgs();

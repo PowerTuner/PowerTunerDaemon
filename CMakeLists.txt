@@ -76,8 +76,6 @@ set(PROJECT_SOURCES
 	src/Utils/ProcessStatus.h
 	src/Utils/FileLogger/FileLogger.h
 	src/Utils/FileLogger/FileLogger.cpp
-	src/Utils/AppDataPath.h
-	src/Utils/AppDataPath.cpp
 
 	src/DiskManagers/ProfileUtils/FAN/ProfileFanUtils.h
 	src/DiskManagers/ProfileUtils/FAN/ProfileFanUtils.cpp

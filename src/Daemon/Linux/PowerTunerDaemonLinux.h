@@ -29,12 +29,13 @@ namespace PWTD {
 #ifdef SYSTEMD_NOTIFY
         bool cmdSystemdDaemon = false;
 #endif
+        QString appDataPath;
 
         static void sigterm([[maybe_unused]] int sig) { sigNotifier->signalSigTerm(); }
         static void sigHup([[maybe_unused]] int sig) { sigNotifier->signalSigHup(); }
 
     public:
-        PowerTunerDaemonLinux();
+        explicit PowerTunerDaemonLinux(const QString &dataPath);
 
         void setupCmdArgs() const override;
         void parseCmdArgs(const QCoreApplication &app) override;

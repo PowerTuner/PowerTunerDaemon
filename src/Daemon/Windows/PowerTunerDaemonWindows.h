@@ -27,6 +27,7 @@ namespace PWTD {
 
     private:
         static inline QScopedPointer<SignalNotifier> sigNotifier;
+        QString appDataPath;
         QThread *svcThread = nullptr;
         SVCWorker *svcWorker = nullptr;
         bool cmdInstallSvc = false;
@@ -38,6 +39,7 @@ namespace PWTD {
         static void sigterm([[maybe_unused]] int sig) { sigNotifier->signalSigTerm(); }
 
     public:
+        explicit PowerTunerDaemonWindows(const QString &dataPath);
         ~PowerTunerDaemonWindows() override;
 
         void setupCmdArgs() const override;

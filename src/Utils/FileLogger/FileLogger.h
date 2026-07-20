@@ -17,7 +17,6 @@
  */
 #pragma once
 
-#include <QSharedPointer>
 #include <QTextStream>
 #include <QFile>
 #include <source_location>
@@ -27,18 +26,13 @@
 namespace PWTD {
     class FileLogger final {
     private:
-        inline static QSharedPointer<FileLogger> instance;
-        static constexpr qint64 limit = 50 * 1000 * 1000;
+        inline static std::shared_ptr<FileLogger> instance;
         PWTS::LogLevel level = PWTS::LogLevel::None;
-        int maxLogFiles = 5;
-        QString basePath;
+        QString logDir;
         QTextStream ts;
         QFile logFile;
 
-        FileLogger();
-
-        void deleteOldestLogFile() const;
-        [[nodiscard]] int getLogFileCount() const;
+        FileLogger() = default;
 
     public:
         FileLogger(const FileLogger &) = delete;
@@ -46,8 +40,9 @@ namespace PWTD {
 
         ~FileLogger();
 
-        [[nodiscard]] static QSharedPointer<FileLogger> getInstance();
-        void init(PWTS::LogLevel lvl, int maxFiles);
+        [[nodiscard]] static std::shared_ptr<FileLogger> getInstance();
+        void init();
+        void setOutput(const QString &path);
         void setLevel(PWTS::LogLevel lvl);
         [[nodiscard]] bool isLevel(PWTS::LogLevel lvl) const;
         void write(const QString &msg, std::source_location source = std::source_location::current());

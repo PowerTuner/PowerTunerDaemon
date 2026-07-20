@@ -31,7 +31,7 @@ namespace PWTD::LNX {
         QScopedPointer<QDBusServiceWatcher> dbusWatcher;
         QScopedPointer<QDBusInterface> upowerDBus;
         QScopedPointer<QDBusInterface> login1Dbus;
-        QSharedPointer<FileLogger> logger;
+        std::shared_ptr<FileLogger> logger;
         bool prevIsOnBattery = false;
 
         void initDBusServicesConnections();

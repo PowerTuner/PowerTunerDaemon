@@ -32,7 +32,7 @@ namespace PWTD::Intel {
 #ifdef __linux__
     [[nodiscard]]
     static uint32_t getMCHBARBaseAddressLinux() {
-        const QSharedPointer<FileLogger> logger = FileLogger::getInstance();
+        const std::shared_ptr<FileLogger> logger = FileLogger::getInstance();
         struct pci_access *pacc = pci_alloc();
         struct pci_filter filter {};
         bool foundDev = false;
@@ -112,7 +112,7 @@ namespace PWTD::Intel {
         if (wkAddr != 0)
             return wkAddr;
 
-        const QSharedPointer<FileLogger> logger = FileLogger::getInstance();
+        const std::shared_ptr<FileLogger> logger = FileLogger::getInstance();
         const DWORD dev = PciBusDevFunc(0, 0, 0);
         const DWORD ringDLLStatus = GetDllStatus();
         WORD hi, lo;

@@ -15,12 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <QDirListing>
 #include <QCryptographicHash>
 #include <QDir>
 
 #include "ProfileDiskManager.h"
-#include "../Utils/AppDataPath.h"
 #include "pwtShared/Utils.h"
 #include "ProfileUtils/FAN/ProfileFanUtils.h"
 #ifdef __linux__
@@ -39,10 +37,12 @@
 #endif
 
 namespace PWTD {
-    ProfileDiskManager::ProfileDiskManager(const QByteArray &hash, const PWTS::CPUVendor vendor) {
+    using namespace Qt::StringLiterals;
+
+    ProfileDiskManager::ProfileDiskManager(const QString &diskPath, const QByteArray &hash, const PWTS::CPUVendor vendor) {
         const QDir qdir;
 
-        path = AppDataPath::appDataLocation();
+        path = diskPath;
         logger = FileLogger::getInstance();
         cpuVendor = vendor;
         deviceHash = hash;
@@ -50,11 +50,11 @@ namespace PWTD {
         if (path.isEmpty())
             return;
 
-        path.append("/profiles");
+        path.append(u"/profiles"_s);
 
         if (!qdir.exists(path) && !qdir.mkdir(path)) {
             if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QStringLiteral("Failed to create profiles folder, cannot create/load profiles!"));
+                logger->write(u"Failed to create profiles folder, cannot save/load profiles!"_s);
 
             path.clear();
             return;

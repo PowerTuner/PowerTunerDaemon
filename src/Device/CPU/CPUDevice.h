@@ -28,7 +28,7 @@
 namespace PWTD {
     class CPUDevice {
     protected:
-        QSharedPointer<FileLogger> logger;
+        std::shared_ptr<FileLogger> logger;
         QSharedPointer<PWTS::CpuInfo> cpuInfo;
         QSharedPointer<cpu_raw_data_t> cpuidRaw;
         QSharedPointer<MSR> msrDev;

@@ -33,7 +33,7 @@ namespace PWTD::WIN {
 		};
 
 		static inline BYTE oldACLineStatus = static_cast<BYTE>(ACLine::Unknown);
-		static inline QSharedPointer<FileLogger> logger;
+		static inline std::shared_ptr<FileLogger> logger;
 		HPOWERNOTIFY powerSuspendResumeNotificationHandle;
 		HPOWERNOTIFY powerACDCNotificationHandle;
 

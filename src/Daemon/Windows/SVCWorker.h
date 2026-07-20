@@ -31,6 +31,7 @@ namespace PWTD {
         static inline SERVICE_STATUS_HANDLE svcStatusHandle = nullptr;
         static inline DWORD currentState = SERVICE_STOPPED;
         static inline DWORD checkpoint = 1;
+        static inline QString appDataPath;
         static inline bool srvNoClients;
         static inline QString srvAdr;
         static inline quint16 srvPort;
@@ -41,7 +42,7 @@ namespace PWTD {
         static VOID WINAPI svcMain(DWORD dwArgc, LPTSTR *lpszArgv);
 
     public:
-        SVCWorker(bool cmdNoClients, const QString &cmdAdr, quint16 cmdPort);
+        SVCWorker(const QString &dataPath, bool cmdNoClients, const QString &cmdAdr, quint16 cmdPort);
 
         void start();
 
