@@ -19,8 +19,6 @@ It is possible to run multiple clients and connect each of them to a different d
 
 Start a client in any of your devices, or local device, and connect to the daemon:
 
-CLI: [PowerTunerCLI](https://github.com/PowerTuner/PowerTunerCLI)
-
 desktop: [PowerTunerClient](https://github.com/PowerTuner/PowerTunerClient)
 
 console (gaming): [PowerTunerConsole](https://github.com/PowerTuner/PowerTunerConsole)
@@ -127,20 +125,11 @@ Apply interval:                 Re-apply last applied settings every X seconds.
 Apply on wake from sleep:       Apply last applied settings on wake from sleep.
 Ignore battery events:          Don't apply battery/power supply profiles.
 Log level:                      Daemon logging level.
-Max. log files:                 Maximum number of log files to keep on disk.
 TCP port:                       TCP server port.
 UDP port:                       [placeholder for future feature]
 ```
 
 Change daemon settings from one of its clients.
-
-## Logs
-
-Logs are saved to:
-
-```text
-C:\ProgramData\PowerTunerDaemon
-```
 
 ## winring0
 
