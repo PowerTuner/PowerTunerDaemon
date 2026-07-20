@@ -36,10 +36,10 @@ namespace PWTD {
         static inline QString srvAdr;
         static inline quint16 srvPort;
 
-        static VOID svcEventLog(const TCHAR *msg, WORD type);
+        static VOID svcEventLog(const wchar_t *msg, WORD type);
         static VOID reportSvcStatus(DWORD state, DWORD exitCode, DWORD waitHint);
         static DWORD WINAPI svcCtrlHandler(DWORD control, DWORD evtType, LPVOID evtData, LPVOID context);
-        static VOID WINAPI svcMain(DWORD dwArgc, LPTSTR *lpszArgv);
+        static VOID WINAPI svcMain(DWORD dwArgc, LPWSTR *lpszArgv);
 
     public:
         SVCWorker(const QString &dataPath, bool cmdNoClients, const QString &cmdAdr, quint16 cmdPort);

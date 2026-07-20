@@ -41,10 +41,10 @@ namespace PWTD::WIN {
 			{.Data1 = 0x12BBEBE6, .Data2 = 0x58D6, .Data3 = 0x4636, .Data4 = {0x95, 0xBB, 0x32, 0x17, 0xEF, 0x86, 0x7C, 0x1A}}, // wlansvc
 			{.Data1 = 0x309DCE9B, .Data2 = 0xBEF4, .Data3 = 0x4119, .Data4 = {0x99, 0x21, 0xA8, 0x51, 0xFB, 0x12, 0xF0, 0xF4}} // power setting name (placeholder?)
 		}};
-		static constexpr TCHAR regSystem[] = LR"(HARDWARE\DESCRIPTION\System\)";
-		static constexpr TCHAR regBIOS[] = LR"(HARDWARE\DESCRIPTION\System\BIOS)";
-		static constexpr TCHAR regSystemClass[] = LR"(SYSTEM\CurrentControlSet\Control\Class\)";
-		static constexpr TCHAR regPowerSettings[] = LR"(SYSTEM\CurrentControlSet\Control\Power\PowerSettings)";
+		static constexpr wchar_t regSystem[] = LR"(HARDWARE\DESCRIPTION\System\)";
+		static constexpr wchar_t regBIOS[] = LR"(HARDWARE\DESCRIPTION\System\BIOS)";
+		static constexpr wchar_t regSystemClass[] = LR"(SYSTEM\CurrentControlSet\Control\Class\)";
+		static constexpr wchar_t regPowerSettings[] = LR"(SYSTEM\CurrentControlSet\Control\Power\PowerSettings)";
 		const QRegularExpression gpuVendorIDRex {R"(ven_([\w\d]+))"};
 		const QRegularExpression gpuDeviceIDRex {R"(dev_([\w\d]+))"};
 		const QRegularExpression gpuRevisionIDRex {R"(rev_([\w\d]+))"};

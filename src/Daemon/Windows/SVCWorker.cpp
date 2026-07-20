@@ -29,10 +29,10 @@ namespace PWTD {
         srvPort = cmdPort;
     }
 
-    VOID SVCWorker::svcEventLog(const TCHAR *msg, const WORD type) {
+    VOID SVCWorker::svcEventLog(const wchar_t *msg, const WORD type) {
         HANDLE hEventSource = RegisterEventSource(nullptr, SVCNAME);
         std::wstring logMsg;
-        LPCTSTR msgData[2];
+        LPCWSTR msgData[2];
 
         if (hEventSource == nullptr)
             return;
@@ -45,7 +45,7 @@ namespace PWTD {
         msgData[0] = SVCNAME;
         msgData[1] = logMsg.c_str();
 
-        ReportEvent(hEventSource, type, 0, 63010, nullptr, 2, 0, msgData, nullptr);
+        ReportEventW(hEventSource, type, 0, 63010, nullptr, 2, 0, msgData, nullptr);
         DeregisterEventSource(hEventSource);
     }
 
@@ -98,8 +98,8 @@ namespace PWTD {
         return NO_ERROR;
     }
 
-    VOID WINAPI SVCWorker::svcMain([[maybe_unused]] const DWORD dwArgc, [[maybe_unused]] LPTSTR *lpszArgv) {
-        svcStatusHandle = RegisterServiceCtrlHandlerEx(SVCNAME, svcCtrlHandler, nullptr);
+    VOID WINAPI SVCWorker::svcMain([[maybe_unused]] const DWORD dwArgc, [[maybe_unused]] LPWSTR *lpszArgv) {
+        svcStatusHandle = RegisterServiceCtrlHandlerExW(SVCNAME, svcCtrlHandler, nullptr);
         if (!svcStatusHandle) {
             svcEventLog(L"Failed to get status handle", EVENTLOG_ERROR_TYPE);
             reportSvcStatus(SERVICE_STOPPED, NO_ERROR, 500);
@@ -121,7 +121,7 @@ namespace PWTD {
     }
 
     void SVCWorker::start() {
-        TCHAR name[] = L"";
+        wchar_t name[] = L"";
         SERVICE_TABLE_ENTRY svcTable[] = {
             {name, svcMain},
             {nullptr, nullptr}
@@ -131,7 +131,7 @@ namespace PWTD {
 
         QObject::connect(svcSigHandler.get(), &SVCSigHandler::svcStopped, this, &SVCWorker::onSvcStopped);
 
-        if (!StartServiceCtrlDispatcher(svcTable)) {
+        if (!StartServiceCtrlDispatcherW(svcTable)) {
             svcEventLog(std::format(L"Failed to start svc: error {}", GetLastError()).c_str(), EVENTLOG_ERROR_TYPE);
             emit svcStopped();
         }

@@ -21,7 +21,7 @@
 
 namespace PWTD::WIN {
     MemoryWindows::MemoryWindows() {
-        inpOutDll = LoadLibrary(L"inpoutx64.dll");
+        inpOutDll = LoadLibraryW(L"inpoutx64.dll");
 
         if (inpOutDll == nullptr)
             return;

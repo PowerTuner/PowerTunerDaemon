@@ -298,7 +298,7 @@ namespace PWTD::WIN {
 
 	QMap<QString, OSWindows::SchemeGUID> OSWindows::enumeratePowerSchemesAll(HKEY hkey) const {
     	QMap<QString, SchemeGUID> guidMap;
-    	std::unique_ptr<TCHAR[]> buf;
+    	std::unique_ptr<wchar_t[]> buf;
     	DWORD maxKeySz;
     	LSTATUS ret;
     	int i = 0;
@@ -312,8 +312,8 @@ namespace PWTD::WIN {
     		return {};
     	}
 
-    	maxKeySz += sizeof(TCHAR);
-    	buf = std::make_unique<TCHAR[]>(maxKeySz);
+    	maxKeySz += sizeof(wchar_t);
+    	buf = std::make_unique<wchar_t[]>(maxKeySz);
 
     	while (true) {
     		DWORD bufSz = maxKeySz;
@@ -377,7 +377,7 @@ namespace PWTD::WIN {
     	HKEY hkey;
 
     	// to catch hidden schemes we cant use powerenumerate
-    	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, LR"(SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes)", 0, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE, &hkey) == ERROR_SUCCESS)
+    	if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, LR"(SYSTEM\CurrentControlSet\Control\Power\User\PowerSchemes)", 0, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE, &hkey) == ERROR_SUCCESS)
     		return enumeratePowerSchemesAll(hkey);
 
     	return enumeratePowerSchemesPartial();
@@ -404,7 +404,7 @@ namespace PWTD::WIN {
 			return nullptr;
 		}
 
-		ret = PowerWriteFriendlyName(nullptr, guid, nullptr, nullptr, reinterpret_cast<PUCHAR>(wname.data()), (wname.size() + 1) * sizeof(TCHAR));
+		ret = PowerWriteFriendlyName(nullptr, guid, nullptr, nullptr, reinterpret_cast<PUCHAR>(wname.data()), (wname.size() + 1) * sizeof(wchar_t));
 		if (ret != ERROR_SUCCESS) {
 			if (logger->isLevel(PWTS::LogLevel::Error))
 				logger->write(QString("cannot write friendly name for %1, code %2").arg(name).arg(ret));
@@ -464,14 +464,14 @@ namespace PWTD::WIN {
     	}
 
     	*result = false;
-    	ret = RegOpenKeyEx(HKEY_LOCAL_MACHINE, subKey.toStdWString().c_str(), 0, KEY_QUERY_VALUE, &rkey);
+    	ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, subKey.toStdWString().c_str(), 0, KEY_QUERY_VALUE, &rkey);
 
     	if (ret != ERROR_SUCCESS) {
     		RegCloseKey(rkey);
     		return ret;
     	}
 
-    	ret = RegQueryValueEx(rkey, L"ValueIncrement", nullptr, nullptr, nullptr, nullptr);
+    	ret = RegQueryValueExW(rkey, L"ValueIncrement", nullptr, nullptr, nullptr, nullptr);
     	*result = (ret == ERROR_SUCCESS);
 
     	RegCloseKey(rkey);
@@ -529,16 +529,16 @@ namespace PWTD::WIN {
     }
 
     void OSWindows::setDisplayGUID() {
-    	constexpr TCHAR displayStr[] = L"Display";
+    	constexpr wchar_t displayStr[] = L"Display";
     	constexpr size_t displayLen = std::wstring_view(displayStr).size();
         constexpr DWORD buffSz = 255;
-        TCHAR nameBuf[buffSz] = {};
-        TCHAR valueBuf[buffSz] = {};
+        wchar_t nameBuf[buffSz] = {};
+        wchar_t valueBuf[buffSz] = {};
         DWORD idx = 0;
         HKEY hkey;
         LSTATUS ret;
 
-        ret = RegOpenKeyEx(HKEY_LOCAL_MACHINE, regSystemClass, 0, KEY_ENUMERATE_SUB_KEYS, &hkey);
+        ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, regSystemClass, 0, KEY_ENUMERATE_SUB_KEYS, &hkey);
         if (ret != ERROR_SUCCESS)
             return;
 
@@ -546,16 +546,16 @@ namespace PWTD::WIN {
             DWORD bufSz = buffSz;
             HKEY subKey;
 
-            ret = RegEnumKeyEx(hkey, idx++, nameBuf, &bufSz, nullptr, nullptr, nullptr, nullptr);
+            ret = RegEnumKeyExW(hkey, idx++, nameBuf, &bufSz, nullptr, nullptr, nullptr, nullptr);
             if (ret != ERROR_SUCCESS)
                 break;
 
-            ret = RegOpenKeyEx(HKEY_LOCAL_MACHINE, std::format(L"{}{}", regSystemClass, nameBuf).c_str(), 0, KEY_READ, &subKey);
+            ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, std::format(L"{}{}", regSystemClass, nameBuf).c_str(), 0, KEY_READ, &subKey);
             if (ret != ERROR_SUCCESS)
                 continue;
 
             bufSz = buffSz;
-            ret = RegGetValue(subKey, nullptr, L"class", RRF_RT_REG_SZ, nullptr, valueBuf, &bufSz);
+            ret = RegGetValueW(subKey, nullptr, L"class", RRF_RT_REG_SZ, nullptr, valueBuf, &bufSz);
 
             RegCloseKey(subKey);
 
@@ -787,13 +787,13 @@ namespace PWTD::WIN {
             return {};
 
         constexpr DWORD buffSz = 255;
-        TCHAR buf[buffSz] = {0};
+        wchar_t buf[buffSz] = {0};
         DWORD idx = 0;
         QList<int> idxList;
         HKEY hkey;
         LSTATUS ret;
 
-        ret = RegOpenKeyEx(HKEY_LOCAL_MACHINE, QString("%1%2").arg(regSystemClass, displayGUID).toStdWString().c_str(), 0, KEY_ENUMERATE_SUB_KEYS, &hkey);
+        ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, QString("%1%2").arg(regSystemClass, displayGUID).toStdWString().c_str(), 0, KEY_ENUMERATE_SUB_KEYS, &hkey);
         if (ret != ERROR_SUCCESS)
             return {};
 
@@ -802,7 +802,7 @@ namespace PWTD::WIN {
             int gpuIdx;
             bool res;
 
-            ret = RegEnumKeyEx(hkey, idx++, buf, &bufSz, nullptr, nullptr, nullptr, nullptr);
+            ret = RegEnumKeyExW(hkey, idx++, buf, &bufSz, nullptr, nullptr, nullptr, nullptr);
             if (ret != ERROR_SUCCESS)
                 break;
 
