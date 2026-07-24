@@ -224,7 +224,6 @@ Options:
   --help-all      Displays help, including generic Qt options.
   -a <address>    listen on address|localhost|any, default any
   -p <port>       port, default 56000
-  --nc            disable client connection, no TCP/UDP server
   --installsvc    Install PowerTunerDaemon service
   --uninstallsvc  Uninstall PowerTunerDaemon service
   --startsvc      Start PowerTunerDaemon service
