@@ -26,7 +26,6 @@ namespace PWTD {
     protected:
         QScopedPointer<DaemonService> service;
         QScopedPointer<QCommandLineParser> cmdParser;
-        bool cmdNoClients;
         QString cmdAdr;
         quint16 cmdPort;
 

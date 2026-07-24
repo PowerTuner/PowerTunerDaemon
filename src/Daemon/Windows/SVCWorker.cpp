@@ -22,9 +22,8 @@
 #define SVCNAME L"PowerTunerDaemon"
 
 namespace PWTD {
-    SVCWorker::SVCWorker(const QString &dataPath, const bool cmdNoClients, const QString &cmdAdr, const quint16 cmdPort) {
+    SVCWorker::SVCWorker(const QString &dataPath, const QString &cmdAdr, const quint16 cmdPort) {
         appDataPath = dataPath;
-        srvNoClients = cmdNoClients;
         srvAdr = cmdAdr;
         srvPort = cmdPort;
     }
@@ -111,7 +110,7 @@ namespace PWTD {
         QEventLoop eloop;
 
         service.reset(new DaemonService(appDataPath));
-        service->start(!srvNoClients, srvAdr, srvPort);
+        service->start(srvAdr, srvPort);
 
         QObject::connect(svcSigHandler.get(), &SVCSigHandler::svcStopped, &eloop, &QEventLoop::quit);
 

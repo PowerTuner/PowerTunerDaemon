@@ -52,7 +52,7 @@ namespace PWTD {
 
     int PowerTunerDaemonLinux::run() {
         service.reset(new DaemonService(appDataPath));
-        service->start(!cmdNoClients, cmdAdr, cmdPort);
+        service->start(cmdAdr, cmdPort);
 #ifdef SYSTEMD_NOTIFY
         if (cmdSystemdDaemon && sd_notify(0, "READY=1") < 0) {
             qCritical("%s: failed to notify systemd", __func__);
@@ -83,7 +83,7 @@ namespace PWTD {
         }
 #endif
         qInfo("Reload signal received, reloading service..");
-        service->reload(!cmdNoClients, cmdAdr, cmdPort);
+        service->reload(cmdAdr, cmdPort);
 #ifdef SYSTEMD_NOTIFY
         if (cmdSystemdDaemon && sd_notify(0, "READY=1") < 0)
             qCritical("%s ready: failed to notify systemd", __func__);

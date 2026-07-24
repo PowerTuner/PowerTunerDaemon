@@ -267,7 +267,12 @@ namespace PWTD {
         emit sendCmdResult(PWTS::DCMD::APPLY_DAEMON_SETT, daemonSettingDiskMan->save(data));
     }
 
-    void DaemonService::start(const bool hasServer, const QString &adr, const quint16 port) {
+    void DaemonService::start(const QString &adr, const quint16 port) {
+        serviceWorker = new ServiceWorker();
+        serviceThread = new QThread();
+
+        serviceWorker->moveToThread(serviceThread);
+
         if (!daemonSettings->load(daemonSettingDiskMan->load()))
             qWarning("Failed to load daemon settings, using defaults");
 
@@ -276,34 +281,27 @@ namespace PWTD {
             logger->write(QString("Profiles directory: %1").arg(profileDiskMan->getPath()));
         }
 
-        if (hasServer) {
-            serviceWorker = new ServiceWorker();
-            serviceThread = new QThread();
+        QObject::connect(serviceThread, &QThread::started, serviceWorker, &ServiceWorker::init);
+        QObject::connect(serviceThread, &QThread::finished, serviceWorker, &QObject::deleteLater);
+        QObject::connect(serviceWorker, &ServiceWorker::logMessageSent, this, &DaemonService::onLogMessageSent);
+        QObject::connect(serviceWorker, &ServiceWorker::cmdReceived, this, &DaemonService::onCmdReceived);
+        QObject::connect(this, &DaemonService::connectService, serviceWorker, &ServiceWorker::startServer);
+        QObject::connect(this, &DaemonService::restartService, serviceWorker, &ServiceWorker::restartServer);
+        QObject::connect(this, &DaemonService::stopService, serviceWorker, &ServiceWorker::stopServer);
+        QObject::connect(this, &DaemonService::sendError, serviceWorker, &ServiceWorker::sendError);
+        QObject::connect(this, &DaemonService::sendCMDFail, serviceWorker, &ServiceWorker::sendCMDFail);
+        QObject::connect(this, &DaemonService::sendDeviceInfoPacket, serviceWorker, &ServiceWorker::sendDeviceInfoPacket);
+        QObject::connect(this, &DaemonService::sendDaemonPacket, serviceWorker, &ServiceWorker::sendDaemonPacket);
+        QObject::connect(this, &DaemonService::sendSettingsApplyResult, serviceWorker, &ServiceWorker::sendSettingsApplyResult);
+        QObject::connect(this, &DaemonService::sendLoadedProfile, serviceWorker, &ServiceWorker::sendLoadedProfile);
+        QObject::connect(this, &DaemonService::sendExportedProfiles, serviceWorker, &ServiceWorker::sendExportedProfiles);
+        QObject::connect(this, &DaemonService::sendProfileList, serviceWorker, &ServiceWorker::sendProfileList);
+        QObject::connect(this, &DaemonService::sendCmdResult, serviceWorker, &ServiceWorker::sendCmdResult);
+        QObject::connect(this, &DaemonService::sendByteArray, serviceWorker, &ServiceWorker::sendByteArray);
+        QObject::connect(profileDiskMan.get(), &ProfileDiskManager::profileDiskChanged, serviceWorker, &ServiceWorker::sendProfileList);
 
-            serviceWorker->moveToThread(serviceThread);
-
-            QObject::connect(serviceThread, &QThread::started, serviceWorker, &ServiceWorker::init);
-            QObject::connect(serviceThread, &QThread::finished, serviceWorker, &QObject::deleteLater);
-            QObject::connect(serviceWorker, &ServiceWorker::logMessageSent, this, &DaemonService::onLogMessageSent);
-            QObject::connect(serviceWorker, &ServiceWorker::cmdReceived, this, &DaemonService::onCmdReceived);
-            QObject::connect(this, &DaemonService::connectService, serviceWorker, &ServiceWorker::startServer);
-            QObject::connect(this, &DaemonService::restartService, serviceWorker, &ServiceWorker::restartServer);
-            QObject::connect(this, &DaemonService::stopService, serviceWorker, &ServiceWorker::stopServer);
-            QObject::connect(this, &DaemonService::sendError, serviceWorker, &ServiceWorker::sendError);
-            QObject::connect(this, &DaemonService::sendCMDFail, serviceWorker, &ServiceWorker::sendCMDFail);
-            QObject::connect(this, &DaemonService::sendDeviceInfoPacket, serviceWorker, &ServiceWorker::sendDeviceInfoPacket);
-            QObject::connect(this, &DaemonService::sendDaemonPacket, serviceWorker, &ServiceWorker::sendDaemonPacket);
-            QObject::connect(this, &DaemonService::sendSettingsApplyResult, serviceWorker, &ServiceWorker::sendSettingsApplyResult);
-            QObject::connect(this, &DaemonService::sendLoadedProfile, serviceWorker, &ServiceWorker::sendLoadedProfile);
-            QObject::connect(this, &DaemonService::sendExportedProfiles, serviceWorker, &ServiceWorker::sendExportedProfiles);
-            QObject::connect(this, &DaemonService::sendProfileList, serviceWorker, &ServiceWorker::sendProfileList);
-            QObject::connect(this, &DaemonService::sendCmdResult, serviceWorker, &ServiceWorker::sendCmdResult);
-            QObject::connect(this, &DaemonService::sendByteArray, serviceWorker, &ServiceWorker::sendByteArray);
-            QObject::connect(profileDiskMan.get(), &ProfileDiskManager::profileDiskChanged, serviceWorker, &ServiceWorker::sendProfileList);
-
-            serviceThread->start();
-            emit connectService(getListenAddress(adr), getServerPort(port));
-        }
+        serviceThread->start();
+        emit connectService(getListenAddress(adr), getServerPort(port));
 
         if (!daemonSettings->getOnStartProfile().isEmpty())
             writeErrorsToLog(applyProfileSettings(daemonSettings->getOnStartProfile()));
@@ -318,11 +316,9 @@ namespace PWTD {
         setApplyTimer(daemonSettings->getApplyInterval());
     }
 
-    void DaemonService::reload(const bool hasServer, const QString &adr, const quint16 port) {
+    void DaemonService::reload(const QString &adr, const quint16 port) {
         stopApplyTimer();
-
-        if (hasServer)
-            emit stopService();
+        emit stopService();
 
         if (!daemonSettings->load(daemonSettingDiskMan->load()))
             qWarning("Failed to load daemon settings, using defaults");
@@ -333,8 +329,7 @@ namespace PWTD {
         if (logger->isLevel(PWTS::LogLevel::Service))
             logger->write(QString("Profiles directory: %1").arg(profileDiskMan->getPath()));
 
-        if (hasServer)
-            emit connectService(getListenAddress(adr), getServerPort(port));
+        emit connectService(getListenAddress(adr), getServerPort(port));
 
         if (!daemonSettings->getOnStartProfile().isEmpty())
             writeErrorsToLog(applyProfileSettings(daemonSettings->getOnStartProfile()));

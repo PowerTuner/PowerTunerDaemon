@@ -65,8 +65,8 @@ namespace PWTD {
         explicit DaemonService(const QString &dataPath);
         ~DaemonService() override;
 
-        void start(bool hasServer, const QString &adr, quint16 port);
-        void reload(bool hasServer, const QString &adr, quint16 port);
+        void start(const QString &adr, quint16 port);
+        void reload(const QString &adr, quint16 port);
 
     private slots:
         void onLogMessageSent(const QString &msg, PWTS::LogLevel lvl) const;

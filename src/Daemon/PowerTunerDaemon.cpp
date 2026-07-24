@@ -26,13 +26,11 @@ namespace PWTD {
         cmdParser->addHelpOption();
         cmdParser->addOption({"a", "listen on address|localhost|any, default any", "address", "any"});
         cmdParser->addOption({"p", QString("port, default %1").arg(PWTS::DaemonSettings::DefaultTCPPort), "port", QString::number(PWTS::DaemonSettings::DefaultTCPPort)});
-        cmdParser->addOption({"nc", "disable client connection, no TCP/UDP server"});
     }
 
     void PowerTunerDaemon::parseCmdArgs(const QCoreApplication &app) {
         cmdParser->process(app);
 
-        cmdNoClients = cmdParser->isSet("nc");
         cmdAdr = cmdParser->value("a");
         cmdPort = cmdParser->value("p").toUInt();
     }

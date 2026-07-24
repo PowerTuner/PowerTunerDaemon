@@ -126,11 +126,11 @@ namespace PWTD {
 
             QObject::connect(sigNotifier.get(), &SignalNotifier::sigTermReceived, this, &PowerTunerDaemonWindows::onSigTerm);
 
-            service->start(!cmdNoClients, cmdAdr, cmdPort);
+            service->start(cmdAdr, cmdPort);
 
         } else {
             svcThread = new QThread();
-            svcWorker = new SVCWorker(appDataPath, cmdNoClients, cmdAdr, cmdPort);
+            svcWorker = new SVCWorker(appDataPath, cmdAdr, cmdPort);
 
             svcWorker->moveToThread(svcThread);
 
