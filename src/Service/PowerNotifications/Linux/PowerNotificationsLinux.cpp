@@ -19,7 +19,7 @@
 
 namespace PWTD::LNX {
 	void PowerNotificationsLinux::initNotifications() {
-#ifdef ENABLE_DBUS_SERVICES
+#ifdef WITH_DBUS_SERVICES
 		dbusServices.reset(new DBusServices());
 
 		QObject::connect(dbusServices.get(), &DBusServices::batteryStatusChanged, this, &PowerNotificationsLinux::onDBusServiceBatteryStatusChange);
@@ -28,7 +28,7 @@ namespace PWTD::LNX {
 #endif
 	}
 
-#ifdef ENABLE_DBUS_SERVICES
+#ifdef WITH_DBUS_SERVICES
 	void PowerNotificationsLinux::onDBusServiceBatteryStatusChange(const bool onBattery) {
 		emit batteryStatusChanged(onBattery);
 	}

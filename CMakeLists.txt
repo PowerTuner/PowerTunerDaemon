@@ -5,7 +5,7 @@ project(PowerTunerDaemon VERSION 1.4 DESCRIPTION "Official PowerTuner daemon ser
 option(WITH_INTEL "Enable support for Intel CPUs" ON)
 option(WITH_AMD "Enable support for AMD CPUs" ON)
 option(WITH_GPD_FAN "Enable support for GPD fan control" ON)
-option(ENABLE_DBUS_SERVICES "Enable support for wake from sleep and battery status change events on linux" ON)
+option(WITH_DBUS_SERVICES "Enable support for wake from sleep and battery status change events on linux" ON)
 option(WITH_SYSTEMD_NOTIFY "Enable systemd notifications, required when running as systemd service" ON)
 
 set(PROJECT_AUTHOR "kylon")
@@ -127,13 +127,13 @@ if (LINUX)
 		src/DiskManagers/ProfileUtils/OS/ProfileLinuxUtils.cpp
 	)
 
-	if (ENABLE_DBUS_SERVICES)
+	if (WITH_DBUS_SERVICES)
 		message(STATUS "${PROJECT_NAME}: DBus services support is enabled")
 
 		find_package(QT NAMES Qt6 COMPONENTS DBus REQUIRED)
 		find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus REQUIRED)
 
-		list(APPEND PRIV_DEFS ENABLE_DBUS_SERVICES)
+		list(APPEND PRIV_DEFS WITH_DBUS_SERVICES)
 		list(APPEND LINK_LIBS Qt${QT_VERSION_MAJOR}::DBus)
 
 		list(APPEND PROJECT_SOURCES

@@ -18,7 +18,7 @@
 #pragma once
 
 #include "../PowerNotifications.h"
-#ifdef ENABLE_DBUS_SERVICES
+#ifdef WITH_DBUS_SERVICES
 #include "../../../Device/OS/Linux/DBusServices.h"
 #endif
 
@@ -27,7 +27,7 @@ namespace PWTD::LNX {
 		Q_OBJECT
 
 	private:
-#ifdef ENABLE_DBUS_SERVICES
+#ifdef WITH_DBUS_SERVICES
 		QScopedPointer<DBusServices> dbusServices;
 #endif
 
@@ -35,7 +35,7 @@ namespace PWTD::LNX {
 		void initNotifications() override;
 
 	private slots:
-#ifdef ENABLE_DBUS_SERVICES
+#ifdef WITH_DBUS_SERVICES
 		void onDBusServiceBatteryStatusChange(bool onBattery);
 		void onDBusServicePrepareForSleep();
         void onDBusServiceWakeFromSleep();
