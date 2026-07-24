@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#include "pwtWin32/win.h"
+#include "../../../external/libPWTWin32/src/win.h"
 #include <QRegularExpression>
 
 #include "../OS.h"
@@ -45,6 +45,10 @@ namespace PWTD::WIN {
 		static constexpr wchar_t regBIOS[] = LR"(HARDWARE\DESCRIPTION\System\BIOS)";
 		static constexpr wchar_t regSystemClass[] = LR"(SYSTEM\CurrentControlSet\Control\Class\)";
 		static constexpr wchar_t regPowerSettings[] = LR"(SYSTEM\CurrentControlSet\Control\Power\PowerSettings)";
+	    const std::function<void(const std::wstring &)> pwtW32Log = [this](const std::wstring &msg) {
+	        if (logger->isLevel(PWTS::LogLevel::Error))
+	            logger->write(QString::fromStdWString(msg));
+	    };
 		const QRegularExpression gpuVendorIDRex {R"(ven_([\w\d]+))"};
 		const QRegularExpression gpuDeviceIDRex {R"(dev_([\w\d]+))"};
 		const QRegularExpression gpuRevisionIDRex {R"(rev_([\w\d]+))"};

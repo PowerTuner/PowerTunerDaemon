@@ -15,11 +15,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "pwtWin32/win32Svc.h"
-
+#include "../../external/libPWTWin32/src/win32Svc.h"
 #include <csignal>
 
 #include "PowerTunerDaemonWindows.h"
+
+#define SVCNAME L"PowerTunerDaemon"
 
 namespace PWTD {
     PowerTunerDaemonWindows::PowerTunerDaemonWindows(const QString &dataPath) {
@@ -55,34 +56,30 @@ namespace PWTD {
         cmdNoSvc = cmdParser->isSet("nosvc");
     }
 
-    int PowerTunerDaemonWindows::run() {
-        QString errStr;
-        bool result;
+    int PowerTunerDaemonWindows::run() { // ret: 0 success, 1 fail
+        const std::function<void(const std::wstring &)> logcb = [](const std::wstring &msg) {
+            qCritical() << msg;
+        };
 
-        // ret: 0 success, 1 fail
         if (cmdInstallSvc) {
-            const QString exePath = QString("\"%1\"").arg(QCoreApplication::applicationFilePath());
+            const std::wstring exePath = QString("\"%1\"").arg(QCoreApplication::applicationFilePath()).toStdWString();
 
-            result = PWTW32::installService(exePath, errStr);
-
-            if (!result)
-                qCritical() << errStr;
-            else
-                qInfo("service installed successfully");
-
-            return !result;
-
-        } else if (cmdUninstallSvc) {
-            result = PWTW32::stopService(errStr);
-
-            if (!result) {
-                qCritical() << errStr;
+            if (!PWTSVC::installService(SVCNAME, exePath, logcb)) {
+                qCritical("failed to install service");
                 return 1;
             }
 
-            result = PWTW32::deleteService(errStr);
-            if (!result) {
-                qCritical() << errStr;
+            qInfo("service installed successfully");
+            return 0;
+
+        } else if (cmdUninstallSvc) {
+            if (!PWTSVC::stopService(SVCNAME, logcb)) {
+                qCritical("failed to stop service");
+                return 1;
+            }
+
+            if (!PWTSVC::deleteService(SVCNAME, logcb)) {
+                qCritical("failed to delete service");
                 return 1;
             }
 
@@ -90,33 +87,33 @@ namespace PWTD {
             return 0;
 
         } else if (cmdStartSvc) {
-            result = PWTW32::startService(errStr);
+            if (!PWTSVC::startService(SVCNAME, logcb)) {
+                qCritical("failed to start service");
+                return 1;
+            }
 
-            if (!result)
-                qCritical() << errStr;
-            else
-                qInfo("service started successfully");
-
-            return !result;
+            qInfo("service started successfully");
+            return 0;
 
         } else if (cmdStopSvc) {
-            result = PWTW32::stopService(errStr);
+            if (!PWTSVC::stopService(SVCNAME, logcb)) {
+                qCritical("failed to stop service");
+                return 1;
+            }
 
-            if (!result)
-                qCritical() << errStr;
-            else
-                qInfo("service stopped successfully");
-
-            return !result;
+            qInfo("service stopped successfully");
+            return 0;
         }
 
         if (cmdNoSvc) {
-            if (PWTW32::isServiceRunning(errStr)) {
-                if (!errStr.isEmpty())
-                    qCritical() << errStr;
-                else
-                    qCritical("service is running, cannot start a new daemon");
+            const std::optional<bool> ret = PWTSVC::isServiceRunning(SVCNAME, logcb);
 
+            if (!ret) {
+                qCritical("service status check failed, cannot start daemon");
+                return 1;
+
+            } else if (ret.value()) {
+                qCritical("service is running, cannot start a new daemon");
                 return 1;
             }
 

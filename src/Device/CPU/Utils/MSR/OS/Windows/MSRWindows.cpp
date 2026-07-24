@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "pwtWin32/win.h"
+#include "../../../../../../external/libPWTWin32/src/win.h"
 #include "../../../../../../external/winring0/OlsApi.h"
 #include "../../../../../../external/winring0/OlsDef.h"
 #include "MSRWindows.h"

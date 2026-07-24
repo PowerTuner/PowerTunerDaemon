@@ -22,7 +22,7 @@ extern "C" {
 #include <pci/pci.h>
 }
 #elif defined(_WIN32)
-#include "pwtWin32/win.h"
+#include "../../../../external/libPWTWin32/src/win.h"
 #include "../../../../external/winring0/OlsApi.h"
 #include "../../../../external/winring0/OlsDef.h"
 #include "../Include/CPUModel.h"

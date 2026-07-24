@@ -17,7 +17,7 @@
  */
 #pragma once
 
-#include "pwtWin32/win.h"
+#include "../../external/libPWTWin32/src/win.h"
 #include "SVCSigHandler.h"
 #include "../../Service/DaemonService.h"
 

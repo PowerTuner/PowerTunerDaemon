@@ -15,10 +15,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "pwtWin32/win32Reg.h"
+#include "../../../external/libPWTWin32/src/win32Reg.h"
 #include "OSWindows.h"
 
-#include <winreg.h>
 #include <sysinfoapi.h>
 #include <combaseapi.h>
 #include <powrprof.h>
@@ -573,92 +572,49 @@ namespace PWTD::WIN {
             return "";
 
     	const std::wstring subKey = QString("%1%2\\%3").arg(regSystemClass, displayGUID, QString::number(index).rightJustified(4, '0')).toStdWString();
-		QString errStr;
-    	QString val;
+		const std::optional<std::wstring> ret = PWTREG::regReadSZ(HKEY_LOCAL_MACHINE, subKey.c_str(), L"MatchingDeviceId", pwtW32Log);
 
-    	if (!PWTW32::regReadSZ(HKEY_LOCAL_MACHINE, subKey.c_str(), L"MatchingDeviceId", val, errStr) && logger->isLevel(PWTS::LogLevel::Error))
-    		logger->write(errStr);
-
-        return val;
+        return QString::fromStdWString(ret.value_or(L""));
     }
 
     QString OSWindows::getBiosVendor() const {
-    	const bool hasLog = logger->isLevel(PWTS::LogLevel::Error);
-    	QString errStr;
-    	QString val;
+        const std::optional<std::wstring> ret = PWTREG::regReadSZ(HKEY_LOCAL_MACHINE, regBIOS, L"BIOSVendor", pwtW32Log);
 
-    	if (!PWTW32::regReadSZ(HKEY_LOCAL_MACHINE, regBIOS, L"BIOSVendor", val, errStr, hasLog) && hasLog)
-    		logger->write(errStr);
-
-        return val;
+        return QString::fromStdWString(ret.value_or(L""));
     }
 
     QString OSWindows::getBiosVersion() const {
-    	const bool hasLog = logger->isLevel(PWTS::LogLevel::Error);
-    	QString errStr;
-    	QString val;
+        const std::optional<std::wstring> ret = PWTREG::regReadSZ(HKEY_LOCAL_MACHINE, regBIOS, L"BIOSVersion", pwtW32Log);
 
-    	if (!PWTW32::regReadSZ(HKEY_LOCAL_MACHINE, regBIOS, L"BIOSVersion", val, errStr, hasLog) && hasLog)
-    		logger->write(errStr);
-
-        return val;
+        return QString::fromStdWString(ret.value_or(L""));
     }
 
     QString OSWindows::getBiosDate() const {
-    	const bool hasLog = logger->isLevel(PWTS::LogLevel::Error);
-    	QString errStr;
-    	QString val;
+        const std::optional<std::wstring> ret = PWTREG::regReadSZ(HKEY_LOCAL_MACHINE, regBIOS, L"BIOSReleaseDate", pwtW32Log);
 
-    	if (!PWTW32::regReadSZ(HKEY_LOCAL_MACHINE, regBIOS, L"BIOSReleaseDate", val, errStr, hasLog) && hasLog)
-    		logger->write(errStr);
-
-        return val;
+        return QString::fromStdWString(ret.value_or(L""));
     }
 
     QString OSWindows::getECVersion() const {
-    	const bool hasLog = logger->isLevel(PWTS::LogLevel::Error);
-        DWORD major, minor;
-    	QString errStr;
-    	QString version;
+        const std::optional<DWORD> major = PWTREG::regReadDword(HKEY_LOCAL_MACHINE, regBIOS, L"ECFirmwareMajorRelease", pwtW32Log);
+        const std::optional<DWORD> minor = PWTREG::regReadDword(HKEY_LOCAL_MACHINE, regBIOS, L"ECFirmwareMinorRelease", pwtW32Log);
 
-    	if (!PWTW32::regReadDword(HKEY_LOCAL_MACHINE, regBIOS, L"ECFirmwareMajorRelease", &major, errStr, hasLog)) {
-    		if (hasLog)
-    			logger->write(errStr);
+        if (!major)
+            return "";
 
-    		return version;
-    	}
-
-    	version = QString::number(major);
-
-    	if (!PWTW32::regReadDword(HKEY_LOCAL_MACHINE, regBIOS, L"ECFirmwareMinorRelease", &minor, errStr, hasLog)) {
-    		if (hasLog)
-    			logger->write(errStr);
-
-    		return version;
-    	}
-
-    	version.append('.').append(QString::number(minor));
-        return version;
+        return QString("%1.%2").arg(major.value()).arg(minor.value_or(0));
     }
 
     QString OSWindows::getProductName() const {
-    	QString errStr;
-    	QString val;
+        const std::optional<std::wstring> ret = PWTREG::regReadSZ(HKEY_LOCAL_MACHINE, regBIOS, L"BaseBoardProduct", pwtW32Log);
 
-    	if (!PWTW32::regReadSZ(HKEY_LOCAL_MACHINE, regBIOS, L"BaseBoardProduct", val, errStr) && logger->isLevel(PWTS::LogLevel::Error))
-    		logger->write(errStr);
-
-        return val;
+        return QString::fromStdWString(ret.value_or(L""));
     }
 
     QString OSWindows::getManufacturer() const {
-    	QString errStr;
-    	QString val;
+        const std::optional<std::wstring> ret = PWTREG::regReadSZ(HKEY_LOCAL_MACHINE, regBIOS, L"BaseBoardManufacturer", pwtW32Log);
 
-    	if (!PWTW32::regReadSZ(HKEY_LOCAL_MACHINE, regBIOS, L"BaseBoardManufacturer", val, errStr) && logger->isLevel(PWTS::LogLevel::Error))
-    		logger->write(errStr);
-
-        return val;
+        return QString::fromStdWString(ret.value_or(L""));
     }
 
     int OSWindows::getOnlineCPUCount(const int numLogicalCPUs) const {
@@ -747,11 +703,9 @@ namespace PWTD::WIN {
 	}
 
     QString OSWindows::getMicrocodeRevision(const int cpu) const {
-    	QString errStr;
     	DWORD dataSz = 0;
-    	const bool hasLog = logger->isLevel(PWTS::LogLevel::Error);
     	const std::wstring path = std::format(L"{}CentralProcessor\\{}", regSystem, cpu);
-    	const std::unique_ptr<BYTE[]> data = PWTW32::regReadBinary(HKEY_LOCAL_MACHINE, path.c_str(), L"Update Revision", &dataSz, errStr, hasLog);
+    	const std::unique_ptr<BYTE[]> data = PWTREG::regReadBinary(HKEY_LOCAL_MACHINE, path.c_str(), L"Update Revision", &dataSz, pwtW32Log);
     	QByteArray ba;
 
     	if (data == nullptr)

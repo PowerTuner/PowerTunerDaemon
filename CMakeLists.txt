@@ -142,8 +142,11 @@ if (LINUX)
 		)
 	endif ()
 elseif (WIN32)
+    set(BUILD_SHARED_LIBS ON)
 	add_subdirectory(src/external/libPWTWin32)
-	configure_file(src/Resources/Windows/win.rc.in ${CMAKE_CURRENT_SOURCE_DIR}/win.rc)
+    unset(BUILD_SHARED_LIBS)
+
+    configure_file(src/Resources/Windows/win.rc.in ${CMAKE_CURRENT_SOURCE_DIR}/win.rc)
 
 	list(APPEND PROJECT_SOURCES
 		src/Daemon/Windows/SVCSigHandler.h

@@ -19,7 +19,7 @@
 
 #include <QEventLoop>
 
-#define SVCNAME TEXT("PowerTunerDaemon")
+#define SVCNAME L"PowerTunerDaemon"
 
 namespace PWTD {
     SVCWorker::SVCWorker(const QString &dataPath, const bool cmdNoClients, const QString &cmdAdr, const quint16 cmdPort) {
