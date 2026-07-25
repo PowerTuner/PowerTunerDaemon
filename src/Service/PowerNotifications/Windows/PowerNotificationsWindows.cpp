@@ -43,10 +43,8 @@ namespace PWTD::WIN {
 		SYSTEM_POWER_STATUS powerStatus {};
 
 		if (GetSystemPowerStatus(&powerStatus) == 0) {
-			if (logger->isLevel(PWTS::LogLevel::Error)) {
-				const DWORD code = GetLastError();
-				logger->write(QString("Battery status change: failed to get power status: %1").arg(code));
-			}
+			if (logger->isLevel(PWTS::LogLevel::Error))
+				logger->write(QString("Battery status change: failed to get power status: %1").arg(GetLastError()));
 
 			return ERROR_INVALID_DATA;
 		}
@@ -60,12 +58,12 @@ namespace PWTD::WIN {
 
 	void PowerNotificationsWindows::initNotifications() {
 		DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS notifySuspendResumeParams {
-            PowerNotificationsWindows::powerSuspendResumeNotificationCB,
-            this
+            .Callback = PowerNotificationsWindows::powerSuspendResumeNotificationCB,
+            .Context = this
 		};
 		DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS notifyACDCParams {
-			PowerNotificationsWindows::powerACDCNotificationCB,
-			this
+			.Callback = PowerNotificationsWindows::powerACDCNotificationCB,
+			.Context = this
 		};
 		DWORD ret;
 
