@@ -24,11 +24,10 @@
 
 namespace PWTD::Intel {
     class MSR_PLATFORM_INFO: public CPURegister {
-    public:
-        MSR_PLATFORM_INFO() {
-            addr = 0xce;
-        }
+    protected:
+        static constexpr unsigned addr = 0xce;
 
+    public:
         virtual PWTS::ROData<PlatformInfoData> getPlatformInfoData() const = 0;
     };
 }

@@ -26,6 +26,8 @@
 namespace PWTD::AMD {
     class MSR_CPPC_ENABLE final: public CPURegister {
     private:
+        static constexpr uint32_t addr = 0xc00102b1;
+
         struct cppcEnable final {
             uint64_t cppcEn :1; // 0
             // 63:1 reserved:63
@@ -62,10 +64,6 @@ namespace PWTD::AMD {
         }
 
     public:
-        MSR_CPPC_ENABLE() {
-            addr = 0xc00102b1;
-        }
-
         PWTS::RWData<int> getCPPCEnableBit() const {
             cppcEnable regVal {};
             uint64_t raw = 0;

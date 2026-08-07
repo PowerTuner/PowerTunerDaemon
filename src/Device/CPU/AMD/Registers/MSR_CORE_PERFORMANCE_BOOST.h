@@ -26,6 +26,8 @@
 namespace PWTD::AMD {
     class MSR_CORE_PERFORMANCE_BOOST final: public CPURegister {
     private:
+        static constexpr uint32_t addr = 0xc0010015;
+
         struct corePerformanceBoost final {
             // 24:0 reserved:24
             uint64_t cpbDis :1; // 25
@@ -63,10 +65,6 @@ namespace PWTD::AMD {
         }
 
     public:
-        MSR_CORE_PERFORMANCE_BOOST() {
-            addr = 0xc0010015;
-        }
-
         PWTS::RWData<int> getCorePerformanceBoostData(const int cpu) const {
             corePerformanceBoost regVal {};
             uint64_t raw = 0;

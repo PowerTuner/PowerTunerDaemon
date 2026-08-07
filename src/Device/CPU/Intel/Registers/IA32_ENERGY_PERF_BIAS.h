@@ -26,6 +26,8 @@
 namespace PWTD::Intel {
     class IA32_ENERGY_PERF_BIAS final: public CPURegister {
     private:
+        static constexpr unsigned addr = 0x1b0;
+
         struct ia32EnergyPerfBias final {
             uint64_t powerPolicyPreference :4; // 3:0
             // 63:4 reserved:60
@@ -62,10 +64,6 @@ namespace PWTD::Intel {
         }
 
     public:
-        IA32_ENERGY_PERF_BIAS() {
-            addr = 0x1b0;
-        }
-
         PWTS::RWData<int> getPowerPolicyPreference() const {
             ia32EnergyPerfBias regVal {};
             uint64_t raw = 0;

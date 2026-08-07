@@ -27,6 +27,8 @@
 namespace PWTD::Intel {
     class IA32_MISC_ENABLE final: public CPURegister {
     private:
+        static constexpr unsigned addr = 0x1a0;
+
         struct ia32MiscEnable final {
             uint64_t fastStringsEnable :1; // 0
             // 6:1 reserved:6
@@ -89,10 +91,6 @@ namespace PWTD::Intel {
         }
 
     public:
-        IA32_MISC_ENABLE() {
-            addr = 0x1a0;
-        }
-
         PWTS::RWData<PWTS::Intel::MiscProcFeatures> getMiscProcessorFeaturesData() const {
             ia32MiscEnable regVal {};
             uint64_t raw = 0;

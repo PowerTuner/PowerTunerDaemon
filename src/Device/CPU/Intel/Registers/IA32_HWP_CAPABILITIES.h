@@ -27,6 +27,8 @@
 namespace PWTD::Intel {
     class IA32_HWP_CAPABILITIES final: public CPURegister {
     private:
+        static constexpr unsigned addr = 0x771;
+
         struct ia32HWPCapabilities final {
             uint64_t highestPerformance :8; // 7:0
             uint64_t guaranteedPerformance :8; // 15:8
@@ -54,10 +56,6 @@ namespace PWTD::Intel {
         }
 
     public:
-        IA32_HWP_CAPABILITIES() {
-            addr = 0x771;
-        }
-
         PWTS::ROData<PWTS::Intel::HWPCapabilities> getHWPCapabilitiesData(const int cpu) const {
             ia32HWPCapabilities regVal {};
             uint64_t raw = 0;

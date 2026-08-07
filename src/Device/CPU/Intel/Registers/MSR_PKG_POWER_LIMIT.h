@@ -25,6 +25,8 @@
 namespace PWTD::Intel {
     class MSR_PKG_POWER_LIMIT final: public CPURegister {
     private:
+        static constexpr unsigned addr = 0x610;
+
         struct pkgPowerLimit final {
             uint64_t pl1 :15; // 14:0
             uint64_t pl1Enable :1; // 15
@@ -92,10 +94,6 @@ namespace PWTD::Intel {
         }
 
     public:
-        MSR_PKG_POWER_LIMIT() {
-            addr = 0x610;
-        }
-
         PWTS::RWData<PWTS::Intel::PkgPowerLimit> getPkgPowerLimitData(const PWTS::ROData<MSR_RAPL_POWER_UNIT::RAPLPowerUnits> &powerUnits) const {
             const MSR_RAPL_POWER_UNIT::RAPLPowerUnits raplUnit = powerUnits.getValue();
             pkgPowerLimit regVal {};

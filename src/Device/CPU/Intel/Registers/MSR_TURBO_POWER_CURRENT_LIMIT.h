@@ -27,6 +27,8 @@
 namespace PWTD::Intel {
     class MSR_TURBO_POWER_CURRENT_LIMIT final: public CPURegister {
     private:
+        static constexpr unsigned addr = 0x1ac;
+
         struct turboPowerCurrentLimit final {
             uint64_t tdpLimit :15; // 14:0
             uint64_t tdpLimitOverrideEnable :1; // 15
@@ -72,10 +74,6 @@ namespace PWTD::Intel {
         }
 
     public:
-        MSR_TURBO_POWER_CURRENT_LIMIT() {
-            addr = 0x1ac;
-        }
-
         PWTS::RWData<PWTS::Intel::TurboPowerCurrentLimit> getTurboPowerCurrentLimitData() const {
             turboPowerCurrentLimit regVal {};
             uint64_t raw = 0;

@@ -27,6 +27,8 @@
 namespace PWTD::Intel {
     class IA32_PACKAGE_THERM_STATUS final: public CPURegister {
     private:
+        static constexpr unsigned addr = 0x1b1;
+
         struct ia32PkgThermStatus final {
             uint64_t pkgThermalStatus :1; // 0
             uint64_t pkgThermalStatusLog :1; // 1
@@ -63,10 +65,6 @@ namespace PWTD::Intel {
         }
 
     public:
-        IA32_PACKAGE_THERM_STATUS() {
-            addr = 0x1b1;
-        }
-
         PWTS::ROData<PWTS::Intel::PkgThermalStatusInfo> getPkgThermStatusData() const {
             ia32PkgThermStatus regVal {};
             uint64_t raw = 0;

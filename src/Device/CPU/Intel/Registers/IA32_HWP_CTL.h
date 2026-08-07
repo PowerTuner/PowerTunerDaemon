@@ -26,6 +26,8 @@
 namespace PWTD::Intel {
     class IA32_HWP_CTL final: public CPURegister {
     private:
+        static constexpr unsigned addr = 0x776;
+
         struct ia32HwpCtl final {
             uint64_t pkgCtlPolarity :1; // 0
             // 63:1 reserved:63
@@ -62,10 +64,6 @@ namespace PWTD::Intel {
         }
 
     public:
-        IA32_HWP_CTL() {
-            addr = 0x776;
-        }
-
         PWTS::RWData<int> getHwpCtlBit() const {
             ia32HwpCtl regVal {};
             uint64_t raw = 0;

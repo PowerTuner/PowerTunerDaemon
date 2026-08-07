@@ -25,6 +25,8 @@
 namespace PWTD::Intel {
     class MSR_UNK_FIVR_CONTROL: public CPURegister {
     private:
+        static constexpr unsigned addr = 0x150;
+
         struct planeIndex final {
             int cpu;
             int gpu;
@@ -80,10 +82,6 @@ namespace PWTD::Intel {
             bool unslice = false;
             bool sysAgent = false;
         };
-
-        MSR_UNK_FIVR_CONTROL() {
-            addr = 0x150;
-        }
 
         PWTS::ROData<FIVRCapabilities> getFIVRCapabilities() const {
             return PWTS::ROData<FIVRCapabilities>({

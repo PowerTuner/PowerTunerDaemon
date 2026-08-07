@@ -27,6 +27,8 @@
 namespace PWTD::Intel {
     class MSR_PP1_CURRENT_CONFIG final: public CPURegister {
     private:
+        static constexpr unsigned addr = 0x602;
+
         struct PP1CurrentConfig final {
             uint64_t limit :13; // 12:0
             // 30:13 reserved:18
@@ -67,10 +69,6 @@ namespace PWTD::Intel {
         }
 
     public:
-        MSR_PP1_CURRENT_CONFIG() {
-            addr = 0x602;
-        }
-
         PWTS::RWData<PWTS::Intel::PP1CurrentConfig> getPP1CurrentConfigData() const {
             PP1CurrentConfig regVal {};
             uint64_t raw = 0;

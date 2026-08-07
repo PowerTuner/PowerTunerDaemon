@@ -23,11 +23,10 @@
 
 namespace PWTD::Intel {
     class MSR_TEMPERATURE_TARGET: public CPURegister {
-    public:
-        MSR_TEMPERATURE_TARGET() {
-            addr = 0x1a2;
-        }
+    protected:
+        static constexpr unsigned addr = 0x1a2;
 
+    public:
         virtual PWTS::RWData<PWTS::Intel::TemperatureTarget> getTemperatureTargetData() const = 0;
     };
 }

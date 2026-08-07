@@ -23,11 +23,10 @@
 
 namespace PWTD::Intel {
     class MSR_PKG_CST_CONFIG_CONTROL: public CPURegister {
-    public:
-        MSR_PKG_CST_CONFIG_CONTROL() {
-            addr = 0xe2;
-        }
+    protected:
+        static constexpr unsigned addr = 0xe2;
 
+    public:
         virtual PWTS::RWData<PWTS::Intel::PkgCstConfigControl> getPkgCstConfigControlData(int cpu) const = 0;
         [[nodiscard]] virtual bool setPkgCstConfigControlData(int cpu, const PWTS::RWData<PWTS::Intel::PkgCstConfigControl> &data) const = 0;
     };

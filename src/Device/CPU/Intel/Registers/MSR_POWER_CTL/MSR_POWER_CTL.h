@@ -23,11 +23,10 @@
 
 namespace PWTD::Intel {
     class MSR_POWER_CTL: public CPURegister {
-    public:
-        MSR_POWER_CTL() {
-            addr = 0x1fc;
-        }
+    protected:
+        static constexpr unsigned addr = 0x1fc;
 
+    public:
         virtual PWTS::RWData<PWTS::Intel::PowerCtl> getPowerCtlData() const = 0;
         [[nodiscard]] virtual bool setPowerCtl(const PWTS::RWData<PWTS::Intel::PowerCtl> &data) const = 0;
     };

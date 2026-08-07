@@ -26,6 +26,8 @@
 namespace PWTD::AMD {
     class MSR_PSTATE_CONTROL final : public CPURegister {
     private:
+        static constexpr uint32_t addr = 0xc0010062;
+
         struct PStateControl final {
             uint64_t pstateCmd :4; // 3:0
             // 63:4 reserved:60
@@ -62,10 +64,6 @@ namespace PWTD::AMD {
         }
 
     public:
-        MSR_PSTATE_CONTROL() {
-            addr = 0xc0010062;
-        }
-
         PWTS::RWData<int> getPStateControlData(const int cpu) const {
             PStateControl regVal {};
             uint64_t raw = 0;

@@ -26,6 +26,8 @@
 namespace PWTD::Intel {
     class IA32_PM_ENABLE final: public CPURegister {
     private:
+        static constexpr unsigned addr = 0x770;
+
         struct ia32PmEnable final {
             uint64_t hwpEnable :1; // 0
             // 63:1 reserved:63
@@ -62,10 +64,6 @@ namespace PWTD::Intel {
         }
 
     public:
-        IA32_PM_ENABLE() {
-            addr = 0x770;
-        }
-
         PWTS::RWData<int> getHWPEnableBit() const {
             ia32PmEnable regVal {};
             uint64_t raw = 0;

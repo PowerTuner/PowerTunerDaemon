@@ -26,6 +26,8 @@
 namespace PWTD::Intel {
     class MSR_PP0_POLICY final: public CPURegister {
     private:
+        static constexpr unsigned addr = 0x63a;
+
         struct PP0Policy final {
             uint64_t priority :5; // 4:0
             // 63:5 reserved:59
@@ -62,10 +64,6 @@ namespace PWTD::Intel {
         }
 
     public:
-        MSR_PP0_POLICY() {
-            addr = 0x63a;
-        }
-
         PWTS::RWData<int> getPP0Priority() const {
             PP0Policy regVal {};
             uint64_t raw = 0;

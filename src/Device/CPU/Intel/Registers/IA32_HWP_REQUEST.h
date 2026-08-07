@@ -28,6 +28,8 @@
 namespace PWTD::Intel {
     class IA32_HWP_REQUEST final: public CPURegister {
     private:
+        static constexpr unsigned addr = 0x774;
+
         struct ia32HWPRequest final {
             uint64_t minimumPerformance :8; // 7:0
             uint64_t maximumPeformance :8; // 15:8
@@ -97,10 +99,6 @@ namespace PWTD::Intel {
         }
 
     public:
-        IA32_HWP_REQUEST()  {
-            addr = 0x774;
-        }
-
         PWTS::RWData<PWTS::Intel::HWPRequest> getHWPRequestData(const int cpu) const {
             ia32HWPRequest regVal {};
             uint64_t raw = 0;

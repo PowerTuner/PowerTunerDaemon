@@ -26,6 +26,8 @@
 namespace PWTD::Intel {
     class MSR_RAPL_POWER_UNIT final: public CPURegister {
     private:
+        static constexpr unsigned addr = 0x606;
+
         struct raplPowerUnit final {
             uint64_t powerUnits :4; // 3:0
             // 7:4 reserved:4
@@ -57,10 +59,6 @@ namespace PWTD::Intel {
             double powerUnit;
             double timeUnit;
         };
-
-        MSR_RAPL_POWER_UNIT() {
-            addr = 0x606;
-        }
 
         PWTS::ROData<RAPLPowerUnits> getPowerUnitData() const {
             raplPowerUnit regVal {};

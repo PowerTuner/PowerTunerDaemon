@@ -27,6 +27,8 @@
 namespace PWTD::AMD {
     class MSR_CPPC_CAPABILITY_1 final: public CPURegister {
     private:
+        static constexpr uint32_t addr = 0xc00102b0;
+
         struct cppcCapability1 final {
             uint64_t lowestPerf :8; // 7:0
             uint64_t lowNonLinPerf :8; // 15:8
@@ -54,10 +56,6 @@ namespace PWTD::AMD {
         }
 
     public:
-        MSR_CPPC_CAPABILITY_1() {
-            addr = 0xc00102b0;
-        }
-
         PWTS::ROData<PWTS::AMD::CPPCCapability1> getCPPCCapability1Data(const int cpu) const {
             cppcCapability1 regVal {};
             uint64_t raw = 0;

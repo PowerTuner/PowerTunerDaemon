@@ -27,6 +27,8 @@
 namespace PWTD::AMD {
     class MSR_PSTATE_CURRENT_LIMIT final: public CPURegister {
     private:
+        static constexpr uint32_t addr = 0xc0010061;
+
         struct PStateCurrentLimit final {
             uint64_t curPStateLimit :4; // 3:0
             uint64_t pstateMaxVal :4; // 7:4
@@ -50,10 +52,6 @@ namespace PWTD::AMD {
         }
 
     public:
-        MSR_PSTATE_CURRENT_LIMIT() {
-            addr = 0xc0010061;
-        }
-
        PWTS::ROData<PWTS::AMD::PStateCurrentLimit> getPStateCurrentLimitData() const {
             PStateCurrentLimit regVal {};
             uint64_t raw = 0;

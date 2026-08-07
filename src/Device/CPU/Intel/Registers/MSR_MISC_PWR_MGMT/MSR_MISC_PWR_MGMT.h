@@ -23,11 +23,10 @@
 
 namespace PWTD::Intel {
     class MSR_MISC_PWR_MGMT: public CPURegister {
-    public:
-        MSR_MISC_PWR_MGMT() {
-            addr = 0x1aa;
-        }
+    protected:
+        static constexpr unsigned addr = 0x1aa;
 
+    public:
         virtual PWTS::RWData<PWTS::Intel::MiscPwrMgmt> getMiscPwrMgmtData() const = 0;
         [[nodiscard]] virtual bool setMiscPwrMgmt(const PWTS::RWData<PWTS::Intel::MiscPwrMgmt> &data) const = 0;
     };

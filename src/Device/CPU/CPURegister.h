@@ -25,7 +25,6 @@ namespace PWTD {
     protected:
         QSharedPointer<MSR> msrUtils;
         FileLogger &logger = FileLogger::get();
-        uint32_t addr;
 
     public:
         CPURegister() {

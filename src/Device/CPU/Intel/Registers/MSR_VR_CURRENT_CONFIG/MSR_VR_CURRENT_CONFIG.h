@@ -23,11 +23,10 @@
 
 namespace PWTD::Intel {
     class MSR_VR_CURRENT_CONFIG: public CPURegister {
-    public:
-        MSR_VR_CURRENT_CONFIG() {
-            addr = 0x601;
-        }
+    protected:
+        static constexpr unsigned addr = 0x601;
 
+    public:
         virtual PWTS::RWData<PWTS::Intel::VRCurrentConfig> getVrCurrentConfigData() const = 0;
         [[nodiscard]] virtual bool setVrCurrentConfig(const PWTS::RWData<PWTS::Intel::VRCurrentConfig> &data) const = 0;
     };

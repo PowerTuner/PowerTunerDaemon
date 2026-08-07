@@ -27,6 +27,8 @@
 namespace PWTD::Intel {
     class MSR_TURBO_RATIO_LIMIT final: public CPURegister {
     private:
+        static constexpr unsigned addr = 0x1ad;
+
         struct turboRatioLimit final {
             uint64_t maxRatioLimit1C :8; // 7:0
             uint64_t maxRatioLimit2C :8; // 15:8
@@ -83,10 +85,6 @@ namespace PWTD::Intel {
         }
 
     public:
-        MSR_TURBO_RATIO_LIMIT() {
-            addr = 0x1ad;
-        }
-
         PWTS::RWData<PWTS::Intel::TurboRatioLimit> getTurboRatioLimitData() const {
             turboRatioLimit regVal {};
             uint64_t raw = 0;

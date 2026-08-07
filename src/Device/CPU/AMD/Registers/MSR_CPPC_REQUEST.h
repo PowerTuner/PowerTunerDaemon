@@ -27,6 +27,8 @@
 namespace PWTD::AMD {
     class MSR_CPPC_REQUEST final: public CPURegister {
     private:
+        static constexpr uint32_t addr = 0xc00102b3;
+
         struct cppcRequest final {
             uint64_t maxPerf :8; // 7:0
             uint64_t minPerf :8; // 15:8
@@ -72,10 +74,6 @@ namespace PWTD::AMD {
         }
 
     public:
-        MSR_CPPC_REQUEST() {
-            addr = 0xc00102b3;
-        }
-
         PWTS::RWData<PWTS::AMD::CPPCRequest> getCPPCRequestData(const int cpu) const {
             cppcRequest regVal {};
             uint64_t raw = 0;
