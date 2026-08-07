@@ -37,8 +37,8 @@ namespace PWTD::Intel {
                 regVal.eistHardwareCoordinationDisable = getBitfield(0, 0, raw);
 
             } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger->isLevel(PWTS::LogLevel::Error))
-                    logger->write(e.what());
+                if (logger.isLevel(PWTS::LogLevel::Error))
+                    logger.write(e.what());
 
                 return false;
             }
@@ -52,8 +52,8 @@ namespace PWTD::Intel {
                 setBitfield(0, 0, regVal.eistHardwareCoordinationDisable, raw);
 
             } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger->isLevel(PWTS::LogLevel::Error))
-                    logger->write(e.what());
+                if (logger.isLevel(PWTS::LogLevel::Error))
+                    logger.write(e.what());
 
                 return false;
             }

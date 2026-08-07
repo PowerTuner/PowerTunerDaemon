@@ -68,9 +68,9 @@ int main(int argc, char *argv[]) {
     }
 
     const QString dataPath = getAppDataPath();
-    const std::shared_ptr<PWTD::FileLogger> logger = PWTD::FileLogger::getInstance();
     const QScopedPointer<PWTD::ProcessStatus> procStatus(new PWTD::ProcessStatus);
     const QLockFile::LockError isRunning = procStatus->isAlreadyRunning();
+    PWTD::FileLogger &logger = PWTD::FileLogger::get();
     QScopedPointer<PWTS::DaemonSettings> settings = QScopedPointer<PWTS::DaemonSettings>(new PWTS::DaemonSettings);
     QSharedPointer<PWTD::Device> device;
     QCoreApplication a(argc, argv);
@@ -84,9 +84,9 @@ int main(int argc, char *argv[]) {
     if (!settings->load(PWTD::DaemonSettingDiskManager::getInstance()->load()))
         qWarning("Failed to load daemon settings, using defaults");
 
-    logger->setOutput(dataPath);
-    logger->setLevel(settings->getLogLevel());
-    logger->init();
+    logger.setOutput(dataPath);
+    logger.setLevel(settings->getLogLevel());
+    logger.init();
 
     device = PWTD::Device::getDevice();
     if (!device->isCPUSupported()) {

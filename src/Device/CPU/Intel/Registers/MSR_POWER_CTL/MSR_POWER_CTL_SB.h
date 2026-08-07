@@ -43,8 +43,8 @@ namespace PWTD::Intel {
                 regVal.disableRaceToHaltOptimization = getBitfield(20, 20, raw);
 
             } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger->isLevel(PWTS::LogLevel::Error))
-                    logger->write(e.what());
+                if (logger.isLevel(PWTS::LogLevel::Error))
+                    logger.write(e.what());
 
                 return false;
             }
@@ -61,8 +61,8 @@ namespace PWTD::Intel {
                 setBitfield(20, 20, regVal.disableRaceToHaltOptimization, raw);
 
             } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger->isLevel(PWTS::LogLevel::Error))
-                    logger->write(e.what());
+                if (logger.isLevel(PWTS::LogLevel::Error))
+                    logger.write(e.what());
 
                 return false;
             }

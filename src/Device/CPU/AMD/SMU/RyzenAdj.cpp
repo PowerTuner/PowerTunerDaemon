@@ -21,10 +21,6 @@
 #include "../../Utils/DaemonUtils.h"
 
 namespace PWTD::AMD {
-    RyzenAdj::RyzenAdj() {
-        logger = FileLogger::getInstance();
-    }
-
     RyzenAdj::~RyzenAdj() {
         ryzenadj_cleanup();
     }
@@ -33,15 +29,15 @@ namespace PWTD::AMD {
         const ADJ_ERROR res = ryzenadj_init();
 
         if (res != ADJ_OK) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("failed to init: %1").arg(res));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("failed to init: %1").arg(res));
 
             return false;
         }
 
         if (ryzenadj_refresh_table() != ADJ_OK) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QStringLiteral("RyzenAdj: failed to init table"));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QStringLiteral("RyzenAdj: failed to init table"));
 
             return false;
         }
@@ -96,8 +92,8 @@ namespace PWTD::AMD {
         const ADJ_ERROR err = ryzenadj_set(opt, value);
 
         if (err != ADJ_OK) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("failed to set option %1: code %2").arg(opt).arg(err));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("failed to set option %1: code %2").arg(opt).arg(err));
 
             return false;
         }
@@ -133,14 +129,14 @@ namespace PWTD::AMD {
             if (err == ADJ_OPT_NOT_SUPPORTED && ryTable.contains(opt)) {
                 const int val = ryTable[opt].toInt();
 
-                if (logger->isLevel(PWTS::LogLevel::Warning))
-                    logger->write(QString("read cmd not implemented for option %1, using internal cache").arg(opt));
+                if (logger.isLevel(PWTS::LogLevel::Warning))
+                    logger.write(QString("read cmd not implemented for option %1, using internal cache").arg(opt));
 
                 return PWTS::RWData<int>(val, true);
             }
 
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("failed to get option %1: code %2").arg(opt).arg(err));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("failed to get option %1: code %2").arg(opt).arg(err));
 
             return PWTS::RWData<int>(0, false);
         }
@@ -153,8 +149,8 @@ namespace PWTD::AMD {
         const float value = ryzenadj_get_value(opt, &err);
 
         if (err != ADJ_OK) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("failed to read value %1: code %2").arg(opt).arg(err));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("failed to read value %1: code %2").arg(opt).arg(err));
 
             return {};
         }
@@ -166,8 +162,8 @@ namespace PWTD::AMD {
         const ADJ_ERROR ret = ryzenadj_refresh_table();
 
         if (ret != ADJ_OK) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("failed to refresh table: code %1").arg(ret));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("failed to refresh table: code %1").arg(ret));
 
             return false;
         }

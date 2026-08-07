@@ -24,9 +24,8 @@ namespace PWTD {
         logFile.close();
     }
 
-    std::shared_ptr<FileLogger> FileLogger::getInstance() {
-        if (!instance)
-            instance.reset(new FileLogger);
+    FileLogger &FileLogger::get() {
+        static FileLogger instance;
 
         return instance;
     }

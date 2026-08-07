@@ -24,13 +24,12 @@ namespace PWTD {
     class CPURegister {
     protected:
         QSharedPointer<MSR> msrUtils;
-        std::shared_ptr<FileLogger> logger;
+        FileLogger &logger = FileLogger::get();
         uint32_t addr;
 
     public:
         CPURegister() {
             msrUtils = MSRFactory::getMSRInstance();
-            logger = FileLogger::getInstance();
         }
 
         virtual ~CPURegister() = default;

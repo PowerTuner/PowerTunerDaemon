@@ -38,8 +38,8 @@ namespace PWTD::AMD {
                 regVal.cpbDis = getBitfield(25, 25, raw);
 
             } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger->isLevel(PWTS::LogLevel::Error))
-                    logger->write(e.what());
+                if (logger.isLevel(PWTS::LogLevel::Error))
+                    logger.write(e.what());
 
                 return false;
             }
@@ -53,8 +53,8 @@ namespace PWTD::AMD {
                 setBitfield(25, 25, regVal.cpbDis, raw);
 
             } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger->isLevel(PWTS::LogLevel::Error))
-                    logger->write(e.what());
+                if (logger.isLevel(PWTS::LogLevel::Error))
+                    logger.write(e.what());
 
                 return false;
             }

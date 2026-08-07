@@ -26,7 +26,6 @@
 namespace PWTD {
     class FileLogger final {
     private:
-        inline static std::shared_ptr<FileLogger> instance;
         PWTS::LogLevel level = PWTS::LogLevel::None;
         QString logDir;
         QTextStream ts;
@@ -40,7 +39,7 @@ namespace PWTD {
 
         ~FileLogger();
 
-        [[nodiscard]] static std::shared_ptr<FileLogger> getInstance();
+        [[nodiscard]] static FileLogger &get();
         void init();
         void setOutput(const QString &path);
         void setLevel(PWTS::LogLevel lvl);

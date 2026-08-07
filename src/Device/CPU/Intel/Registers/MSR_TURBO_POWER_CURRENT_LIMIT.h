@@ -44,8 +44,8 @@ namespace PWTD::Intel {
                 regVal.tdcLimitOverrideEnable = getBitfield(31, 31, raw);
 
             } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger->isLevel(PWTS::LogLevel::Error))
-                    logger->write(e.what());
+                if (logger.isLevel(PWTS::LogLevel::Error))
+                    logger.write(e.what());
 
                 return false;
             }
@@ -62,8 +62,8 @@ namespace PWTD::Intel {
                 setBitfield(31, 31, regVal.tdcLimitOverrideEnable, raw);
 
             } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger->isLevel(PWTS::LogLevel::Error))
-                    logger->write(e.what());
+                if (logger.isLevel(PWTS::LogLevel::Error))
+                    logger.write(e.what());
 
                 return false;
             }

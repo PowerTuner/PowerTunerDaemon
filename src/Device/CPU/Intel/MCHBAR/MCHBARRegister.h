@@ -23,13 +23,12 @@
 namespace PWTD::Intel {
     class MCHBARRegister {
     protected:
-        std::shared_ptr<FileLogger> logger;
+        FileLogger &logger = FileLogger::get();
         QSharedPointer<Memory> memory;
         uint64_t addr;
 
     public:
         MCHBARRegister(const uint32_t base, const uint32_t offset) {
-            logger = FileLogger::getInstance();
             memory = MemoryFactory::getInstance();
             addr = base + offset;
         }

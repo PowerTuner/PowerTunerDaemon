@@ -27,11 +27,10 @@ namespace PWTD {
     Device::Device() {
         QSharedPointer<PWTS::CpuInfo> cpuInfo;
 
-        logger = FileLogger::getInstance();
         os = OSFactory::getOS();
 
-        if (!os->setupOSAccess() && logger->isLevel(PWTS::LogLevel::Error))
-            logger->write(QStringLiteral("failed to setup os access, some features may be disabled"));
+        if (!os->setupOSAccess() && logger.isLevel(PWTS::LogLevel::Error))
+            logger.write(QStringLiteral("failed to setup os access, some features may be disabled"));
 
         cpu = CPUDeviceFactory::getCpuDevice();
 
@@ -149,8 +148,8 @@ namespace PWTD {
 
             os->unsetOSAccess();
 
-        } else if (logger->isLevel(PWTS::LogLevel::Error)) {
-            logger->write(QStringLiteral("failed to setup os access"));
+        } else if (logger.isLevel(PWTS::LogLevel::Error)) {
+            logger.write(QStringLiteral("failed to setup os access"));
         }
     }
 
@@ -210,7 +209,7 @@ namespace PWTD {
     }
 
     void Device::onFanCurveTimerTimeout() const {
-        const bool logErrorLev = logger->isLevel(PWTS::LogLevel::Error);
+        const bool logErrorLev = logger.isLevel(PWTS::LogLevel::Error);
 
         if (os->setupOSAccess()) {
             for (const QSharedPointer<FANDevice> &fan: fans) {
@@ -228,13 +227,13 @@ namespace PWTD {
                 }
 
                 if (!res && logErrorLev)
-                    logger->write(QString("failed to apply fan curve to: %1").arg(fan->getID()));
+                    logger.write(QString("failed to apply fan curve to: %1").arg(fan->getID()));
             }
 
             os->unsetOSAccess();
 
         } else if (logErrorLev) {
-            logger->write(QStringLiteral("failed to setup os access"));
+            logger.write(QStringLiteral("failed to setup os access"));
         }
 
         fanCurveTimer->start();

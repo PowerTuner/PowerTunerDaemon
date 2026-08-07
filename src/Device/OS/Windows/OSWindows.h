@@ -46,8 +46,8 @@ namespace PWTD::WIN {
 		static constexpr wchar_t regSystemClass[] = LR"(SYSTEM\CurrentControlSet\Control\Class\)";
 		static constexpr wchar_t regPowerSettings[] = LR"(SYSTEM\CurrentControlSet\Control\Power\PowerSettings)";
 	    const std::function<void(const std::wstring &)> pwtW32Log = [this](const std::wstring &msg) {
-	        if (logger->isLevel(PWTS::LogLevel::Error))
-	            logger->write(QString::fromStdWString(msg));
+	        if (logger.isLevel(PWTS::LogLevel::Error))
+	            logger.write(QString::fromStdWString(msg));
 	    };
 		const QRegularExpression gpuVendorIDRex {R"(ven_([\w\d]+))"};
 		const QRegularExpression gpuDeviceIDRex {R"(dev_([\w\d]+))"};

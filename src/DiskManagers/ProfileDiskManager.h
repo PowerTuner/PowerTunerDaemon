@@ -53,7 +53,7 @@ namespace PWTD {
         static constexpr int fileVersion = 1;
         QScopedPointer<QFileSystemWatcher> fsWatcher;
         QScopedPointer<QTimer> fsWatcherEvtTimer;
-        std::shared_ptr<FileLogger> logger;
+        FileLogger &logger = FileLogger::get();
         PWTS::CPUVendor cpuVendor;
         QByteArray deviceHash;
         QString path;

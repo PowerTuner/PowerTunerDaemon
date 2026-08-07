@@ -22,7 +22,6 @@ namespace PWTD::LNX {
         upowerDBus.reset(new QDBusInterface("org.freedesktop.UPower", "/org/freedesktop/UPower", "org.freedesktop.UPower", QDBusConnection::systemBus()));
         login1Dbus.reset(new QDBusInterface("org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager", QDBusConnection::systemBus()));
         dbusWatcher.reset(new QDBusServiceWatcher);
-        logger = FileLogger::getInstance();
 
         initDBusServicesConnections();
         initDBusWatcher();
@@ -46,13 +45,13 @@ namespace PWTD::LNX {
     void DBusServices::initDBusServicesConnections() {
         if (upowerDBus->isValid())
             onDBusServiceRegistered("org.freedesktop.UPower");
-        else if (logger->isLevel(PWTS::LogLevel::Error))
-            logger->write(QStringLiteral("UPower DBus service not available, OnBattery event disabled"));
+        else if (logger.isLevel(PWTS::LogLevel::Error))
+            logger.write(QStringLiteral("UPower DBus service not available, OnBattery event disabled"));
 
         if (login1Dbus->isValid())
             onDBusServiceRegistered("org.freedesktop.login1");
-        else if (logger->isLevel(PWTS::LogLevel::Error))
-            logger->write(QStringLiteral("login1 DBus service not available, OnSystemWake event disabled"));
+        else if (logger.isLevel(PWTS::LogLevel::Error))
+            logger.write(QStringLiteral("login1 DBus service not available, OnSystemWake event disabled"));
     }
 
     void DBusServices::onDBusServiceRegistered(const QString &name) {
@@ -63,14 +62,14 @@ namespace PWTD::LNX {
 
             if (res)
                 prevIsOnBattery = upowerDBus->property("OnBattery").toBool();
-            else if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QStringLiteral("Failed to connect to UPower PropertiesChanged signal"));
+            else if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QStringLiteral("Failed to connect to UPower PropertiesChanged signal"));
 
         } else if (name == "org.freedesktop.login1") {
             res = login1Dbus->connection().connect(name, "/org/freedesktop/login1", "org.freedesktop.login1.Manager", "PrepareForSleep", this, SLOT(onDBusLogin1PrepareForSleep(bool)));
 
-            if (!res && logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QStringLiteral("Failed to connect to login1 PrepareForSleep signal"));
+            if (!res && logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QStringLiteral("Failed to connect to login1 PrepareForSleep signal"));
         }
     }
 

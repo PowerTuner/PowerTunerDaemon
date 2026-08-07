@@ -68,8 +68,8 @@ namespace PWTD::Intel {
                 regVal.cstatePrewakeDisable = getBitfield(30, 30, raw);
 
             } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger->isLevel(PWTS::LogLevel::Error))
-                    logger->write(e.what());
+                if (logger.isLevel(PWTS::LogLevel::Error))
+                    logger.write(e.what());
 
                 return false;
             }
@@ -98,8 +98,8 @@ namespace PWTD::Intel {
                 setBitfield(30, 30, regVal.cstatePrewakeDisable, raw);
 
             } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger->isLevel(PWTS::LogLevel::Error))
-                    logger->write(e.what());
+                if (logger.isLevel(PWTS::LogLevel::Error))
+                    logger.write(e.what());
 
                 return false;
             }

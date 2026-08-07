@@ -165,8 +165,8 @@ namespace PWTD::Intel {
 
             msrDev->closeMsrFd(0);
 
-        } else if (logger->isLevel(PWTS::LogLevel::Error)) {
-            logger->write("failed to create registers cache");
+        } else if (logger.isLevel(PWTS::LogLevel::Error)) {
+            logger.write("failed to create registers cache");
         }
     }
 
@@ -314,8 +314,8 @@ namespace PWTD::Intel {
 
     QSet<PWTS::Feature> IntelCPU::getFeatures() const {
         if (!msrDev->openMsrFd(0)) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QStringLiteral("failed to open msr fd"));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QStringLiteral("failed to open msr fd"));
 
             return {};
         }
@@ -470,8 +470,8 @@ namespace PWTD::Intel {
             return;
 
         if (!msrDev->openMsrFd(0)) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QStringLiteral("failed to open msr fd"));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QStringLiteral("failed to open msr fd"));
 
             packet.errors.insert(PWTS::DError::NO_MSR_FD);
             return;
@@ -535,8 +535,8 @@ namespace PWTD::Intel {
         }
 
         if (!msrDev->openMsrFd(cpu)) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("failed to open msr fd for cpu %1").arg(cpu));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("failed to open msr fd for cpu %1").arg(cpu));
 
             packet.errors.insert(PWTS::DError::NO_MSR_FD);
             packet.intelData->coreData.append(coreData);
@@ -559,8 +559,8 @@ namespace PWTD::Intel {
         }
 
         if (!msrDev->openMsrFd(cpu)) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("failed to open msr fd for cpu %1").arg(cpu));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("failed to open msr fd for cpu %1").arg(cpu));
 
             packet.errors.insert(PWTS::DError::NO_MSR_FD);
             packet.intelData->threadData.append(thdData);
@@ -580,8 +580,8 @@ namespace PWTD::Intel {
         packet.intelData = QSharedPointer<PWTS::Intel::IntelData>::create();
 
         if (cpuInfo->numCores != coreIdxList.size()) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("core index count mismatch: %1 / %2").arg(coreIdxList.size()).arg(cpuInfo->numCores));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("core index count mismatch: %1 / %2").arg(coreIdxList.size()).arg(cpuInfo->numCores));
 
             packet.errors.insert(PWTS::DError::CORE_IDX_MISMATCH);
             return;
@@ -604,8 +604,8 @@ namespace PWTD::Intel {
             return;
 
         if (!msrDev->openMsrFd(0)) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QStringLiteral("failed to open msr fd"));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QStringLiteral("failed to open msr fd"));
 
             errors.insert(PWTS::DError::NO_MSR_FD);
             return;
@@ -693,8 +693,8 @@ namespace PWTD::Intel {
         const PWTS::Intel::IntelCoreData &data = packet.intelData->coreData[cpu];
 
         if (!msrDev->openMsrFd(coreIdx)) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("failed to open msr fd for cpu %1").arg(coreIdx));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("failed to open msr fd for cpu %1").arg(coreIdx));
 
             return;
         }
@@ -710,8 +710,8 @@ namespace PWTD::Intel {
             return;
 
         if (!msrDev->openMsrFd(cpu)) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("failed to open msr fd for cpu %1").arg(cpu));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("failed to open msr fd for cpu %1").arg(cpu));
 
             return;
         }
@@ -729,28 +729,28 @@ namespace PWTD::Intel {
         QSet<PWTS::DError> errors;
 
         if (idata.isNull()) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write("empty data");
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write("empty data");
 
             return errors;
 
         } else if (cpuInfo->numCores != idata->coreData.size()) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("core count mismatch: %1 / %2").arg(cpuInfo->numCores).arg(idata->coreData.size()));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("core count mismatch: %1 / %2").arg(cpuInfo->numCores).arg(idata->coreData.size()));
 
             errors.insert(PWTS::DError::CORE_DATA_MISMATCH);
             return errors;
 
         } else if (cpuInfo->numLogicalCpus != idata->threadData.size()) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("thread count mismatch: %1 / %2").arg(cpuInfo->numLogicalCpus).arg(idata->threadData.size()));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("thread count mismatch: %1 / %2").arg(cpuInfo->numLogicalCpus).arg(idata->threadData.size()));
 
             errors.insert(PWTS::DError::THREAD_DATA_MISMATCH);
             return errors;
 
         } else if (cpuInfo->numCores != coreIdxList.size()) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("core index count mismatch: %1 / %2").arg(coreIdxList.size()).arg(cpuInfo->numCores));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("core index count mismatch: %1 / %2").arg(coreIdxList.size()).arg(cpuInfo->numCores));
 
             errors.insert(PWTS::DError::CORE_IDX_MISMATCH);
             return errors;
@@ -775,8 +775,8 @@ namespace PWTD::Intel {
             return {};
 
         if (!msrDev->openMsrFd(0)) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("failed to open msr fd"));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("failed to open msr fd"));
 
             return {};
         }

@@ -19,10 +19,6 @@
 #include "../../Utils/DaemonUtils.h"
 
 namespace PWTD {
-    OS::OS() {
-        logger = FileLogger::getInstance();
-    }
-
     void OS::collectSystemInfo() {
         if (!sysInfo.isNull())
             return;

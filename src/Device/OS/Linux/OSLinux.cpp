@@ -274,14 +274,14 @@ namespace PWTD::LNX {
         QSet<PWTS::DError> errors;
 
         if (ldata.isNull()) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write("empty data");
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write("empty data");
 
             return errors;
 
         } else if (numLogicalCPUs != ldata->threadData.size()) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("thread count mismatch: %1 / %2").arg(numLogicalCPUs).arg(ldata->threadData.size()));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("thread count mismatch: %1 / %2").arg(numLogicalCPUs).arg(ldata->threadData.size()));
 
             errors.insert(PWTS::DError::THREAD_DATA_MISMATCH);
             return errors;
@@ -304,14 +304,14 @@ namespace PWTD::LNX {
         QFile sysfsF {path};
 
         if (!sysfsF.exists()) {
-            if (existsErrorLog && logger->isLevel(PWTS::LogLevel::Warning))
-                logger->write(QString("'%1' does not exist").arg(path));
+            if (existsErrorLog && logger.isLevel(PWTS::LogLevel::Warning))
+                logger.write(QString("'%1' does not exist").arg(path));
 
             return "";
 
         } else if (!sysfsF.open(ROTextOpenFlags)) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("failed to open '%1': %2").arg(path, sysfsF.errorString()));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("failed to open '%1': %2").arg(path, sysfsF.errorString()));
 
             return "";
         }
@@ -325,8 +325,8 @@ namespace PWTD::LNX {
         bool success;
 
         if (!sysfsF.open(WOTextOpenFlags)) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("failed to open '%1': %2").arg(path, sysfsF.errorString()));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("failed to open '%1': %2").arg(path, sysfsF.errorString()));
 
             return false;
         }
@@ -336,8 +336,8 @@ namespace PWTD::LNX {
 
         success = ts.status() == QTextStream::Ok;
 
-        if (!success && logger->isLevel(PWTS::LogLevel::Error))
-            logger->write(QString("failed to write '%1', status: %2").arg(path).arg(ts.status()));
+        if (!success && logger.isLevel(PWTS::LogLevel::Error))
+            logger.write(QString("failed to write '%1', status: %2").arg(path).arg(ts.status()));
 
         return success;
     }
@@ -591,19 +591,19 @@ namespace PWTD::LNX {
             const int idI = id.toInt(&idRes);
             const int cpuI = cpu.toInt(&cpuRes);
 
-            if (logger->isLevel(PWTS::LogLevel::Info))
-                logger->write(QString("found: cpu %1, core id %2").arg(cpu, id));
+            if (logger.isLevel(PWTS::LogLevel::Info))
+                logger.write(QString("found: cpu %1, core id %2").arg(cpu, id));
 
             if (!idRes || !cpuRes) {
-                if (logger->isLevel(PWTS::LogLevel::Error))
-                    logger->write(QStringLiteral("failed to parse core id or cpu number"));
+                if (logger.isLevel(PWTS::LogLevel::Error))
+                    logger.write(QStringLiteral("failed to parse core id or cpu number"));
 
                 return {};
             }
 
             if (!coreMap.contains(idI)) {
-                if (logger->isLevel(PWTS::LogLevel::Info))
-                    logger->write(QString("added core %1").arg(id));
+                if (logger.isLevel(PWTS::LogLevel::Info))
+                    logger.write(QString("added core %1").arg(id));
 
                 coreMap.insert(idI, cpuI);
             }
@@ -736,8 +736,8 @@ namespace PWTD::LNX {
             }
 
             if (device.isEmpty() || blkDev.availableQueueSchedulers.isEmpty()) {
-                if (logger->isLevel(PWTS::LogLevel::Error))
-                    logger->write(QString("invalid block device %1, or no schedulers available").arg(device));
+                if (logger.isLevel(PWTS::LogLevel::Error))
+                    logger.write(QString("invalid block device %1, or no schedulers available").arg(device));
 
                 continue;
             }
@@ -987,8 +987,8 @@ namespace PWTD::LNX {
 
         for (const PWTS::LNX::MiscPMDevice &miscPMDev: miscPMDevList) {
             if (!miscPmDevPathRex.match(miscPMDev.control).hasMatch() && !miscPmBlockPathRex.match(miscPMDev.control).hasMatch()) {
-                if (logger->isLevel(PWTS::LogLevel::Error))
-                    logger->write(QString("invalid control path: %1").arg(miscPMDev.control));
+                if (logger.isLevel(PWTS::LogLevel::Error))
+                    logger.write(QString("invalid control path: %1").arg(miscPMDev.control));
 
                 continue;
             }
@@ -1070,14 +1070,14 @@ namespace PWTD::LNX {
         const QSharedPointer<PWTS::LNX::AMD::LinuxAMDData> ldata = packet.linuxAmdData;
 
         if (ldata.isNull()) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write("empty data");
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write("empty data");
 
             return;
 
         } else if (numLogicalCPUs != ldata->threadData.size()) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("thread count mismatch: %1 / %2").arg(numLogicalCPUs).arg(ldata->threadData.size()));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("thread count mismatch: %1 / %2").arg(numLogicalCPUs).arg(ldata->threadData.size()));
 
             errors.insert(PWTS::DError::THREAD_DATA_MISMATCH);
             return;
@@ -1302,8 +1302,8 @@ namespace PWTD::LNX {
             QTextStream tsPP {&ppodF};
 
             if (!ppodF.open(WOTextOpenFlags)) {
-                if (logger->isLevel(PWTS::LogLevel::Error))
-                    logger->write(QString("failed to open: %1").arg(ppodF.errorString()));
+                if (logger.isLevel(PWTS::LogLevel::Error))
+                    logger.write(QString("failed to open: %1").arg(ppodF.errorString()));
 
                 return false;
             }

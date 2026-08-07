@@ -25,11 +25,10 @@ namespace PWTD {
     DaemonService::DaemonService(const QString &dataPath) {
         appDataPath = dataPath;
         device = Device::getDevice();
-        logger = FileLogger::getInstance();
 		powerNotifications = PowerNotificationsFactory::getPowerNotifications();
         daemonSettingDiskMan = DaemonSettingDiskManager::getInstance();
 
-        logger->setOutput(appDataPath);
+        logger.setOutput(appDataPath);
         daemonSettingDiskMan->setPath(appDataPath);
         profileDiskMan.reset(new ProfileDiskManager(dataPath, device->getDeviceHash(), device->getCPUVendor()));
         daemonSettings.reset(new PWTS::DaemonSettings);
@@ -128,11 +127,11 @@ namespace PWTD {
     }
 
     void DaemonService::writeErrorsToLog(const QSet<PWTS::DError> &errors) const {
-        if (!logger->isLevel(PWTS::LogLevel::Error))
+        if (!logger.isLevel(PWTS::LogLevel::Error))
             return;
 
         for (const PWTS::DError &e: errors)
-            logger->write(PWTS::getErrorStr(e));
+            logger.write(PWTS::getErrorStr(e));
     }
 
     PWTS::DeviceInfoPacket DaemonService::createDeviceInfoPacket() const {
@@ -203,16 +202,16 @@ namespace PWTD {
         packet.hasProfileData = true;
 
         if (!profileDiskMan->load(name, packet)) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("Failed to load profile %1").arg(name));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("Failed to load profile %1").arg(name));
 
             emit sendError(PWTS::DError::PROFILE_LOAD_FAILED);
             emit sendCMDFail(PWTS::DCMD::LOAD_PROFILE);
             return;
         }
 
-        if (logger->isLevel(PWTS::LogLevel::Info))
-            logger->write(QString("Loaded profile: %1").arg(name));
+        if (logger.isLevel(PWTS::LogLevel::Info))
+            logger.write(QString("Loaded profile: %1").arg(name));
 
         emit sendLoadedProfile(packet, name);
     }
@@ -222,8 +221,8 @@ namespace PWTD {
         bool res = true;
 
         if (!PWTS::unpackData<QHash<QString, QByteArray>>(profilesData, profiles)) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QStringLiteral("Failed to unpack profiles data for import"));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QStringLiteral("Failed to unpack profiles data for import"));
 
             return;
         }
@@ -235,8 +234,8 @@ namespace PWTD {
 
             if (!profileDiskMan->importProfile(it.key(), it.value()))
                 res = false;
-            else if (logger->isLevel(PWTS::LogLevel::Info))
-                logger->write(QString("imported profile: %1").arg(it.key()));
+            else if (logger.isLevel(PWTS::LogLevel::Info))
+                logger.write(QString("imported profile: %1").arg(it.key()));
         }
 
         emit sendCmdResult(PWTS::DCMD::IMPORT_PROFILES, res);
@@ -247,22 +246,22 @@ namespace PWTD {
         const quint16 oldPort = daemonSettings->getSocketTcpPort();
 
         if (!daemonSettings->load(data)) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QStringLiteral("Unable to load daemon settings from data, cannot apply settings!"));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QStringLiteral("Unable to load daemon settings from data, cannot apply settings!"));
 
             emit sendCmdResult(PWTS::DCMD::APPLY_DAEMON_SETT, false);
             return;
         }
 
-        logger->setLevel(daemonSettings->getLogLevel());
+        logger.setLevel(daemonSettings->getLogLevel());
 
         if (oldAdr != daemonSettings->getAddress() || oldPort != daemonSettings->getSocketTcpPort())
             emit restartService(QHostAddress(daemonSettings->getAddress()), daemonSettings->getSocketTcpPort());
 
         setApplyTimer(daemonSettings->getApplyInterval());
 
-        if (logger->isLevel(PWTS::LogLevel::Info))
-            logger->write(QStringLiteral("Daemon settings received and applied from client, saving.."));
+        if (logger.isLevel(PWTS::LogLevel::Info))
+            logger.write(QStringLiteral("Daemon settings received and applied from client, saving.."));
 
         emit sendCmdResult(PWTS::DCMD::APPLY_DAEMON_SETT, daemonSettingDiskMan->save(data));
     }
@@ -276,9 +275,9 @@ namespace PWTD {
         if (!daemonSettings->load(daemonSettingDiskMan->load()))
             qWarning("Failed to load daemon settings, using defaults");
 
-        if (logger->isLevel(PWTS::LogLevel::Service)) {
-            logger->write(QJsonDocument(PWTS::getDeviceInfoJson(createDeviceInfoPacket())).toJson().toStdString().c_str());
-            logger->write(QString("Profiles directory: %1").arg(profileDiskMan->getPath()));
+        if (logger.isLevel(PWTS::LogLevel::Service)) {
+            logger.write(QJsonDocument(PWTS::getDeviceInfoJson(createDeviceInfoPacket())).toJson().toStdString().c_str());
+            logger.write(QString("Profiles directory: %1").arg(profileDiskMan->getPath()));
         }
 
         QObject::connect(serviceThread, &QThread::started, serviceWorker, &ServiceWorker::init);
@@ -323,11 +322,11 @@ namespace PWTD {
         if (!daemonSettings->load(daemonSettingDiskMan->load()))
             qWarning("Failed to load daemon settings, using defaults");
 
-        logger->setLevel(daemonSettings->getLogLevel());
-        logger->init();
+        logger.setLevel(daemonSettings->getLogLevel());
+        logger.init();
 
-        if (logger->isLevel(PWTS::LogLevel::Service))
-            logger->write(QString("Profiles directory: %1").arg(profileDiskMan->getPath()));
+        if (logger.isLevel(PWTS::LogLevel::Service))
+            logger.write(QString("Profiles directory: %1").arg(profileDiskMan->getPath()));
 
         emit connectService(getListenAddress(adr), getServerPort(port));
 
@@ -338,8 +337,8 @@ namespace PWTD {
     }
 
     void DaemonService::onLogMessageSent(const QString &msg, const PWTS::LogLevel lvl) const {
-        if (logger->isLevel(lvl))
-            logger->write(msg);
+        if (logger.isLevel(lvl))
+            logger.write(msg);
     }
 
     void DaemonService::onCmdReceived(const QList<QVariant> &args) {
@@ -374,8 +373,8 @@ namespace PWTD {
                     break;
 
                 } else if (packet.error != PWTS::PacketError::NoError) {
-                    if (logger->isLevel(PWTS::LogLevel::Error))
-                        logger->write(QString("client packet error: %1").arg(PWTS::getPacketErrorStr(packet.error)));
+                    if (logger.isLevel(PWTS::LogLevel::Error))
+                        logger.write(QString("client packet error: %1").arg(PWTS::getPacketErrorStr(packet.error)));
 
                     emit sendError(PWTS::DError::INVALID_PACKET);
                     emit sendCMDFail(cmd);
@@ -445,16 +444,16 @@ namespace PWTD {
         applyTimer->stop();
 
         if (!lastClientPacket.has_value()) {
-            if (logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QStringLiteral("no data, stopping.."));
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QStringLiteral("no data, stopping.."));
 
             return;
         }
 
         const QSet<PWTS::DError> errors = device->applySettings(lastClientPacket.value());
 
-        if (logger->isLevel(PWTS::LogLevel::Info))
-            logger->write(QStringLiteral("applying settings.."));
+        if (logger.isLevel(PWTS::LogLevel::Info))
+            logger.write(QStringLiteral("applying settings.."));
 
         writeErrorsToLog(errors);
         emit sendSettingsApplyResult(PWTS::DCMD::APPLY_TIMER, errors);
@@ -474,8 +473,8 @@ namespace PWTD {
 
         const QSet<PWTS::DError> errors = applyProfileSettings(profile);
 
-        if (logger->isLevel(PWTS::LogLevel::Info))
-            logger->write(QString("Battery status change: on battery: %1, profile: %2").arg(onBattery).arg(profile));
+        if (logger.isLevel(PWTS::LogLevel::Info))
+            logger.write(QString("Battery status change: on battery: %1, profile: %2").arg(onBattery).arg(profile));
 
         writeErrorsToLog(errors);
         emit sendSettingsApplyResult(PWTS::DCMD::BATTERY_STATUS_CHANGED, errors, profile);
@@ -494,8 +493,8 @@ namespace PWTD {
 
 		    const QSet<PWTS::DError> errors = device->applySettings(lastClientPacket.value());
 
-		    if (logger->isLevel(PWTS::LogLevel::Info))
-		        logger->write(QStringLiteral("Wake from sleep: applying settings"));
+		    if (logger.isLevel(PWTS::LogLevel::Info))
+		        logger.write(QStringLiteral("Wake from sleep: applying settings"));
 
 		    writeErrorsToLog(errors);
 		    emit sendSettingsApplyResult(PWTS::DCMD::SYS_WAKE_FROM_SLEEP, errors);

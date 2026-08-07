@@ -20,7 +20,6 @@
 
 namespace PWTD {
     CPUDevice::CPUDevice(const QSharedPointer<cpu_id_t> &cpuid, const QSharedPointer<cpu_raw_data_t> &cpuRawData) {
-        logger = FileLogger::getInstance();
         cpuidRaw = cpuRawData;
         cpuInfo = QSharedPointer<PWTS::CpuInfo>::create();
 

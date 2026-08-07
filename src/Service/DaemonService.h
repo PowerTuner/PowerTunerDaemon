@@ -34,7 +34,7 @@ namespace PWTD {
     private:
         mutable std::optional<PWTS::ClientPacket> lastClientPacket;
         mutable QString activeProfile;
-        std::shared_ptr<FileLogger> logger;
+        FileLogger &logger = FileLogger::get();
         QSharedPointer<Device> device;
         QScopedPointer<ProfileDiskManager> profileDiskMan;
         QScopedPointer<PWTS::DaemonSettings> daemonSettings;

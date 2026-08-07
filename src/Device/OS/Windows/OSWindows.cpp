@@ -37,15 +37,15 @@ namespace PWTD::WIN {
     		return true;
 
 		if (InitializeOls() == FALSE) {
-			if (logger->isLevel(PWTS::LogLevel::Error))
-				logger->write(QStringLiteral("failed to load winring"));
+			if (logger.isLevel(PWTS::LogLevel::Error))
+				logger.write(QStringLiteral("failed to load winring"));
 
 			return false;
 		}
 
     	ret = GetDllStatus();
-    	if (ret != OLS_DLL_NO_ERROR && logger->isLevel(PWTS::LogLevel::Error))
-    		logger->write(QString("failed to load winring dll, code %1").arg(ret));
+    	if (ret != OLS_DLL_NO_ERROR && logger.isLevel(PWTS::LogLevel::Error))
+    		logger.write(QString("failed to load winring dll, code %1").arg(ret));
 
     	return ret == OLS_DLL_NO_ERROR;
 	}
@@ -97,8 +97,8 @@ namespace PWTD::WIN {
     			const DWORD ret = PowerRestoreDefaultPowerSchemes();
 
     			if (ret != ERROR_SUCCESS) {
-    				if (logger->isLevel(PWTS::LogLevel::Error))
-    					logger->write(QString("failed to restore default schemes, code: %1").arg(ret));
+    				if (logger.isLevel(PWTS::LogLevel::Error))
+    					logger.write(QString("failed to restore default schemes, code: %1").arg(ret));
 
     				schemeErrs.insert(PWTS::DError::W_PWR_RESET_SCHEMES_DEFAULT);
     			}
@@ -111,8 +111,8 @@ namespace PWTD::WIN {
     			const DWORD ret = PowerReplaceDefaultPowerSchemes();
 
     			if (ret != ERROR_SUCCESS) {
-    				if (logger->isLevel(PWTS::LogLevel::Error))
-    					logger->write(QString("failed to replace default schemes, code: %1").arg(ret));
+    				if (logger.isLevel(PWTS::LogLevel::Error))
+    					logger.write(QString("failed to replace default schemes, code: %1").arg(ret));
 
     				schemeErrs.insert(PWTS::DError::W_PWR_REPLACE_WIN_DEFAULT_SCHEMES);
     			}
@@ -124,8 +124,8 @@ namespace PWTD::WIN {
 
 	QSet<PWTS::DError> OSWindows::applySettings(const PWTS::Features &features, PWTS::CPUVendor cpuVendor, const int numLogicalCPUs, const QList<int> &coreIdxList, const PWTS::ClientPacket &packet) const {
     	if (packet.windowsData.isNull()) {
-    		if (logger->isLevel(PWTS::LogLevel::Error))
-    			logger->write("empty data");
+    		if (logger.isLevel(PWTS::LogLevel::Error))
+    			logger.write("empty data");
 
     		return {};
     	}
@@ -188,12 +188,12 @@ namespace PWTD::WIN {
 
     	ret = PowerReadFriendlyName(nullptr, schemeGuid, subgroupGuid, settingGuid, nullptr, &bufSz);
 		if (ret != ERROR_SUCCESS) {
-			if (logger->isLevel(PWTS::LogLevel::Error)) {
+			if (logger.isLevel(PWTS::LogLevel::Error)) {
 				const QString scheme = schemeGuid != nullptr ? GUIDToQString(*schemeGuid):"";
 				const QString subg = subgroupGuid != nullptr ? GUIDToQString(*subgroupGuid):"";
 				const QString sett = settingGuid != nullptr ? GUIDToQString(*settingGuid):"";
 
-				logger->write(QString("failed to read buf size: scheme: %1, subgroup: %2, setting: %3, code: %4").arg(scheme, subg, sett).arg(ret));
+				logger.write(QString("failed to read buf size: scheme: %1, subgroup: %2, setting: %3, code: %4").arg(scheme, subg, sett).arg(ret));
 			}
 
 			return {};
@@ -204,12 +204,12 @@ namespace PWTD::WIN {
     	ret = PowerReadFriendlyName(nullptr, schemeGuid, subgroupGuid, settingGuid, buf.get(), &bufSz);
 
 		if (ret != ERROR_SUCCESS) {
-			if (logger->isLevel(PWTS::LogLevel::Error)) {
+			if (logger.isLevel(PWTS::LogLevel::Error)) {
 				const QString scheme = schemeGuid != nullptr ? GUIDToQString(*schemeGuid):"";
 				const QString subg = subgroupGuid != nullptr ? GUIDToQString(*subgroupGuid):"";
 				const QString sett = settingGuid != nullptr ? GUIDToQString(*settingGuid):"";
 
-				logger->write(QString("failed to read friendly name: scheme: %1, subgroup: %2, setting: %3, code: %4").arg(scheme, subg, sett).arg(ret));
+				logger.write(QString("failed to read friendly name: scheme: %1, subgroup: %2, setting: %3, code: %4").arg(scheme, subg, sett).arg(ret));
 			}
 
 			return {};
@@ -279,15 +279,15 @@ namespace PWTD::WIN {
 		bool success = true;
 
 		if ((psetting.ac == -1 && hasPowerSettingAC(setting)) || PowerWriteACValueIndex(nullptr, &scheme, &subGroup, &setting, psetting.ac) != ERROR_SUCCESS) {
-			if (logger->isLevel(PWTS::LogLevel::Error))
-				logger->write(QString("failed to set AC value '%1'").arg(psetting.ac));
+			if (logger.isLevel(PWTS::LogLevel::Error))
+				logger.write(QString("failed to set AC value '%1'").arg(psetting.ac));
 
 			success = false;
 		}
 
 		if (psetting.dc == -1 && hasPowerSettingDC(setting) || PowerWriteDCValueIndex(nullptr, &scheme, &subGroup, &setting, psetting.dc) != ERROR_SUCCESS) {
-			if (logger->isLevel(PWTS::LogLevel::Error))
-				logger->write(QString("failed to set DC value '%1'").arg(psetting.ac));
+			if (logger.isLevel(PWTS::LogLevel::Error))
+				logger.write(QString("failed to set DC value '%1'").arg(psetting.ac));
 
 			success = false;
 		}
@@ -304,8 +304,8 @@ namespace PWTD::WIN {
 
     	ret = RegQueryInfoKey(hkey, nullptr, nullptr, nullptr, nullptr, &maxKeySz, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
     	if (ret != ERROR_SUCCESS) {
-    		if (logger->isLevel(PWTS::LogLevel::Error))
-    			logger->write(QString("failed to query max key size, code %1").arg(ret));
+    		if (logger.isLevel(PWTS::LogLevel::Error))
+    			logger.write(QString("failed to query max key size, code %1").arg(ret));
 
     		RegCloseKey(hkey);
     		return {};
@@ -389,24 +389,24 @@ namespace PWTD::WIN {
 
 		ret = PowerSettingAccessCheck(ACCESS_CREATE_SCHEME, nullptr);
 		if (ret != ERROR_SUCCESS) {
-			if (logger->isLevel(PWTS::LogLevel::Error))
-				logger->write(QString("cannot create %1, no access to %2, code %3").arg(name, GUIDToQString(sourceScheme)).arg(ret));
+			if (logger.isLevel(PWTS::LogLevel::Error))
+				logger.write(QString("cannot create %1, no access to %2, code %3").arg(name, GUIDToQString(sourceScheme)).arg(ret));
 
 			return nullptr;
 		}
 
 		ret = PowerDuplicateScheme(nullptr, &sourceScheme, &guid);
 		if (ret != ERROR_SUCCESS) {
-			if (logger->isLevel(PWTS::LogLevel::Error))
-				logger->write(QString("cannot create %1, cannot duplicate %2, code %3").arg(name, GUIDToQString(sourceScheme)).arg(ret));
+			if (logger.isLevel(PWTS::LogLevel::Error))
+				logger.write(QString("cannot create %1, cannot duplicate %2, code %3").arg(name, GUIDToQString(sourceScheme)).arg(ret));
 
 			return nullptr;
 		}
 
 		ret = PowerWriteFriendlyName(nullptr, guid, nullptr, nullptr, reinterpret_cast<PUCHAR>(wname.data()), (wname.size() + 1) * sizeof(wchar_t));
 		if (ret != ERROR_SUCCESS) {
-			if (logger->isLevel(PWTS::LogLevel::Error))
-				logger->write(QString("cannot write friendly name for %1, code %2").arg(name).arg(ret));
+			if (logger.isLevel(PWTS::LogLevel::Error))
+				logger.write(QString("cannot write friendly name for %1, code %2").arg(name).arg(ret));
 
 			LocalFree(guid);
 			return nullptr;
@@ -418,16 +418,16 @@ namespace PWTD::WIN {
 	bool OSWindows::deletePowerScheme(const GUID &guid) const {
     	const DWORD ret = PowerDeleteScheme(nullptr, &guid);
 
-		if (ret != ERROR_SUCCESS && logger->isLevel(PWTS::LogLevel::Error))
-			logger->write(QString("failed to delete scheme '%1', code: %2").arg(GUIDToQString(guid)).arg(ret));
+		if (ret != ERROR_SUCCESS && logger.isLevel(PWTS::LogLevel::Error))
+			logger.write(QString("failed to delete scheme '%1', code: %2").arg(GUIDToQString(guid)).arg(ret));
 
 		return ret == ERROR_SUCCESS;
 	}
 
 	bool OSWindows::CreatePowerScheme(QMap<QString, SchemeGUID> &guidMap, const GUID &baseGuid, const QString &duplicateTmpGuid, const QString &duplicateName) const {
 		if (baseGuid.Data1 == 0) {
-			if (logger->isLevel(PWTS::LogLevel::Error))
-				logger->write(QString("cannot create scheme '%1': no base scheme available").arg(duplicateName));
+			if (logger.isLevel(PWTS::LogLevel::Error))
+				logger.write(QString("cannot create scheme '%1': no base scheme available").arg(duplicateName));
 
 			return false;
 		}
@@ -435,8 +435,8 @@ namespace PWTD::WIN {
     	GUID *duplicateGuid = duplicatePowerScheme(baseGuid, duplicateName);
 
 		if (duplicateGuid == nullptr) {
-			if (logger->isLevel(PWTS::LogLevel::Error))
-				logger->write(QString("failed to create scheme '%1'").arg(duplicateName));
+			if (logger.isLevel(PWTS::LogLevel::Error))
+				logger.write(QString("failed to create scheme '%1'").arg(duplicateName));
 
 			return false;
 		}
@@ -518,8 +518,8 @@ namespace PWTD::WIN {
     	const DWORD ret = PowerGetActiveScheme(nullptr, &active);
 
     	if (ret != ERROR_SUCCESS) {
-    		if (logger->isLevel(PWTS::LogLevel::Error))
-    			logger->write(QString("failed to get active power scheme, code: %1").arg(ret));
+    		if (logger.isLevel(PWTS::LogLevel::Error))
+    			logger.write(QString("failed to get active power scheme, code: %1").arg(ret));
 
     		return nullptr;
     	}
@@ -624,14 +624,14 @@ namespace PWTD::WIN {
     	int onlineCount;
 
     	if (activeGuid == nullptr) {
-    		if (logger->isLevel(PWTS::LogLevel::Error))
-    			logger->write(QStringLiteral("active guid is null"));
+    		if (logger.isLevel(PWTS::LogLevel::Error))
+    			logger.write(QStringLiteral("active guid is null"));
 
     		return 0;
 
     	} else if (GetSystemPowerStatus(&pstatus) == FALSE) {
-    		if (logger->isLevel(PWTS::LogLevel::Error))
-    			logger->write(QString("failed to get power status, code: %1").arg(GetLastError()));
+    		if (logger.isLevel(PWTS::LogLevel::Error))
+    			logger.write(QString("failed to get power status, code: %1").arg(GetLastError()));
 
     		LocalFree(activeGuid);
     		return 0;
@@ -659,8 +659,8 @@ namespace PWTD::WIN {
 
     	lastErr = GetLastError();
     	if (lastErr != ERROR_INSUFFICIENT_BUFFER) {
-    		if (logger->isLevel(PWTS::LogLevel::Error))
-    			logger->write(QString("failed to query buffer size, code: %1").arg(lastErr));
+    		if (logger.isLevel(PWTS::LogLevel::Error))
+    			logger.write(QString("failed to query buffer size, code: %1").arg(lastErr));
 
     		return {};
     	}
@@ -668,8 +668,8 @@ namespace PWTD::WIN {
     	buff = std::make_unique<UCHAR[]>(buffSz);
 
     	if (GetSystemCpuSetInformation(reinterpret_cast<PSYSTEM_CPU_SET_INFORMATION>(buff.get()), buffSz, &returnedSz, nullptr, 0) == FALSE) {
-    		if (logger->isLevel(PWTS::LogLevel::Error))
-    			logger->write(QString("failed to get cpu set information, code: %1").arg(GetLastError()));
+    		if (logger.isLevel(PWTS::LogLevel::Error))
+    			logger.write(QString("failed to get cpu set information, code: %1").arg(GetLastError()));
 
     		return {};
     	}
@@ -686,12 +686,12 @@ namespace PWTD::WIN {
     		coreIdx = cpuSet->CpuSet.CoreIndex;
     		logicalIdx = cpuSet->CpuSet.LogicalProcessorIndex;
 
-    		if (logger->isLevel(PWTS::LogLevel::Info))
-    			logger->write(QString("found: core index %1, logical index %2").arg(coreIdx).arg(logicalIdx));
+    		if (logger.isLevel(PWTS::LogLevel::Info))
+    			logger.write(QString("found: core index %1, logical index %2").arg(coreIdx).arg(logicalIdx));
 
     		if (!coreMap.contains(coreIdx)) {
-    			if (logger->isLevel(PWTS::LogLevel::Info))
-    				logger->write(QString("added core %1").arg(coreIdx));
+    			if (logger.isLevel(PWTS::LogLevel::Info))
+    				logger.write(QString("added core %1").arg(coreIdx));
 
     			coreMap.insert(coreIdx, logicalIdx);
     		}
@@ -814,8 +814,8 @@ namespace PWTD::WIN {
     	GUID *activeGuid = getActiveSchemeGUID();
 
     	if (activeGuid == nullptr) {
-    		if (logger->isLevel(PWTS::LogLevel::Error))
-    			logger->write(QStringLiteral("active guid is null"));
+    		if (logger.isLevel(PWTS::LogLevel::Error))
+    			logger.write(QStringLiteral("active guid is null"));
 
     		return "";
     	}
@@ -866,8 +866,8 @@ namespace PWTD::WIN {
 				const QString settingName = getPowerSchemeFriendlyNameFor(nullptr, nullptr, &settingGuid);
 
 				if (settingName.isEmpty()) {
-					if (logger->isLevel(PWTS::LogLevel::Error))
-						logger->write(QString("collect static data: empty name for setting: %1, skip").arg(settingGuidStr));
+					if (logger.isLevel(PWTS::LogLevel::Error))
+						logger.write(QString("collect static data: empty name for setting: %1, skip").arg(settingGuidStr));
 
 					continue;
 				}
@@ -882,8 +882,8 @@ namespace PWTD::WIN {
 				const LSTATUS ret = isPowerSettingRangeDefined(isNoSubGroup ? "" : settingGroupGuidStr, settingGuidStr, &isRangeDefined);
 
 				if (ret != ERROR_SUCCESS) {
-					if (logger->isLevel(PWTS::LogLevel::Error))
-						logger->write(QString("failed to check setting type, setting: %1, group: %2, code %3").arg(settingGuidStr, settingGroupGuidStr).arg(ret));
+					if (logger.isLevel(PWTS::LogLevel::Error))
+						logger.write(QString("failed to check setting type, setting: %1, group: %2, code %3").arg(settingGuidStr, settingGroupGuidStr).arg(ret));
 
 					continue;
 				}
@@ -952,8 +952,8 @@ namespace PWTD::WIN {
 
 				ret = PowerCanRestoreIndividualDefaultPowerScheme(&guid);
 				if (ret != ERROR_SUCCESS) {
-					if (logger->isLevel(PWTS::LogLevel::Error))
-						logger->write(QString("cannot restore %1 to defaults, code: %2").arg(guidStr).arg(ret));
+					if (logger.isLevel(PWTS::LogLevel::Error))
+						logger.write(QString("cannot restore %1 to defaults, code: %2").arg(guidStr).arg(ret));
 
 					errors.insert(PWTS::DError::W_PWR_RESET_INDIVIDUAL_DEFAULT);
 					continue;
@@ -961,8 +961,8 @@ namespace PWTD::WIN {
 
 				ret = PowerRestoreIndividualDefaultPowerScheme(&guid);
 				if (ret != ERROR_SUCCESS) {
-					if (logger->isLevel(PWTS::LogLevel::Error))
-						logger->write(QString("failed to restore %1 to defaults, code: %2").arg(guidStr).arg(ret));
+					if (logger.isLevel(PWTS::LogLevel::Error))
+						logger.write(QString("failed to restore %1 to defaults, code: %2").arg(guidStr).arg(ret));
 
 					errors.insert(PWTS::DError::W_PWR_RESET_INDIVIDUAL_DEFAULT);
 				}
@@ -980,8 +980,8 @@ namespace PWTD::WIN {
 			if (PowerSettingAccessCheck(ACCESS_SCHEME, &guid) != ERROR_SUCCESS) {
 				errors.insert(PWTS::DError::W_PWR_NO_SCHEME_ACCESS);
 
-				if (logger->isLevel(PWTS::LogLevel::Error))
-					logger->write(QString("no access to scheme: %1").arg(scheme.friendlyName));
+				if (logger.isLevel(PWTS::LogLevel::Error))
+					logger.write(QString("no access to scheme: %1").arg(scheme.friendlyName));
 
 				continue;
 			}
@@ -993,8 +993,8 @@ namespace PWTD::WIN {
 				if (subGroupGuid.Data1 == 0 || settingGuid.Data1 == 0 || !setPowerValue(guid, subGroupGuid, settingGuid, settData.value)) {
 					errors.insert(PWTS::DError::W_PWR_SCHEME);
 
-					if (logger->isLevel(PWTS::LogLevel::Error))
-						logger->write(QString("failed to write '%1' setting in group '%2' for scheme '%3'").arg(settGuid, settData.groupGuid, scheme.friendlyName));
+					if (logger.isLevel(PWTS::LogLevel::Error))
+						logger.write(QString("failed to write '%1' setting in group '%2' for scheme '%3'").arg(settGuid, settData.groupGuid, scheme.friendlyName));
 				}
 			}
 		}
@@ -1005,8 +1005,8 @@ namespace PWTD::WIN {
     		const DWORD ret = PowerSetActiveScheme(nullptr, &activeGuid);
 
     		if (ret != ERROR_SUCCESS) {
-    			if (logger->isLevel(PWTS::LogLevel::Error))
-    				logger->write(QString("failed to set active scheme '%1', code %2").arg(activeScheme).arg(ret));
+    			if (logger.isLevel(PWTS::LogLevel::Error))
+    				logger.write(QString("failed to set active scheme '%1', code %2").arg(activeScheme).arg(ret));
 
     			errors.insert(PWTS::DError::W_PWR_ACTIVE_SCHEME);
     		}
@@ -1160,8 +1160,8 @@ namespace PWTD::WIN {
     	uint8_t chip_id;
 
     	if (!gpdECRamRead(controls.addrPort, controls.dataPort, 0x2000, &chip_id)) {
-    		if (logger->isLevel(PWTS::LogLevel::Error))
-    			logger->write("failed to read chip_id");
+    		if (logger.isLevel(PWTS::LogLevel::Error))
+    			logger.write("failed to read chip_id");
 
     		return false;
     	}
@@ -1172,15 +1172,15 @@ namespace PWTD::WIN {
     		if (!gpdECRamRead(controls.addrPort, controls.dataPort, 0x1060, &chip_ver) ||
     			!gpdECRamWrite(controls.addrPort, controls.dataPort, 0x1060, chip_ver | 0x80))
     		{
-    			if (logger->isLevel(PWTS::LogLevel::Error))
-    				logger->write("failed to init ec");
+    			if (logger.isLevel(PWTS::LogLevel::Error))
+    				logger.write("failed to init ec");
 
     			return false;
     		}
     	}
 
-    	if (logger->isLevel(PWTS::LogLevel::Info))
-    		logger->write("GPD win 4 EC initialized");
+    	if (logger.isLevel(PWTS::LogLevel::Info))
+    		logger.write("GPD win 4 EC initialized");
 
     	return true;
 	}

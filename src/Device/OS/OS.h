@@ -29,7 +29,7 @@ namespace PWTD {
     class OS {
     protected:
         QSharedPointer<PWTS::SystemInfo> sysInfo;
-        std::shared_ptr<FileLogger> logger;
+        FileLogger &logger = FileLogger::get();
 
         [[nodiscard]] virtual QString getBiosVendor() const = 0;
         [[nodiscard]] virtual QString getBiosVersion() const = 0;
@@ -43,7 +43,6 @@ namespace PWTD {
         [[nodiscard]] virtual quint64 getSwapSize() const = 0;
 
     public:
-        OS();
         virtual ~OS() = default;
 
         void collectSystemInfo();

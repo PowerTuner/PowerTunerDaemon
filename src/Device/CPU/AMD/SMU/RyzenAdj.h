@@ -29,7 +29,7 @@ namespace PWTD::AMD {
     class RyzenAdj final {
     private:
         static constexpr uint32_t curveOptimizerBase = 0x100000;
-        std::shared_ptr<FileLogger> logger;
+        FileLogger &logger = FileLogger::get();
         mutable QHash<int, QVariant> ryTable; // cache for values that may not have a read cmd
         int cpuCoreCount = 0;
 
@@ -49,7 +49,6 @@ namespace PWTD::AMD {
         [[nodiscard]] bool setCurveOptimizerCore(int cpu, const PWTS::RWData<int> &data) const;
 
     public:
-        RyzenAdj();
         ~RyzenAdj();
 
         [[nodiscard]] bool init(int numCores);

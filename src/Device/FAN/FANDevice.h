@@ -24,7 +24,7 @@
 namespace PWTD {
     class FANDevice {
     private:
-        std::shared_ptr<FileLogger> logger;
+        FileLogger &logger = FileLogger::get();
         QSharedPointer<OS> os;
         QList<std::pair<int, int>> curve;
         QString id;

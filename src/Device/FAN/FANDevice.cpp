@@ -19,20 +19,19 @@
 
 namespace PWTD {
     FANDevice::FANDevice(const QSharedPointer<OS> &os, const QString &id) {
-        logger = FileLogger::getInstance();
         this->os = os;
         this->id = id;
     }
 
     FANDevice::~FANDevice() {
         if (os->setupOSAccess()) {
-            if (!os->setFanMode(control, PWTS::RWData<int>(0, true)) && logger->isLevel(PWTS::LogLevel::Error))
-                logger->write(QString("%1: failed to reset to auto").arg(fanString));
+            if (!os->setFanMode(control, PWTS::RWData<int>(0, true)) && logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QString("%1: failed to reset to auto").arg(fanString));
 
             os->unsetOSAccess();
 
-        } else if (logger->isLevel(PWTS::LogLevel::Error)) {
-            logger->write("failed to setup os access");
+        } else if (logger.isLevel(PWTS::LogLevel::Error)) {
+            logger.write("failed to setup os access");
         }
     }
 
@@ -44,8 +43,8 @@ namespace PWTD {
     }
 
     void FANDevice::prepareForSleep() const {
-        if (!os->setFanMode(control, PWTS::RWData<int>(0, true)) && logger->isLevel(PWTS::LogLevel::Error))
-            logger->write(QString("%1: failed to reset to auto").arg(fanString));
+        if (!os->setFanMode(control, PWTS::RWData<int>(0, true)) && logger.isLevel(PWTS::LogLevel::Error))
+            logger.write(QString("%1: failed to reset to auto").arg(fanString));
     }
 
     QSet<PWTS::DError> FANDevice::applySettings(const PWTS::FanData &data) {

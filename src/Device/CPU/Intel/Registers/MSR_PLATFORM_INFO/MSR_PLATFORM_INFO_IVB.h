@@ -52,8 +52,8 @@ namespace PWTD::Intel {
                 regVal.minOperatingRatio = getBitfield(55, 48, raw);
 
             } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger->isLevel(PWTS::LogLevel::Error))
-                    logger->write(e.what());
+                if (logger.isLevel(PWTS::LogLevel::Error))
+                    logger.write(e.what());
 
                 return false;
             }

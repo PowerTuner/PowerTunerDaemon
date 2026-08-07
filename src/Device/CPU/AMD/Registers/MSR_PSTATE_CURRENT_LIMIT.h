@@ -40,8 +40,8 @@ namespace PWTD::AMD {
                 regVal.pstateMaxVal = getBitfield(7, 4, raw);
 
             } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger->isLevel(PWTS::LogLevel::Error))
-                    logger->write(e.what());
+                if (logger.isLevel(PWTS::LogLevel::Error))
+                    logger.write(e.what());
 
                 return false;
             }
