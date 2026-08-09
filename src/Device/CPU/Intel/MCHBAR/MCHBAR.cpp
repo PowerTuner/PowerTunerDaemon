@@ -36,12 +36,12 @@ namespace PWTD::Intel {
                 switch (cpuModel) {
                     case IvyBridge:
                     case IceLakeU: {
-                        mchbarPackageRaplLimit.reset(new MCHBAR_PACKAGE_RAPL_LIMIT_IVB(baseAddress));
+                        mchbarPackageRaplLimit = std::make_unique<MCHBAR_PACKAGE_RAPL_LIMIT_IVB>(baseAddress);
                     }
                         break;
                     case TigerLakeU:
                     case LunarLake: {
-                        mchbarPackageRaplLimit.reset(new MCHBAR_PACKAGE_RAPL_LIMIT_TGL(baseAddress));
+                        mchbarPackageRaplLimit = std::make_unique<MCHBAR_PACKAGE_RAPL_LIMIT_TGL>(baseAddress);
                     }
                         break;
                     default:
@@ -57,20 +57,15 @@ namespace PWTD::Intel {
         return true;
     }
 
-    void MCHBAR::buildRegistersCache() const {
-        regsCache.reset(new RegistersCache);
-
-        if (!mchbarPackageRaplLimit.isNull()) {
-            const std::unique_ptr<MCHBAR_PACKAGE_POWER_SKU_UNIT> powUnit = std::make_unique<MCHBAR_PACKAGE_POWER_SKU_UNIT>(baseAddress);
-
-            regsCache->pkgPowerSkuUnit = powUnit->get();
-        }
+    void MCHBAR::buildRegistersCache() {
+        if (mchbarPackageRaplLimit)
+            regsCache.pkgPowerSkuUnit = MCHBAR_PACKAGE_POWER_SKU_UNIT(baseAddress).get();
     }
 
     QSet<PWTS::Feature> MCHBAR::getFeatures() const {
         QSet<PWTS::Feature> features;
 
-        if (!mchbarPackageRaplLimit.isNull()) {
+        if (mchbarPackageRaplLimit) {
             features.unite({PWTS::Feature::INTEL_MCHBAR_PKG_RAPL_LIMIT, PWTS::Feature::INTEL_MCHBAR_GROUP});
 
             if (dynamic_cast<MCHBAR_PACKAGE_RAPL_LIMIT_IVB *>(mchbarPackageRaplLimit.get()) != nullptr)
@@ -87,7 +82,7 @@ namespace PWTD::Intel {
             return;
 
         if (features.contains(PWTS::Feature::INTEL_MCHBAR_PKG_RAPL_LIMIT))
-            packet.intelData->mchbarPkgRaplLimit = mchbarPackageRaplLimit->get(regsCache->pkgPowerSkuUnit);
+            packet.intelData->mchbarPkgRaplLimit = mchbarPackageRaplLimit->get(regsCache.pkgPowerSkuUnit);
     }
 
     QSet<PWTS::DError> MCHBAR::applySettings(const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet) const {
@@ -97,7 +92,7 @@ namespace PWTD::Intel {
         const QSharedPointer<PWTS::Intel::IntelData> data = packet.intelData;
         QSet<PWTS::DError> errors;
 
-        if (features.contains(PWTS::Feature::INTEL_MCHBAR_PKG_RAPL_LIMIT) && !mchbarPackageRaplLimit->set(data->mchbarPkgRaplLimit, regsCache->pkgPowerSkuUnit))
+        if (features.contains(PWTS::Feature::INTEL_MCHBAR_PKG_RAPL_LIMIT) && !mchbarPackageRaplLimit->set(data->mchbarPkgRaplLimit, regsCache.pkgPowerSkuUnit))
             errors.insert(PWTS::DError::W_POWER_LIMIT_MCHBAR);
 
         return errors;

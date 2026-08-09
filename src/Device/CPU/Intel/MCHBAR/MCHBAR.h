@@ -29,10 +29,10 @@ namespace PWTD::Intel {
         };
 
         uint32_t baseAddress;
-        mutable QScopedPointer<RegistersCache> regsCache;
-        QScopedPointer<MCHBAR_PACKAGE_RAPL_LIMIT> mchbarPackageRaplLimit;
+        RegistersCache regsCache {};
+        std::unique_ptr<MCHBAR_PACKAGE_RAPL_LIMIT> mchbarPackageRaplLimit;
 
-        void buildRegistersCache() const;
+        void buildRegistersCache();
 
     public:
         explicit MCHBAR(int cpuFamily);
