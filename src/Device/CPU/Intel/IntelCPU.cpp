@@ -24,31 +24,32 @@ namespace PWTD::Intel {
     IntelCPU::IntelCPU(const QSharedPointer<cpu_id_t> &cpuID, const QSharedPointer<cpu_raw_data_t> &cpuRawData): CPUDevice(cpuID, cpuRawData) {
         cpuInfo->vendor = PWTS::CPUVendor::Intel;
         msrDev = MSRFactory::getMSRInstance();
+        mchbar = std::make_unique<MCHBAR>(cpuID->x86.family);
 
-        mchbar.reset(new MCHBAR(cpuID->x86.family));
         if (!mchbar->init(cpuID->x86.family, cpuID->x86.ext_model))
             mchbar.reset();
 
         setupCPUModelRegisters();
-        ia32MiscEnable.reset(new IA32_MISC_ENABLE);
-        msrTurboRatioLimit.reset(new MSR_TURBO_RATIO_LIMIT);
+
+        ia32MiscEnable = std::make_unique<IA32_MISC_ENABLE>();
+        msrTurboRatioLimit = std::make_unique<MSR_TURBO_RATIO_LIMIT>();
 
         if (hasIA32PkgThermStatusBit())
-            ia32PackageThermStatus.reset(new IA32_PACKAGE_THERM_STATUS);
+            ia32PackageThermStatus = std::make_unique<IA32_PACKAGE_THERM_STATUS>();
 
         if (hasEnergyPerfBiasBit())
-            ia32EnergyPerfBias.reset(new IA32_ENERGY_PERF_BIAS);
+            ia32EnergyPerfBias = std::make_unique<IA32_ENERGY_PERF_BIAS>();
 
         if (hasHWPBit()) {
-            ia32PmEnable.reset(new IA32_PM_ENABLE);
-            ia32HWPCapabilities.reset(new IA32_HWP_CAPABILITIES);
-            ia32HWPRequest.reset(new IA32_HWP_REQUEST);
+            ia32PmEnable = std::make_unique<IA32_PM_ENABLE>();
+            ia32HWPCapabilities = std::make_unique<IA32_HWP_CAPABILITIES>();
+            ia32HWPRequest = std::make_unique<IA32_HWP_REQUEST>();
 
             if (hasHWPRequestPkgBit())
-                ia32HWPRequestPkg.reset(new IA32_HWP_REQUEST_PKG);
+                ia32HWPRequestPkg = std::make_unique<IA32_HWP_REQUEST_PKG>();
 
             if (hasHWPCtlBit())
-                ia32HwpCtl.reset(new IA32_HWP_CTL);
+                ia32HwpCtl = std::make_unique<IA32_HWP_CTL>();
         }
 
         cacheStaticRegistersData();
@@ -59,81 +60,81 @@ namespace PWTD::Intel {
             case Family6: {
                 switch (cpuInfo->extModel) {
                     case Clarkdale: {
-                        msrMiscPwrMgmt.reset(new MSR_MISC_PWR_MGMT_NHLM);
-                        msrPlatformInfo.reset(new MSR_PLATFORM_INFO_NHLM);
-                        msrTurboPowerCurrentLimit.reset(new MSR_TURBO_POWER_CURRENT_LIMIT);
-                        msrPowerCtl.reset(new MSR_POWER_CTL_NHLM);
-                        msrTemperatureTarget.reset(new MSR_TEMPERATURE_TARGET_NHLM);
+                        msrMiscPwrMgmt = std::make_unique<MSR_MISC_PWR_MGMT_NHLM>();
+                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_NHLM>();
+                        msrTurboPowerCurrentLimit = std::make_unique<MSR_TURBO_POWER_CURRENT_LIMIT>();
+                        msrPowerCtl = std::make_unique<MSR_POWER_CTL_NHLM>();
+                        msrTemperatureTarget = std::make_unique<MSR_TEMPERATURE_TARGET_NHLM>();
                     }
                         break;
                     case SandyBridge: {
-                        msrMiscPwrMgmt.reset(new MSR_MISC_PWR_MGMT_NHLM);
-                        msrPlatformInfo.reset(new MSR_PLATFORM_INFO_NHLM);
-                        msrPkgPowerLimit.reset(new MSR_PKG_POWER_LIMIT);
-                        msrVrCurrentConfig.reset(new MSR_VR_CURRENT_CONFIG_SB);
-                        msrPP0Policy.reset(new MSR_PP0_POLICY);
-                        msrPP1Policy.reset(new MSR_PP1_POLICY);
-                        msrPP1CurrentConfig.reset(new MSR_PP1_CURRENT_CONFIG);
-                        msrPkgCstConfigControl.reset(new MSR_PKG_CST_CONFIG_CONTROL_SB);
-                        msrPowerCtl.reset(new MSR_POWER_CTL_SB);
-                        msrTemperatureTarget.reset(new MSR_TEMPERATURE_TARGET_NHLM);
+                        msrMiscPwrMgmt = std::make_unique<MSR_MISC_PWR_MGMT_NHLM>();
+                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_NHLM>();
+                        msrPkgPowerLimit = std::make_unique<MSR_PKG_POWER_LIMIT>();
+                        msrVrCurrentConfig = std::make_unique<MSR_VR_CURRENT_CONFIG_SB>();
+                        msrPP0Policy = std::make_unique<MSR_PP0_POLICY>();
+                        msrPP1Policy = std::make_unique<MSR_PP1_POLICY>();
+                        msrPP1CurrentConfig = std::make_unique<MSR_PP1_CURRENT_CONFIG>();
+                        msrPkgCstConfigControl = std::make_unique<MSR_PKG_CST_CONFIG_CONTROL_SB>();
+                        msrPowerCtl = std::make_unique<MSR_POWER_CTL_SB>();
+                        msrTemperatureTarget = std::make_unique<MSR_TEMPERATURE_TARGET_NHLM>();
                     }
                         break;
                     case IvyBridge: {
-                        msrMiscPwrMgmt.reset(new MSR_MISC_PWR_MGMT_NHLM);
-                        msrPlatformInfo.reset(new MSR_PLATFORM_INFO_IVB);
-                        msrPkgPowerLimit.reset(new MSR_PKG_POWER_LIMIT);
-                        msrVrCurrentConfig.reset(new MSR_VR_CURRENT_CONFIG_SB);
-                        msrPP0Policy.reset(new MSR_PP0_POLICY);
-                        msrPP1Policy.reset(new MSR_PP1_POLICY);
-                        msrPP1CurrentConfig.reset(new MSR_PP1_CURRENT_CONFIG);
-                        msrPkgCstConfigControl.reset(new MSR_PKG_CST_CONFIG_CONTROL_SB);
-                        msrPowerCtl.reset(new MSR_POWER_CTL_SB);
-                        msrTemperatureTarget.reset(new MSR_TEMPERATURE_TARGET_NHLM);
+                        msrMiscPwrMgmt = std::make_unique<MSR_MISC_PWR_MGMT_NHLM>();
+                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_IVB>();
+                        msrPkgPowerLimit = std::make_unique<MSR_PKG_POWER_LIMIT>();
+                        msrVrCurrentConfig = std::make_unique<MSR_VR_CURRENT_CONFIG_SB>();
+                        msrPP0Policy = std::make_unique<MSR_PP0_POLICY>();
+                        msrPP1Policy = std::make_unique<MSR_PP1_POLICY>();
+                        msrPP1CurrentConfig = std::make_unique<MSR_PP1_CURRENT_CONFIG>();
+                        msrPkgCstConfigControl = std::make_unique<MSR_PKG_CST_CONFIG_CONTROL_SB>();
+                        msrPowerCtl = std::make_unique<MSR_POWER_CTL_SB>();
+                        msrTemperatureTarget = std::make_unique<MSR_TEMPERATURE_TARGET_NHLM>();
                     }
                         break;
                     case IceLakeU: {
-                        msrMiscPwrMgmt.reset(new MSR_MISC_PWR_MGMT_NHLM);
-                        msrPlatformInfo.reset(new MSR_PLATFORM_INFO_IVB);
-                        msrPkgPowerLimit.reset(new MSR_PKG_POWER_LIMIT);
-                        msrVrCurrentConfig.reset(new MSR_VR_CURRENT_CONFIG_SB);
-                        msrPP0Policy.reset(new MSR_PP0_POLICY);
-                        msrPP1Policy.reset(new MSR_PP1_POLICY);
-                        msrPowerCtl.reset(new MSR_POWER_CTL_SB);
-                        msrUnkFivrControl.reset(new MSR_UNK_FIVR_CONTROL_ICL);
-                        msrTemperatureTarget.reset(new MSR_TEMPERATURE_TARGET_NHLM);
+                        msrMiscPwrMgmt = std::make_unique<MSR_MISC_PWR_MGMT_NHLM>();
+                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_IVB>();
+                        msrPkgPowerLimit = std::make_unique<MSR_PKG_POWER_LIMIT>();
+                        msrVrCurrentConfig = std::make_unique<MSR_VR_CURRENT_CONFIG_SB>();
+                        msrPP0Policy = std::make_unique<MSR_PP0_POLICY>();
+                        msrPP1Policy = std::make_unique<MSR_PP1_POLICY>();
+                        msrPowerCtl = std::make_unique<MSR_POWER_CTL_SB>();
+                        msrUnkFivrControl = std::make_unique<MSR_UNK_FIVR_CONTROL_ICL>();
+                        msrTemperatureTarget = std::make_unique<MSR_TEMPERATURE_TARGET_NHLM>();
                     }
                         break;
                     case TigerLakeU: {
-                        msrMiscPwrMgmt.reset(new MSR_MISC_PWR_MGMT_NHLM);
-                        msrPlatformInfo.reset(new MSR_PLATFORM_INFO_IVB);
-                        msrPkgPowerLimit.reset(new MSR_PKG_POWER_LIMIT);
-                        msrVrCurrentConfig.reset(new MSR_VR_CURRENT_CONFIG_SB);
-                        msrPP0Policy.reset(new MSR_PP0_POLICY);
-                        msrPP1Policy.reset(new MSR_PP1_POLICY);
-                        msrPowerCtl.reset(new MSR_POWER_CTL_SB);
-                        msrTemperatureTarget.reset(new MSR_TEMPERATURE_TARGET_NHLM);
+                        msrMiscPwrMgmt = std::make_unique<MSR_MISC_PWR_MGMT_NHLM>();
+                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_IVB>();
+                        msrPkgPowerLimit = std::make_unique<MSR_PKG_POWER_LIMIT>();
+                        msrVrCurrentConfig = std::make_unique<MSR_VR_CURRENT_CONFIG_SB>();
+                        msrPP0Policy = std::make_unique<MSR_PP0_POLICY>();
+                        msrPP1Policy = std::make_unique<MSR_PP1_POLICY>();
+                        msrPowerCtl = std::make_unique<MSR_POWER_CTL_SB>();
+                        msrTemperatureTarget = std::make_unique<MSR_TEMPERATURE_TARGET_NHLM>();
                     }
                         break;
                     case AlderLakeN: {
-                        msrPlatformInfo.reset(new MSR_PLATFORM_INFO_IVB);
-                        msrPkgPowerLimit.reset(new MSR_PKG_POWER_LIMIT);
-                        msrVrCurrentConfig.reset(new MSR_VR_CURRENT_CONFIG_SB);
-                        msrPP0Policy.reset(new MSR_PP0_POLICY);
-                        msrPP1Policy.reset(new MSR_PP1_POLICY);
-                        msrPowerCtl.reset(new MSR_POWER_CTL_SB);
-                        msrTemperatureTarget.reset(new MSR_TEMPERATURE_TARGET_NHLM);
+                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_IVB>();
+                        msrPkgPowerLimit = std::make_unique<MSR_PKG_POWER_LIMIT>();
+                        msrVrCurrentConfig = std::make_unique<MSR_VR_CURRENT_CONFIG_SB>();
+                        msrPP0Policy = std::make_unique<MSR_PP0_POLICY>();
+                        msrPP1Policy = std::make_unique<MSR_PP1_POLICY>();
+                        msrPowerCtl = std::make_unique<MSR_POWER_CTL_SB>();
+                        msrTemperatureTarget = std::make_unique<MSR_TEMPERATURE_TARGET_NHLM>();
                     }
                         break;
                     case LunarLake: {
-                        msrPlatformInfo.reset(new MSR_PLATFORM_INFO_IVB);
-                        msrPkgPowerLimit.reset(new MSR_PKG_POWER_LIMIT);
-                        msrVrCurrentConfig.reset(new MSR_VR_CURRENT_CONFIG_CU1);
-                        msrPP0Policy.reset(new MSR_PP0_POLICY);
-                        msrPP1Policy.reset(new MSR_PP1_POLICY);
-                        msrPowerCtl.reset(new MSR_POWER_CTL_CU1);
-                        msrPkgCstConfigControl.reset(new MSR_PKG_CST_CONFIG_CONTROL_CU1);
-                        msrTemperatureTarget.reset(new MSR_TEMPERATURE_TARGET_NHLM);
+                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_IVB>();
+                        msrPkgPowerLimit = std::make_unique<MSR_PKG_POWER_LIMIT>();
+                        msrVrCurrentConfig = std::make_unique<MSR_VR_CURRENT_CONFIG_CU1>();
+                        msrPP0Policy = std::make_unique<MSR_PP0_POLICY>();
+                        msrPP1Policy = std::make_unique<MSR_PP1_POLICY>();
+                        msrPowerCtl = std::make_unique<MSR_POWER_CTL_CU1>();
+                        msrPkgCstConfigControl = std::make_unique<MSR_PKG_CST_CONFIG_CONTROL_CU1>();
+                        msrTemperatureTarget = std::make_unique<MSR_TEMPERATURE_TARGET_NHLM>();
                     }
                         break;
                     default:
@@ -147,16 +148,16 @@ namespace PWTD::Intel {
     }
 
     void IntelCPU::cacheStaticRegistersData() const {
-        regsCache.reset(new RegistersCache);
+        regsCache = std::make_unique<RegistersCache>();
 
         if (msrDev->openMsrFd(0)) {
-            if (!msrPkgPowerLimit.isNull()) {
+            if (msrPkgPowerLimit) {
                 const std::unique_ptr<MSR_RAPL_POWER_UNIT> msrRaplPowUnit = std::make_unique<MSR_RAPL_POWER_UNIT>();
 
                 regsCache->raplPowerUnit = msrRaplPowUnit->getPowerUnitData();
             }
 
-            if (!msrTemperatureTarget.isNull()) {
+            if (msrTemperatureTarget) {
                 const PWTS::RWData<PWTS::Intel::TemperatureTarget> tempTarget = msrTemperatureTarget->getTemperatureTargetData();
 
                 if (tempTarget.isValid())
@@ -245,7 +246,7 @@ namespace PWTD::Intel {
         bool canProgTDPLimitForTurboMode = false;
         bool canProgRatioLimitForTurboMode = false;
 
-        if (!msrPlatformInfo.isNull()) {
+        if (msrPlatformInfo) {
             const PWTS::ROData<PlatformInfoData> data = msrPlatformInfo->getPlatformInfoData();
 
             features.unite({PWTS::Feature::INTEL_PLATFORM_INFO, PWTS::Feature::INTEL_CPU_GROUP});
@@ -263,35 +264,35 @@ namespace PWTD::Intel {
             }
         }
 
-        if (!ia32PackageThermStatus.isNull())
+        if (ia32PackageThermStatus)
             features.unite({PWTS::Feature::INTEL_PKG_THERM_STATUS, PWTS::Feature::INTEL_CPU_STAT_GROUP});
 
-        if (!msrPkgPowerLimit.isNull())
+        if (msrPkgPowerLimit)
             features.unite({PWTS::Feature::INTEL_PKG_POWER_LIMIT, PWTS::Feature::INTEL_CPU_GROUP});
 
-        if (!msrVrCurrentConfig.isNull())
+        if (msrVrCurrentConfig)
             features.unite({PWTS::Feature::INTEL_VR_CURRENT_CFG, PWTS::Feature::INTEL_CPU_GROUP});
 
-        if (!msrPP1CurrentConfig.isNull())
+        if (msrPP1CurrentConfig)
             features.unite({PWTS::Feature::INTEL_PP1_CURRENT_CFG, PWTS::Feature::INTEL_CPU_GROUP});
 
-        if (!msrTurboPowerCurrentLimit.isNull()) {
+        if (msrTurboPowerCurrentLimit) {
             features.unite({PWTS::Feature::INTEL_TURBO_POWER_CURRENT_LIMIT, PWTS::Feature::INTEL_CPU_GROUP});
 
             if (canProgTDPLimitForTurboMode)
                 features.insert(PWTS::Feature::INTEL_TURBO_POWER_CURRENT_LIMIT_RW);
         }
 
-        if (!msrPP0Policy.isNull())
+        if (msrPP0Policy)
             features.unite({PWTS::Feature::INTEL_CPU_POWER_BALANCE, PWTS::Feature::INTEL_CPU_GROUP});
 
-        if (!msrPP1Policy.isNull())
+        if (msrPP1Policy)
             features.unite({PWTS::Feature::INTEL_GPU_POWER_BALANCE, PWTS::Feature::INTEL_CPU_GROUP});
 
-        if (!ia32EnergyPerfBias.isNull())
+        if (ia32EnergyPerfBias)
             features.unite({PWTS::Feature::INTEL_ENERGY_PERF_BIAS, PWTS::Feature::INTEL_CPU_GROUP});
 
-        if (!msrTurboRatioLimit.isNull()) {
+        if (msrTurboRatioLimit) {
             features.unite({PWTS::Feature::INTEL_TURBO_RATIO_LIMIT, PWTS::Feature::INTEL_CPU_GROUP});
 
             if (canProgRatioLimitForTurboMode)
@@ -304,7 +305,7 @@ namespace PWTD::Intel {
         if (hasEnhancedSpeedStepBit())
             features.unite({PWTS::Feature::INTEL_ENHANCED_SPEEDSTEP, PWTS::Feature::INTEL_CPU_GROUP, PWTS::Feature::INTEL_IA32_MISC_ENABLE_GROUP});
 
-        if (!msrPowerCtl.isNull()) {
+        if (msrPowerCtl) {
             features.unite({PWTS::Feature::INTEL_POWER_CTL, PWTS::Feature::INTEL_CPU_GROUP});
 
             if (dynamic_cast<MSR_POWER_CTL_NHLM *>(msrPowerCtl.get()) != nullptr)
@@ -315,14 +316,14 @@ namespace PWTD::Intel {
                 features.insert(PWTS::Feature::INTEL_POWER_CTL_CU1);
         }
 
-        if (!msrMiscPwrMgmt.isNull()) {
+        if (msrMiscPwrMgmt) {
             features.unite({PWTS::Feature::INTEL_MISC_PWR_MGMT, PWTS::Feature::INTEL_CPU_GROUP});
 
             if (dynamic_cast<MSR_MISC_PWR_MGMT_NHLM *>(msrMiscPwrMgmt.get()) != nullptr)
                 features.insert(PWTS::Feature::INTEL_MISC_PWR_MGMT_NHLM);
         }
 
-        if (!msrUnkFivrControl.isNull()) {
+        if (msrUnkFivrControl) {
             const PWTS::ROData<MSR_UNK_FIVR_CONTROL::FIVRCapabilities> fivrCaps = msrUnkFivrControl->getFIVRCapabilities();
 
             if (fivrCaps.isValid()) {
@@ -347,10 +348,10 @@ namespace PWTD::Intel {
             }
         }
 
-        if (!ia32PmEnable.isNull()) {
+        if (ia32PmEnable) {
             features.insert(PWTS::Feature::INTEL_HWP_GROUP);
 
-            if (!ia32HWPRequestPkg.isNull())
+            if (ia32HWPRequestPkg)
                 features.insert(PWTS::Feature::INTEL_HWP_REQ_PKG);
 
             if (hasHWPReqEPPBit())
@@ -362,11 +363,11 @@ namespace PWTD::Intel {
             if (hasHWPReqValidBitsBit())
                 features.insert(PWTS::Feature::INTEL_HWP_VALID_BITS);
 
-            if (!ia32HwpCtl.isNull())
+            if (ia32HwpCtl)
                 features.insert(PWTS::Feature::INTEL_HWP_CTL);
         }
 
-        if (!msrPkgCstConfigControl.isNull()) {
+        if (msrPkgCstConfigControl) {
             features.unite({PWTS::Feature::INTEL_PKG_CST_CONFIG_CONTROL, PWTS::Feature::INTEL_CPU_GROUP});
 
             if (dynamic_cast<MSR_PKG_CST_CONFIG_CONTROL_SB *>(msrPkgCstConfigControl.get()) != nullptr)
@@ -375,12 +376,12 @@ namespace PWTD::Intel {
                 features.insert(PWTS::Feature::INTEL_PKG_CST_CONFIG_CONTROL_CU1);
         }
 
-        if (!msrTemperatureTarget.isNull())
+        if (msrTemperatureTarget)
             features.unite({PWTS::Feature::INTEL_TEMPERATURE_TARGET, PWTS::Feature::INTEL_CPU_GROUP});
 
         msrDev->closeMsrFd(0);
 
-        if (!mchbar.isNull())
+        if (mchbar)
             features.unite(mchbar->getFeatures());
 
         return features;
@@ -516,7 +517,7 @@ namespace PWTD::Intel {
         for (int i=0,l=cpuInfo->numLogicalCpus; i<l; ++i)
             fillThreadData(i, features, packet);
 
-        if (!mchbar.isNull())
+        if (mchbar)
             mchbar->fillPacketData(features, packet);
     }
 
@@ -685,14 +686,14 @@ namespace PWTD::Intel {
         for (int i=0,l=cpuInfo->numLogicalCpus; i<l; ++i)
             applyThreadSettings(i, features, packet, errors);
 
-        if (!mchbar.isNull())
+        if (mchbar)
             errors.unite(mchbar->applySettings(features, packet));
 
         return errors;
     }
 
     PWTS::ROData<int> IntelCPU::getTemperature() const {
-        if (ia32PackageThermStatus.isNull() || msrTemperatureTarget.isNull())
+        if (!ia32PackageThermStatus || !msrTemperatureTarget)
             return {};
 
         if (!msrDev->openMsrFd(0)) {

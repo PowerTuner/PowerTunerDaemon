@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "../CPUDevice.h"
 #include "Includes/RegistersInlcudes.h"
 #include "SMU/RyzenAdj.h"
@@ -24,13 +23,13 @@
 namespace PWTD::AMD {
     class AMDCPU final: public CPUDevice {
     private:
-        QScopedPointer<RyzenAdj> ryzenAdj;
-        QScopedPointer<MSR_PSTATE_CURRENT_LIMIT> msrPStateCurrentLimit;
-        QScopedPointer<MSR_PSTATE_CONTROL> msrPStateControl;
-        QScopedPointer<MSR_CORE_PERFORMANCE_BOOST> msrCorePerformanceBoost;
-        QScopedPointer<MSR_CPPC_CAPABILITY_1> msrCppcCapability1;
-        QScopedPointer<MSR_CPPC_ENABLE> msrCppcEnable;
-        QScopedPointer<MSR_CPPC_REQUEST> msrCppcRequest;
+        std::unique_ptr<RyzenAdj> ryzenAdj;
+        std::unique_ptr<MSR_PSTATE_CURRENT_LIMIT> msrPStateCurrentLimit;
+        std::unique_ptr<MSR_PSTATE_CONTROL> msrPStateControl;
+        std::unique_ptr<MSR_CORE_PERFORMANCE_BOOST> msrCorePerformanceBoost;
+        std::unique_ptr<MSR_CPPC_CAPABILITY_1> msrCppcCapability1;
+        std::unique_ptr<MSR_CPPC_ENABLE> msrCppcEnable;
+        std::unique_ptr<MSR_CPPC_REQUEST> msrCppcRequest;
 
         [[nodiscard]] bool hasCorePerformanceBoostBit() const;
         [[nodiscard]] bool hasHWPStateBit() const;

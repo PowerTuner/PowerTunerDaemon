@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "../CPUDevice.h"
 #include "MCHBAR/MCHBAR.h"
 
@@ -29,29 +28,29 @@ namespace PWTD::Intel {
         };
 
         mutable PWTS::Intel::FIVRControlUV fivr {0, 0, 0, 0, 0};
-        mutable QScopedPointer<RegistersCache> regsCache;
-        QScopedPointer<MCHBAR> mchbar;
-        QScopedPointer<IA32_ENERGY_PERF_BIAS> ia32EnergyPerfBias;
-        QScopedPointer<IA32_MISC_ENABLE> ia32MiscEnable;
-        QScopedPointer<IA32_PM_ENABLE> ia32PmEnable;
-        QScopedPointer<IA32_PACKAGE_THERM_STATUS> ia32PackageThermStatus;
-        QScopedPointer<IA32_HWP_CAPABILITIES> ia32HWPCapabilities;
-        QScopedPointer<IA32_HWP_REQUEST_PKG> ia32HWPRequestPkg;
-        QScopedPointer<IA32_HWP_REQUEST> ia32HWPRequest;
-        QScopedPointer<IA32_HWP_CTL> ia32HwpCtl;
-        QScopedPointer<MSR_PLATFORM_INFO> msrPlatformInfo;
-        QScopedPointer<MSR_PKG_POWER_LIMIT> msrPkgPowerLimit;
-        QScopedPointer<MSR_VR_CURRENT_CONFIG> msrVrCurrentConfig;
-        QScopedPointer<MSR_PP1_CURRENT_CONFIG> msrPP1CurrentConfig;
-        QScopedPointer<MSR_TURBO_POWER_CURRENT_LIMIT> msrTurboPowerCurrentLimit;
-        QScopedPointer<MSR_PP0_POLICY> msrPP0Policy;
-        QScopedPointer<MSR_PP1_POLICY> msrPP1Policy;
-        QScopedPointer<MSR_TURBO_RATIO_LIMIT> msrTurboRatioLimit;
-        QScopedPointer<MSR_POWER_CTL> msrPowerCtl;
-        QScopedPointer<MSR_MISC_PWR_MGMT> msrMiscPwrMgmt;
-        QScopedPointer<MSR_UNK_FIVR_CONTROL> msrUnkFivrControl;
-        QScopedPointer<MSR_PKG_CST_CONFIG_CONTROL> msrPkgCstConfigControl;
-        QScopedPointer<MSR_TEMPERATURE_TARGET> msrTemperatureTarget;
+        mutable std::unique_ptr<RegistersCache> regsCache;
+        std::unique_ptr<MCHBAR> mchbar;
+        std::unique_ptr<IA32_ENERGY_PERF_BIAS> ia32EnergyPerfBias;
+        std::unique_ptr<IA32_MISC_ENABLE> ia32MiscEnable;
+        std::unique_ptr<IA32_PM_ENABLE> ia32PmEnable;
+        std::unique_ptr<IA32_PACKAGE_THERM_STATUS> ia32PackageThermStatus;
+        std::unique_ptr<IA32_HWP_CAPABILITIES> ia32HWPCapabilities;
+        std::unique_ptr<IA32_HWP_REQUEST_PKG> ia32HWPRequestPkg;
+        std::unique_ptr<IA32_HWP_REQUEST> ia32HWPRequest;
+        std::unique_ptr<IA32_HWP_CTL> ia32HwpCtl;
+        std::unique_ptr<MSR_PLATFORM_INFO> msrPlatformInfo;
+        std::unique_ptr<MSR_PKG_POWER_LIMIT> msrPkgPowerLimit;
+        std::unique_ptr<MSR_VR_CURRENT_CONFIG> msrVrCurrentConfig;
+        std::unique_ptr<MSR_PP1_CURRENT_CONFIG> msrPP1CurrentConfig;
+        std::unique_ptr<MSR_TURBO_POWER_CURRENT_LIMIT> msrTurboPowerCurrentLimit;
+        std::unique_ptr<MSR_PP0_POLICY> msrPP0Policy;
+        std::unique_ptr<MSR_PP1_POLICY> msrPP1Policy;
+        std::unique_ptr<MSR_TURBO_RATIO_LIMIT> msrTurboRatioLimit;
+        std::unique_ptr<MSR_POWER_CTL> msrPowerCtl;
+        std::unique_ptr<MSR_MISC_PWR_MGMT> msrMiscPwrMgmt;
+        std::unique_ptr<MSR_UNK_FIVR_CONTROL> msrUnkFivrControl;
+        std::unique_ptr<MSR_PKG_CST_CONFIG_CONTROL> msrPkgCstConfigControl;
+        std::unique_ptr<MSR_TEMPERATURE_TARGET> msrTemperatureTarget;
 
         void setupCPUModelRegisters();
         void cacheStaticRegistersData() const;

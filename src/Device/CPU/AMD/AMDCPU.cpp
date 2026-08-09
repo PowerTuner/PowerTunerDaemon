@@ -21,23 +21,23 @@ namespace PWTD::AMD {
     AMDCPU::AMDCPU(const QSharedPointer<cpu_id_t> &cpuID, const QSharedPointer<cpu_raw_data_t> &cpuRawData): CPUDevice(cpuID, cpuRawData) {
         cpuInfo->vendor = PWTS::CPUVendor::AMD;
         msrDev = MSRFactory::getMSRInstance();
+        ryzenAdj = std::make_unique<RyzenAdj>();
 
-        ryzenAdj.reset(new RyzenAdj);
         if (!ryzenAdj->init(cpuID->num_cores))
             ryzenAdj.reset();
 
         if (hasHWPStateBit()) {
-            msrPStateCurrentLimit.reset(new MSR_PSTATE_CURRENT_LIMIT);
-            msrPStateControl.reset(new MSR_PSTATE_CONTROL);
+            msrPStateCurrentLimit = std::make_unique<MSR_PSTATE_CURRENT_LIMIT>();
+            msrPStateControl = std::make_unique<MSR_PSTATE_CONTROL>();
         }
 
         if (hasCorePerformanceBoostBit())
-            msrCorePerformanceBoost.reset(new MSR_CORE_PERFORMANCE_BOOST);
+            msrCorePerformanceBoost = std::make_unique<MSR_CORE_PERFORMANCE_BOOST>();
 
         if (hasCPPCBit()) {
-            msrCppcCapability1.reset(new MSR_CPPC_CAPABILITY_1);
-            msrCppcEnable.reset(new MSR_CPPC_ENABLE);
-            msrCppcRequest.reset(new MSR_CPPC_REQUEST);
+            msrCppcCapability1 = std::make_unique<MSR_CPPC_CAPABILITY_1>();
+            msrCppcEnable = std::make_unique<MSR_CPPC_ENABLE>();
+            msrCppcRequest = std::make_unique<MSR_CPPC_REQUEST>();
         }
     }
 
@@ -69,18 +69,18 @@ namespace PWTD::AMD {
 
         QSet<PWTS::Feature> features;
 
-        if (!msrPStateCurrentLimit.isNull())
+        if (msrPStateCurrentLimit)
             features.unite({PWTS::Feature::AMD_HWPSTATE, PWTS::Feature::AMD_CPU_GROUP});
 
-        if (!msrCorePerformanceBoost.isNull())
+        if (msrCorePerformanceBoost)
             features.unite({PWTS::Feature::AMD_CORE_PERFORMANCE_BOOST, PWTS::Feature::AMD_CPU_GROUP});
 
-        if (!msrCppcEnable.isNull())
+        if (msrCppcEnable)
             features.unite({PWTS::Feature::AMD_CPPC, PWTS::Feature::AMD_CPU_GROUP});
 
         msrDev->closeMsrFd(0);
 
-        if (!ryzenAdj.isNull())
+        if (ryzenAdj)
             features.unite(ryzenAdj->getFeatures());
 
         return features;
@@ -164,7 +164,7 @@ namespace PWTD::AMD {
         for (int i=0,l=cpuInfo->numLogicalCpus; i<l; ++i)
             fillThreadData(i, features, packet);
 
-        if (!ryzenAdj.isNull())
+        if (ryzenAdj)
             ryzenAdj->fillPacketData(features, packet);
     }
 
@@ -252,7 +252,7 @@ namespace PWTD::AMD {
         for (int i=0,l=cpuInfo->numLogicalCpus; i<l; ++i)
             applyThreadSettings(i, features, packet, errors);
 
-        if (!ryzenAdj.isNull())
+        if (ryzenAdj)
             errors.unite(ryzenAdj->applySettings(features, coreIdxList, packet));
 
         return errors;
