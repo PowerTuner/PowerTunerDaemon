@@ -16,11 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <stdexcept>
-
 #include "../../CPURegister.h"
-#include "../../Utils/CPUUtils.h"
+#include "../../../Utils/Utils.h"
 #include "pwtShared/Include/Types/RWData.h"
 
 namespace PWTD::AMD {
@@ -28,50 +25,15 @@ namespace PWTD::AMD {
     private:
         static constexpr uint32_t addr = 0xc00102b1;
 
-        struct cppcEnable final {
-            uint64_t cppcEn :1; // 0
-            // 63:1 reserved:63
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint64_t raw, cppcEnable &regVal) const {
-            try {
-                regVal.cppcEn = getBitfield(0, 0, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
-        [[nodiscard]]
-        bool setRawValue(const cppcEnable &regVal, uint64_t &raw) const {
-            try {
-                setBitfield(0, 0, regVal.cppcEn, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
+        [[nodiscard]]
         PWTS::RWData<int> getCPPCEnableBit() const {
-            cppcEnable regVal {};
-            uint64_t raw = 0;
+            uint64_t reg;
 
-            if (!msrUtils->readMSR(raw, addr, 0) || !setBitfields(raw, regVal))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return {};
 
-            return PWTS::RWData<int>(static_cast<int>(regVal.cppcEn), true);
+            return PWTS::RWData<int>(static_cast<int>(getBitfield(0, 0, reg)), true);
         }
 
         [[nodiscard]]
@@ -79,15 +41,17 @@ namespace PWTD::AMD {
             if (!data.isValid() || data.isIgnored())
                 return true;
 
-            cppcEnable regVal {};
-            uint64_t raw = 0, cur = 0;
+            uint64_t reg;
 
-            regVal.cppcEn = data.getValue();
-
-            if (!msrUtils->readMSR(raw, addr, 0) || !setRawValue(regVal, raw) || !msrUtils->writeMSR(raw, addr, 0) || !msrUtils->readMSR(cur, addr, 0))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return false;
 
-            return cur == raw;
+            reg = setBitfield(0, 0, data.getValue(), reg);
+
+            if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
+                return false;
+
+            return getBitfield(0, 0, reg) == data.getValue();
         }
     };
 }

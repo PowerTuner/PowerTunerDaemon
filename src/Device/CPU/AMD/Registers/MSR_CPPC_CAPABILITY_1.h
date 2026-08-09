@@ -16,11 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <stdexcept>
-
 #include "../../CPURegister.h"
-#include "../../Utils/CPUUtils.h"
+#include "../../../Utils/Utils.h"
 #include "pwtShared/Include/CPU/AMD/CPPCCapability1.h"
 #include "pwtShared/Include/Types/ROData.h"
 
@@ -29,45 +26,18 @@ namespace PWTD::AMD {
     private:
         static constexpr uint32_t addr = 0xc00102b0;
 
-        struct cppcCapability1 final {
-            uint64_t lowestPerf :8; // 7:0
-            uint64_t lowNonLinPerf :8; // 15:8
-            uint64_t nominalPerf :8; // 23:16
-            uint64_t highestPerf :8; // 31:24
-            // 63:32 reserved:32
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint64_t raw, cppcCapability1 &regVal) const {
-            try {
-                regVal.lowestPerf = getBitfield(7, 0, raw);
-                regVal.lowNonLinPerf = getBitfield(15, 8, raw);
-                regVal.nominalPerf = getBitfield(23, 16, raw);
-                regVal.highestPerf = getBitfield(31, 24, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
         PWTS::ROData<PWTS::AMD::CPPCCapability1> getCPPCCapability1Data(const int cpu) const {
-            cppcCapability1 regVal {};
-            uint64_t raw = 0;
+            uint64_t reg;
 
-            if (!msrUtils->readMSR(raw, addr, cpu) || !setBitfields(raw, regVal))
+            if (!msrUtils->readMSR(reg, addr, cpu))
                 return {};
 
             return PWTS::ROData<PWTS::AMD::CPPCCapability1>({
-                .lowestPerf = static_cast<int>(regVal.lowestPerf),
-                .lowNonLinPerf = static_cast<int>(regVal.lowNonLinPerf),
-                .nominalPerf = static_cast<int>(regVal.nominalPerf),
-                .highestPerf = static_cast<int>(regVal.highestPerf)
+                .lowestPerf = static_cast<int>(getBitfield(7, 0, reg)),
+                .lowNonLinPerf = static_cast<int>(getBitfield(15, 8, reg)),
+                .nominalPerf = static_cast<int>(getBitfield(23, 16, reg)),
+                .highestPerf = static_cast<int>(getBitfield(31, 24, reg))
             }, true);
         }
     };

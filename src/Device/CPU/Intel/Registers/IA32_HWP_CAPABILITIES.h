@@ -16,11 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <stdexcept>
-
 #include "../../CPURegister.h"
-#include "../../Utils/CPUUtils.h"
+#include "../../../Utils/Utils.h"
 #include "pwtShared/Include/CPU/Intel/HWPCapabilities.h"
 #include "pwtShared/Include/Types/ROData.h"
 
@@ -29,43 +26,17 @@ namespace PWTD::Intel {
     private:
         static constexpr unsigned addr = 0x771;
 
-        struct ia32HWPCapabilities final {
-            uint64_t highestPerformance :8; // 7:0
-            uint64_t guaranteedPerformance :8; // 15:8
-            uint64_t mostEfficientPerformance :8; // 23:16
-            uint64_t lowestPerformance :8; // 31:24
-            // 63:32 reserved:32
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint64_t raw, ia32HWPCapabilities &regVal) const {
-            try {
-                regVal.highestPerformance = getBitfield(7, 0, raw);
-                regVal.guaranteedPerformance = getBitfield(15, 8, raw);
-                regVal.mostEfficientPerformance = getBitfield(23, 16, raw);
-                regVal.lowestPerformance = getBitfield(31, 24, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
+        [[nodiscard]]
         PWTS::ROData<PWTS::Intel::HWPCapabilities> getHWPCapabilitiesData(const int cpu) const {
-            ia32HWPCapabilities regVal {};
-            uint64_t raw = 0;
+            uint64_t reg;
 
-            if (!msrUtils->readMSR(raw, addr, cpu) || !setBitfields(raw, regVal))
+            if (!msrUtils->readMSR(reg, addr, cpu))
                 return {};
 
             return PWTS::ROData<PWTS::Intel::HWPCapabilities>({
-                .lowestPerf = static_cast<int>(regVal.lowestPerformance),
-                .highestPerf = static_cast<int>(regVal.highestPerformance)
+                .lowestPerf = static_cast<int>(getBitfield(31, 24, reg)),
+                .highestPerf = static_cast<int>(getBitfield(7, 0, reg))
             }, true);
         }
     };

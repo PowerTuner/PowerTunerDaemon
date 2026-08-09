@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "../../../CPURegister.h"
 #include "pwtShared/Include/CPU/Intel/VRCurrentConfig.h"
 #include "pwtShared/Include/Types/RWData.h"

@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "../../../CPURegister.h"
 #include "pwtShared/Include/CPU/Intel/TemperatureTarget.h"
 #include "pwtShared/Include/Types/RWData.h"
@@ -27,6 +26,6 @@ namespace PWTD::Intel {
         static constexpr unsigned addr = 0x1a2;
 
     public:
-        virtual PWTS::RWData<PWTS::Intel::TemperatureTarget> getTemperatureTargetData() const = 0;
+        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::TemperatureTarget> getTemperatureTargetData() const = 0;
     };
 }

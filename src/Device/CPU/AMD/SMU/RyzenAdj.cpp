@@ -18,7 +18,7 @@
 #include <QThread>
 
 #include "RyzenAdj.h"
-#include "../../Utils/DaemonUtils.h"
+#include "../../../../Utils/Utils.h"
 
 namespace PWTD::AMD {
     RyzenAdj::~RyzenAdj() {

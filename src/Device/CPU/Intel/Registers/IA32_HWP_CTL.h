@@ -16,11 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <stdexcept>
-
 #include "../../CPURegister.h"
-#include "../../Utils/CPUUtils.h"
+#include "../../../Utils/Utils.h"
 #include "pwtShared/Include/Types/RWData.h"
 
 namespace PWTD::Intel {
@@ -28,50 +25,15 @@ namespace PWTD::Intel {
     private:
         static constexpr unsigned addr = 0x776;
 
-        struct ia32HwpCtl final {
-            uint64_t pkgCtlPolarity :1; // 0
-            // 63:1 reserved:63
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint64_t raw, ia32HwpCtl &regVal) const {
-            try {
-                regVal.pkgCtlPolarity = getBitfield(0, 0, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
-        [[nodiscard]]
-        bool setRawValue(const ia32HwpCtl &regVal, uint64_t &raw) const {
-            try {
-                setBitfield(0, 0, regVal.pkgCtlPolarity, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
+        [[nodiscard]]
         PWTS::RWData<int> getHwpCtlBit() const {
-            ia32HwpCtl regVal {};
-            uint64_t raw = 0;
+            uint64_t reg;
 
-            if (!msrUtils->readMSR(raw, addr, 0) || !setBitfields(raw, regVal))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return {};
 
-            return PWTS::RWData<int>(static_cast<int>(regVal.pkgCtlPolarity), true);
+            return PWTS::RWData<int>(static_cast<int>(getBitfield(0, 0, reg)), true);
         }
 
         [[nodiscard]]
@@ -79,15 +41,18 @@ namespace PWTD::Intel {
             if (!data.isValid() || data.isIgnored())
                 return true;
 
-            ia32HwpCtl regVal {};
-            uint64_t raw = 0, cur = 0;
+            const int polarity = data.getValue();
+            uint64_t reg;
 
-            regVal.pkgCtlPolarity = data.getValue();
-
-            if (!msrUtils->readMSR(raw, addr, 0) || !setRawValue(regVal, raw) || !msrUtils->writeMSR(raw, addr, 0) || !msrUtils->readMSR(cur, addr, 0))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return false;
 
-            return cur == raw;
+            reg = setBitfield(0, 0, polarity, reg);
+
+            if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
+                return false;
+
+            return getBitfield(0, 0, reg) == polarity;
         }
     };
 }

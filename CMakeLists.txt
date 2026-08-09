@@ -34,9 +34,7 @@ set(PROJECT_SOURCES
 	src/Device/Device.h
 	src/Device/Device.cpp
 
-	src/Device/CPU/Utils/CPUUtils.cpp
-	src/Device/CPU/Utils/CPUUtils.h
-	src/Device/CPU/Utils/MSR/MSRFactory.h
+    src/Device/CPU/Utils/MSR/MSRFactory.h
 	src/Device/CPU/Utils/MSR/MSR.h
 	src/Device/CPU/Utils/MSR/MSRNull.h
 	src/Device/CPU/Utils/Memory/MemoryFactory.h
@@ -71,8 +69,8 @@ set(PROJECT_SOURCES
 	src/Device/OS/OSFactory.h
 	src/Device/OS/OSFactory.cpp
 
-	src/Utils/DaemonUtils.h
-	src/Utils/DaemonUtils.cpp
+    src/Utils/Utils.h
+    src/Utils/Utils.cpp
 	src/Utils/ProcessStatus.h
 	src/Utils/FileLogger/FileLogger.h
 	src/Utils/FileLogger/FileLogger.cpp

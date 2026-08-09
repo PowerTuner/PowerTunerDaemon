@@ -16,11 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <stdexcept>
-
 #include "../../CPURegister.h"
-#include "../../Utils/CPUUtils.h"
+#include "../../../Utils/Utils.h"
 #include "pwtShared/Include/CPU/Intel/TurboRatioLimit.h"
 #include "pwtShared/Include/Types/RWData.h"
 
@@ -29,78 +26,22 @@ namespace PWTD::Intel {
     private:
         static constexpr unsigned addr = 0x1ad;
 
-        struct turboRatioLimit final {
-            uint64_t maxRatioLimit1C :8; // 7:0
-            uint64_t maxRatioLimit2C :8; // 15:8
-            uint64_t maxRatioLimit3C :8; // 23:16
-            uint64_t maxRatioLimit4C :8; // 31:24
-            uint64_t maxRatioLimit5C :8; // 39:32
-            uint64_t maxRatioLimit6C :8; // 47:40
-            uint64_t maxRatioLimit7C :8; // 55:48
-            uint64_t maxRatioLimit8C :8; // 63:56
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint64_t raw, turboRatioLimit &regVal) const {
-            try {
-                regVal.maxRatioLimit1C = getBitfield(7, 0, raw);
-                regVal.maxRatioLimit2C = getBitfield(15, 8, raw);
-                regVal.maxRatioLimit3C = getBitfield(23, 16, raw);
-                regVal.maxRatioLimit4C = getBitfield(31, 24, raw);
-                regVal.maxRatioLimit5C = getBitfield(39, 32, raw);
-                regVal.maxRatioLimit6C = getBitfield(47, 40, raw);
-                regVal.maxRatioLimit7C = getBitfield(55, 48, raw);
-                regVal.maxRatioLimit8C = getBitfield(63, 56, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
-        [[nodiscard]]
-        bool setRawValue(const turboRatioLimit &regVal, uint64_t &raw) const {
-            try {
-                setBitfield(7, 0, regVal.maxRatioLimit1C, raw);
-                setBitfield(15, 8, regVal.maxRatioLimit2C, raw);
-                setBitfield(23, 16, regVal.maxRatioLimit3C, raw);
-                setBitfield(31, 24, regVal.maxRatioLimit4C, raw);
-                setBitfield(39, 32, regVal.maxRatioLimit5C, raw);
-                setBitfield(47, 40, regVal.maxRatioLimit6C, raw);
-                setBitfield(55, 48, regVal.maxRatioLimit7C, raw);
-                setBitfield(63, 56, regVal.maxRatioLimit8C, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
         PWTS::RWData<PWTS::Intel::TurboRatioLimit> getTurboRatioLimitData() const {
-            turboRatioLimit regVal {};
-            uint64_t raw = 0;
+            uint64_t reg;
 
-            if (!msrUtils->readMSR(raw, addr, 0) || !setBitfields(raw, regVal))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::TurboRatioLimit>({
-                .maxRatioLimit1C = static_cast<int>(regVal.maxRatioLimit1C),
-                .maxRatioLimit2C = static_cast<int>(regVal.maxRatioLimit2C),
-                .maxRatioLimit3C = static_cast<int>(regVal.maxRatioLimit3C),
-                .maxRatioLimit4C = static_cast<int>(regVal.maxRatioLimit4C),
-                .maxRatioLimit5C = static_cast<int>(regVal.maxRatioLimit5C),
-                .maxRatioLimit6C = static_cast<int>(regVal.maxRatioLimit6C),
-                .maxRatioLimit7C = static_cast<int>(regVal.maxRatioLimit7C),
-                .maxRatioLimit8C = static_cast<int>(regVal.maxRatioLimit8C)
+                .maxRatioLimit1C = static_cast<int>(getBitfield(7, 0, reg)),
+                .maxRatioLimit2C = static_cast<int>(getBitfield(15, 8, reg)),
+                .maxRatioLimit3C = static_cast<int>(getBitfield(23, 16, reg)),
+                .maxRatioLimit4C = static_cast<int>(getBitfield(31, 24, reg)),
+                .maxRatioLimit5C = static_cast<int>(getBitfield(39, 32, reg)),
+                .maxRatioLimit6C = static_cast<int>(getBitfield(47, 40, reg)),
+                .maxRatioLimit7C = static_cast<int>(getBitfield(55, 48, reg)),
+                .maxRatioLimit8C = static_cast<int>(getBitfield(63, 56, reg))
             }, true);
         }
 
@@ -110,22 +51,31 @@ namespace PWTD::Intel {
                 return true;
 
             const PWTS::Intel::TurboRatioLimit limit = data.getValue();
-            turboRatioLimit regVal {};
-            uint64_t raw = 0, cur = 0;
+            uint64_t reg;
 
-            regVal.maxRatioLimit1C = limit.maxRatioLimit1C;
-            regVal.maxRatioLimit2C = limit.maxRatioLimit2C;
-            regVal.maxRatioLimit3C = limit.maxRatioLimit3C;
-            regVal.maxRatioLimit4C = limit.maxRatioLimit4C;
-            regVal.maxRatioLimit5C = limit.maxRatioLimit5C;
-            regVal.maxRatioLimit6C = limit.maxRatioLimit6C;
-            regVal.maxRatioLimit7C = limit.maxRatioLimit7C;
-            regVal.maxRatioLimit8C = limit.maxRatioLimit8C;
-
-            if (!msrUtils->readMSR(raw, addr, 0) || !setRawValue(regVal, raw) || !msrUtils->writeMSR(raw, addr, 0) || !msrUtils->readMSR(cur, addr, 0))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return false;
 
-            return cur == raw;
+            reg = setBitfield(7, 0, limit.maxRatioLimit1C, reg);
+            reg = setBitfield(15, 8, limit.maxRatioLimit2C, reg);
+            reg = setBitfield(23, 16, limit.maxRatioLimit3C, reg);
+            reg = setBitfield(31, 24, limit.maxRatioLimit4C, reg);
+            reg = setBitfield(39, 32, limit.maxRatioLimit5C, reg);
+            reg = setBitfield(47, 40, limit.maxRatioLimit6C, reg);
+            reg = setBitfield(55, 48, limit.maxRatioLimit7C, reg);
+            reg = setBitfield(63, 56, limit.maxRatioLimit8C, reg);
+
+            if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
+                return false;
+
+            return getBitfield(7, 0, reg) == limit.maxRatioLimit1C &&
+                getBitfield(15, 8, reg) == limit.maxRatioLimit2C &&
+                getBitfield(23, 16, reg) == limit.maxRatioLimit3C &&
+                getBitfield(31, 24, reg) == limit.maxRatioLimit4C &&
+                getBitfield(39, 32, reg) == limit.maxRatioLimit5C &&
+                getBitfield(47, 40, reg) == limit.maxRatioLimit6C &&
+                getBitfield(55, 48, reg) == limit.maxRatioLimit7C &&
+                getBitfield(63, 56, reg) == limit.maxRatioLimit8C;
         }
     };
 }

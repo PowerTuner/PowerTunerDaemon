@@ -16,11 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <stdexcept>
-
 #include "../../CPURegister.h"
-#include "../../Utils/CPUUtils.h"
+#include "../../../Utils/Utils.h"
 #include "pwtShared/Include/Types/RWData.h"
 
 namespace PWTD::AMD {
@@ -28,50 +25,15 @@ namespace PWTD::AMD {
     private:
         static constexpr uint32_t addr = 0xc0010062;
 
-        struct PStateControl final {
-            uint64_t pstateCmd :4; // 3:0
-            // 63:4 reserved:60
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint64_t raw, PStateControl &regVal) const {
-            try {
-                regVal.pstateCmd = getBitfield(3, 0, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
-        [[nodiscard]]
-        bool setRawValue(const PStateControl &regVal, uint64_t &raw) const {
-            try {
-                setBitfield(3, 0, regVal.pstateCmd, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
+        [[nodiscard]]
         PWTS::RWData<int> getPStateControlData(const int cpu) const {
-            PStateControl regVal {};
-            uint64_t raw = 0;
+            uint64_t reg;
 
-            if (!msrUtils->readMSR(raw, addr, cpu) || !setBitfields(raw, regVal))
+            if (!msrUtils->readMSR(reg, addr, cpu))
                 return {};
 
-            return PWTS::RWData<int>(static_cast<int>(regVal.pstateCmd), true);
+            return PWTS::RWData<int>(static_cast<int>(getBitfield(3, 0, reg)), true);
         }
 
         [[nodiscard]]
@@ -79,15 +41,17 @@ namespace PWTD::AMD {
             if (!data.isValid())
                 return true;
 
-            PStateControl regVal {};
-            uint64_t raw = 0, cur = 0;
+            uint64_t reg;
 
-            regVal.pstateCmd = data.getValue();
-
-            if (!msrUtils->readMSR(raw, addr, cpu) || !setRawValue(regVal, raw) || !msrUtils->writeMSR(raw, addr, cpu) || !msrUtils->readMSR(cur, addr, cpu))
+            if (!msrUtils->readMSR(reg, addr, cpu))
                 return false;
 
-            return cur == raw;
+            reg = setBitfield(3, 0, data.getValue(), reg);
+
+            if (!msrUtils->writeMSR(reg, addr, cpu) || !msrUtils->readMSR(reg, addr, cpu))
+                return false;
+
+            return getBitfield(3, 0, reg) == data.getValue();
         }
     };
 }

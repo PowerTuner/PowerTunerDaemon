@@ -172,144 +172,65 @@ namespace PWTD::Intel {
 
     bool IntelCPU::hasIA32PkgThermStatusBit() const {
         const uint32_t eax = cpuidRaw->basic_cpuid[6][cpu_registers_t::EAX];
-        bool ret;
 
-        try {
-            ret = getBitfield(6, 6, eax) == 1;
-
-        } catch ([[maybe_unused]] std::invalid_argument const &e) {
-            return false;
-        }
-
-        return ret;
+        return getBitfield(6, 6, eax) == 1;
     }
 
     bool IntelCPU::hasEnergyPerfBiasBit() const {
         const uint32_t ecx = cpuidRaw->basic_cpuid[6][cpu_registers_t::ECX];
-        bool ret;
 
-        try {
-            ret = getBitfield(3, 3, ecx) == 1;
-
-        } catch ([[maybe_unused]] std::invalid_argument const &e) {
-            return false;
-        }
-
-        return ret;
+        return getBitfield(3, 3, ecx) == 1;
     }
 
+    // eax bit is cleared when disabled, so show the feature even when disable is 1
     bool IntelCPU::hasTurboBoostTechBit() const {
         const PWTS::RWData<PWTS::Intel::MiscProcFeatures> miscFeaturesData = ia32MiscEnable->getMiscProcessorFeaturesData();
         const uint32_t eax = cpuidRaw->basic_cpuid[6][cpu_registers_t::EAX];
         const int disableTurbo = !miscFeaturesData.isValid() ? 0 : miscFeaturesData.getValue().disableTurboMode;
-        bool ret;
 
-        try { // eax bit is cleared when disabled, so show the feature even when disable is 1
-            ret = getBitfield(1, 1, eax) == 1 || disableTurbo == 1;
-
-        } catch ([[maybe_unused]] std::invalid_argument const &e) {
-            return false;
-        }
-
-        return ret;
+        return getBitfield(1, 1, eax) == 1 || disableTurbo == 1;
     }
 
     bool IntelCPU::hasEnhancedSpeedStepBit() const {
         const uint32_t ecx = cpuidRaw->basic_cpuid[1][cpu_registers_t::ECX];
-        bool ret;
 
-        try {
-            ret = getBitfield(7, 7, ecx) == 1;
-
-        } catch ([[maybe_unused]] std::invalid_argument const &e) {
-            return false;
-        }
-
-        return ret;
+        return getBitfield(7, 7, ecx) == 1;
     }
 
     bool IntelCPU::hasHWPBit() const {
         const uint32_t eax = cpuidRaw->basic_cpuid[6][cpu_registers_t::EAX];
-        bool ret;
 
-        try {
-            ret = getBitfield(7, 7, eax) == 1;
-
-        } catch ([[maybe_unused]] std::invalid_argument const &e) {
-            return false;
-        }
-
-        return ret;
+        return getBitfield(7, 7, eax) == 1;
     }
 
     bool IntelCPU::hasHWPReqActivityWindowBit() const {
         const uint32_t eax = cpuidRaw->basic_cpuid[6][cpu_registers_t::EAX];
-        bool ret;
 
-        try {
-            ret = getBitfield(9, 9, eax) == 1;
-
-        } catch ([[maybe_unused]] std::invalid_argument const &e) {
-            return false;
-        }
-
-        return ret;
+        return getBitfield(9, 9, eax) == 1;
     }
 
     bool IntelCPU::hasHWPReqEPPBit() const {
         const uint32_t eax = cpuidRaw->basic_cpuid[6][cpu_registers_t::EAX];
-        bool ret;
 
-        try {
-            ret = getBitfield(10, 10, eax) == 1;
-
-        } catch ([[maybe_unused]] std::invalid_argument const &e) {
-            return false;
-        }
-
-        return ret;
+        return getBitfield(10, 10, eax) == 1;
     }
 
     bool IntelCPU::hasHWPRequestPkgBit() const {
         const uint32_t eax = cpuidRaw->basic_cpuid[6][cpu_registers_t::EAX];
-        bool ret;
 
-        try {
-            ret = getBitfield(11, 11, eax) == 1;
-
-        } catch ([[maybe_unused]] std::invalid_argument const &e) {
-            return false;
-        }
-
-        return ret;
+        return getBitfield(11, 11, eax) == 1;
     }
 
     bool IntelCPU::hasHWPReqValidBitsBit() const {
         const uint32_t eax = cpuidRaw->basic_cpuid[6][cpu_registers_t::EAX];
-        bool ret;
 
-        try {
-            ret = getBitfield(17, 17, eax) == 1;
-
-        } catch ([[maybe_unused]] std::invalid_argument const &e) {
-            return false;
-        }
-
-        return ret;
+        return getBitfield(17, 17, eax) == 1;
     }
 
     bool IntelCPU::hasHWPCtlBit() const {
         const uint32_t eax = cpuidRaw->basic_cpuid[6][cpu_registers_t::EAX];
-        bool ret;
 
-        try {
-            ret = getBitfield(22, 22, eax) == 1;
-
-        } catch ([[maybe_unused]] std::invalid_argument const &e) {
-            return false;
-        }
-
-        return ret;
+        return getBitfield(22, 22, eax) == 1;
     }
 
     QSet<PWTS::Feature> IntelCPU::getFeatures() const {

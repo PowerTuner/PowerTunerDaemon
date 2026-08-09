@@ -16,60 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <stdexcept>
-
 #include "../MCHBAR/MCHBARRegister.h"
-#include "../../Utils/CPUUtils.h"
+#include "../../../Utils/Utils.h"
 #include "pwtShared/Include/Types/ROData.h"
 
 namespace PWTD::Intel {
     class MCHBAR_PACKAGE_POWER_SKU_UNIT final: public MCHBARRegister {
-    private:
-        struct packagePowerSkuUnit final {
-            uint32_t powerUnit :4; // 3:0
-            // 7:4 reserved:4
-            uint32_t energyUnit :5; // 12:8
-            // 15:13 reserved:3
-            uint32_t timeUnit :4; // 19:16
-            // 31:20 reserved:12
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint32_t raw, packagePowerSkuUnit &regVal) const {
-            try {
-                regVal.powerUnit = getBitfield(3, 0, raw);
-                regVal.energyUnit = getBitfield(12, 8, raw);
-                regVal.timeUnit = getBitfield(19, 16, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
-        struct [[nodiscard]] PkgPowerSKUUnits final {
+        struct PkgPowerSKUUnits final {
             double powerUnit;
             double timeUnit;
         };
 
         explicit MCHBAR_PACKAGE_POWER_SKU_UNIT(const uint32_t base): MCHBARRegister(base, 0x5938) {}
 
+        [[nodiscard]]
         PWTS::ROData<PkgPowerSKUUnits> getPkgSKUPowerUnitData() const {
-            packagePowerSkuUnit regVal {};
-            uint64_t raw = 0;
+            uint64_t reg;
 
-            if (!memory->readMem32(raw, addr) || !setBitfields(raw, regVal))
+            if (!memory->readMem32(reg, addr))
                 return {};
 
             return PWTS::ROData<PkgPowerSKUUnits>({
-                .powerUnit = 1 / qPow(2, regVal.powerUnit),
-                .timeUnit = 1 / qPow(2, regVal.timeUnit)
+                .powerUnit = 1 / std::pow(2, getBitfield(3, 0, reg)),
+                .timeUnit = 1 / std::pow(2, getBitfield(19, 16, reg))
             }, true);
         }
     };

@@ -16,8 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-
 #include "../../../CPURegister.h"
 #include "../../Include/PlatformInfoData.h"
 #include "pwtShared/Include/Types/ROData.h"
@@ -28,6 +26,6 @@ namespace PWTD::Intel {
         static constexpr unsigned addr = 0xce;
 
     public:
-        virtual PWTS::ROData<PlatformInfoData> getPlatformInfoData() const = 0;
+        [[nodiscard]] virtual PWTS::ROData<PlatformInfoData> getPlatformInfoData() const = 0;
     };
 }

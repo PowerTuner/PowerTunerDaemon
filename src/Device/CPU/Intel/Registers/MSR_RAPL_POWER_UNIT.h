@@ -16,11 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <stdexcept>
-
 #include "../../CPURegister.h"
-#include "../../Utils/CPUUtils.h"
+#include "../../../Utils/Utils.h"
 #include "pwtShared/Include/Types/ROData.h"
 
 namespace PWTD::Intel {
@@ -28,48 +25,22 @@ namespace PWTD::Intel {
     private:
         static constexpr unsigned addr = 0x606;
 
-        struct raplPowerUnit final {
-            uint64_t powerUnits :4; // 3:0
-            // 7:4 reserved:4
-            uint64_t energyStatusUnits :5; // 12:8
-            // 15:13 reserved:3
-            uint64_t timeUnits :4; // 19:16
-            // 63:20 reserved:44
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint64_t raw, raplPowerUnit &regVal) const {
-            try {
-                regVal.powerUnits = getBitfield(3, 0, raw);
-                regVal.energyStatusUnits = getBitfield(7, 4, raw);
-                regVal.timeUnits = getBitfield(19, 16, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
         struct [[nodiscard]] RAPLPowerUnits final {
             double powerUnit;
             double timeUnit;
         };
 
+        [[nodiscard]]
         PWTS::ROData<RAPLPowerUnits> getPowerUnitData() const {
-            raplPowerUnit regVal {};
-            uint64_t raw = 0;
+            uint64_t reg;
 
-            if (!msrUtils->readMSR(raw, addr, 0) || !setBitfields(raw, regVal))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return {};
 
             return PWTS::ROData<RAPLPowerUnits>({
-                .powerUnit = 1 / qPow(2, regVal.powerUnits),
-                .timeUnit = 1 / qPow(2, regVal.timeUnits)
+                .powerUnit = 1 / std::pow(2, getBitfield(3, 0, reg)),
+                .timeUnit = 1 / std::pow(2, getBitfield(19, 16, reg))
             }, true);
         }
     };

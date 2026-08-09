@@ -24,7 +24,7 @@
 #endif
 #include "Device/Device.h"
 #include "Utils/ProcessStatus.h"
-#include "Utils/DaemonUtils.h"
+#include "Utils/Utils.h"
 #include "pwtShared/DaemonSettings.h"
 #include "DiskManagers/DaemonSettingDiskManager.h"
 #include "Utils/FileLogger/FileLogger.h"

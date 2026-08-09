@@ -16,11 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <stdexcept>
-
 #include "../../CPURegister.h"
-#include "../../Utils/CPUUtils.h"
+#include "../../../Utils/Utils.h"
 #include "pwtShared/Include/CPU/AMD/PStateCurrentLimit.h"
 #include "pwtShared/Include/Types/ROData.h"
 
@@ -29,39 +26,17 @@ namespace PWTD::AMD {
     private:
         static constexpr uint32_t addr = 0xc0010061;
 
-        struct PStateCurrentLimit final {
-            uint64_t curPStateLimit :4; // 3:0
-            uint64_t pstateMaxVal :4; // 7:4
-            // 63:8 reserved:56
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint64_t raw, PStateCurrentLimit &regVal) const {
-            try {
-                regVal.curPStateLimit = getBitfield(3, 0, raw);
-                regVal.pstateMaxVal = getBitfield(7, 4, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
-       PWTS::ROData<PWTS::AMD::PStateCurrentLimit> getPStateCurrentLimitData() const {
-            PStateCurrentLimit regVal {};
-            uint64_t raw = 0;
+        [[nodiscard]]
+        PWTS::ROData<PWTS::AMD::PStateCurrentLimit> getPStateCurrentLimitData() const {
+            uint64_t reg;
 
-            if (!msrUtils->readMSR(raw, addr, 0) || !setBitfields(raw, regVal))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return {};
 
             return PWTS::ROData<PWTS::AMD::PStateCurrentLimit>({
-                .curPStateLimit = static_cast<int>(regVal.curPStateLimit),
-                .pstateMaxValue = static_cast<int>(regVal.pstateMaxVal)
+                .curPStateLimit = static_cast<int>(getBitfield(3, 0, reg)),
+                .pstateMaxValue = static_cast<int>(getBitfield(7, 4, reg))
             }, true);
         }
     };

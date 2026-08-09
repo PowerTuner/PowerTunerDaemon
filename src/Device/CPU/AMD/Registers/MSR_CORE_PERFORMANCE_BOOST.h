@@ -16,11 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <stdexcept>
-
 #include "../../CPURegister.h"
-#include "../../Utils/CPUUtils.h"
+#include "../../../Utils/Utils.h"
 #include "pwtShared/Include/Types/RWData.h"
 
 namespace PWTD::AMD {
@@ -28,51 +25,14 @@ namespace PWTD::AMD {
     private:
         static constexpr uint32_t addr = 0xc0010015;
 
-        struct corePerformanceBoost final {
-            // 24:0 reserved:24
-            uint64_t cpbDis :1; // 25
-            // 63:26 reserved:38
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint64_t raw, corePerformanceBoost &regVal) const {
-            try {
-                regVal.cpbDis = getBitfield(25, 25, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
-        [[nodiscard]]
-        bool setRawValue(const corePerformanceBoost &regVal, uint64_t &raw) const {
-            try {
-                setBitfield(25, 25, regVal.cpbDis, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
         PWTS::RWData<int> getCorePerformanceBoostData(const int cpu) const {
-            corePerformanceBoost regVal {};
-            uint64_t raw = 0;
+            uint64_t reg;
 
-            if (!msrUtils->readMSR(raw, addr, cpu) || !setBitfields(raw, regVal))
+            if (!msrUtils->readMSR(reg, addr, cpu))
                 return {};
 
-            return PWTS::RWData<int>(static_cast<int>(regVal.cpbDis), true);
+            return PWTS::RWData<int>(static_cast<int>(getBitfield(25, 25, reg)), true);
         }
 
         [[nodiscard]]
@@ -80,15 +40,17 @@ namespace PWTD::AMD {
             if (!data.isValid())
                 return true;
 
-            corePerformanceBoost regVal {};
-            uint64_t raw = 0, cur = 0;
+            uint64_t reg;
 
-            regVal.cpbDis = data.getValue();
-
-            if (!msrUtils->readMSR(raw, addr, cpu) || !setRawValue(regVal, raw) || !msrUtils->writeMSR(raw, addr, cpu) || !msrUtils->readMSR(cur, addr, cpu))
+            if (!msrUtils->readMSR(reg, addr, cpu))
                 return false;
 
-            return cur == raw;
+            reg = setBitfield(25, 25, data.getValue(), reg);
+
+            if (!msrUtils->writeMSR(reg, addr, cpu) || !msrUtils->readMSR(reg, addr, cpu))
+                return false;
+
+            return getBitfield(25, 25, reg) == data.getValue();
         }
     };
 }

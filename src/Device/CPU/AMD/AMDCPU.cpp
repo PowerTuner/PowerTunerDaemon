@@ -43,44 +43,20 @@ namespace PWTD::AMD {
 
     bool AMDCPU::hasHWPStateBit() const {
         const uint32_t edx = cpuidRaw->ext_cpuid[7][cpu_registers_t::EDX];
-        bool ret;
 
-        try {
-            ret = getBitfield(7, 7, edx) == 1;
-
-        } catch ([[maybe_unused]] std::invalid_argument const &e) {
-            return false;
-        }
-
-        return ret;
+        return getBitfield(7, 7, edx) == 1;
     }
 
     bool AMDCPU::hasCorePerformanceBoostBit() const {
         const uint32_t edx = cpuidRaw->ext_cpuid[7][cpu_registers_t::EDX];
-        bool ret;
 
-        try {
-            ret = getBitfield(9, 9, edx) == 1;
-
-        } catch ([[maybe_unused]] std::invalid_argument const &e) {
-            return false;
-        }
-
-        return ret;
+        return getBitfield(9, 9, edx) == 1;
     }
 
     bool AMDCPU::hasCPPCBit() const {
         const uint32_t ebx = cpuidRaw->ext_cpuid[8][cpu_registers_t::EBX];
-        bool ret;
 
-        try {
-            ret = getBitfield(27, 27, ebx) == 1;
-
-        } catch ([[maybe_unused]] std::invalid_argument const &e) {
-            return false;
-        }
-
-        return ret;
+        return getBitfield(27, 27, ebx) == 1;
     }
 
     QSet<PWTS::Feature> AMDCPU::getFeatures() const {

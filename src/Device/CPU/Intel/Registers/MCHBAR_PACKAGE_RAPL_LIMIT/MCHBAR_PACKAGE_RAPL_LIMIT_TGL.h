@@ -16,88 +16,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "MCHBAR_PACKAGE_RAPL_LIMIT.h"
 
 namespace PWTD::Intel {
     class MCHBAR_PACKAGE_RAPL_LIMIT_TGL final: public MCHBAR_PACKAGE_RAPL_LIMIT {
-    private:
-        struct packageRaplLimit final {
-            uint64_t packagePowerLimit1 :15; // 14:0
-            uint64_t packagePowerLimit1Enable :1; // 15
-            uint64_t packageClampingLimitation1 :1; // 16
-            uint64_t packageLimitation1TimeWindowY :5; // 21:17
-            uint64_t packageLimitation1TimeWindowX :2; // 23:22
-            // 31:24 reserved:8
-            uint64_t packagePowerLimit2 :15; // 46:32
-            uint64_t packagePowerLimit2Enable :1; // 47
-            // 62:48 reserved:15
-            uint64_t lock :1; // 63
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint64_t raw, packageRaplLimit &regVal) const {
-            try {
-                regVal.packagePowerLimit1 = getBitfield(14, 0, raw);
-                regVal.packagePowerLimit1Enable = getBitfield(15, 15, raw);
-                regVal.packageClampingLimitation1 = getBitfield(16, 16, raw);
-                regVal.packageLimitation1TimeWindowY = getBitfield(21, 17, raw);
-                regVal.packageLimitation1TimeWindowX = getBitfield(23, 22, raw);
-                regVal.packagePowerLimit2 = getBitfield(46, 32, raw);
-                regVal.packagePowerLimit2Enable = getBitfield(47, 47, raw);
-                regVal.lock = getBitfield(63, 63, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
-        [[nodiscard]]
-        bool setRawValue(const packageRaplLimit &regVal, uint64_t &raw) const {
-            try {
-                setBitfield(14, 0, regVal.packagePowerLimit1, raw);
-                setBitfield(15, 15, regVal.packagePowerLimit1Enable, raw);
-                setBitfield(16, 16, regVal.packageClampingLimitation1, raw);
-                setBitfield(21, 17, regVal.packageLimitation1TimeWindowY, raw);
-                setBitfield(23, 22, regVal.packageLimitation1TimeWindowX, raw);
-                setBitfield(46, 32, regVal.packagePowerLimit2, raw);
-                setBitfield(47, 47, regVal.packagePowerLimit2Enable, raw);
-                setBitfield(63, 63, regVal.lock, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
         explicit MCHBAR_PACKAGE_RAPL_LIMIT_TGL(const uint32_t base): MCHBAR_PACKAGE_RAPL_LIMIT(base) {}
 
+        [[nodiscard]]
         PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit> getPkgRaplLimitData(const PWTS::ROData<MCHBAR_PACKAGE_POWER_SKU_UNIT::PkgPowerSKUUnits> &powerSkuUnit) const override {
             const MCHBAR_PACKAGE_POWER_SKU_UNIT::PkgPowerSKUUnits skuUnit = powerSkuUnit.getValue();
-            packageRaplLimit regVal {};
-            uint64_t raw = 0;
+            uint64_t reg;
 
-            if (!powerSkuUnit.isValid() || !memory->readMem64(raw, addr) || !setBitfields(raw, regVal))
+            if (!powerSkuUnit.isValid() || !memory->readMem64(reg, addr))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit>({
-                .pl1 = static_cast<int>(regVal.packagePowerLimit1 * skuUnit.powerUnit * 1000),
-                .pl2 = static_cast<int>(regVal.packagePowerLimit2 * skuUnit.powerUnit * 1000),
-                .pl1Time = static_cast<int>(qPow(2, regVal.packageLimitation1TimeWindowY) * (1.f + static_cast<float>(regVal.packageLimitation1TimeWindowX)/4.f) * skuUnit.timeUnit * 1000),
-                .pl1Clamp = regVal.packageClampingLimitation1 == 1,
-                .pl1Enable = regVal.packagePowerLimit1Enable == 1,
-                .pl2Enable = regVal.packagePowerLimit2Enable == 1,
-                .lock = regVal.lock == 1
+                .pl1 = static_cast<int>(getBitfield(14, 0, reg) * skuUnit.powerUnit * 1000),
+                .pl2 = static_cast<int>(getBitfield(46, 32, reg) * skuUnit.powerUnit * 1000),
+                .pl1Time = static_cast<int>(std::pow(2, getBitfield(21, 17, reg)) * (1.f + static_cast<float>(getBitfield(23, 22, reg))/4.f) * skuUnit.timeUnit * 1000),
+                .pl1Clamp = getBitfield(16, 16, reg) == 1,
+                .pl1Enable = getBitfield(15, 15, reg) == 1,
+                .pl2Enable = getBitfield(47, 47, reg) == 1,
+                .lock = getBitfield(63, 63, reg) == 1
             }, true);
         }
 
@@ -108,30 +49,36 @@ namespace PWTD::Intel {
 
             const MCHBAR_PACKAGE_POWER_SKU_UNIT::PkgPowerSKUUnits skuUnit = powerSkuUnit.getValue();
             const PWTS::Intel::MCHBARPkgRaplLimit pkgPowerLim = data.getValue();
+            const int pl1 = static_cast<uint64_t>(pkgPowerLim.pl1 / skuUnit.powerUnit / 1000);
+            const int pl2 = static_cast<uint64_t>(pkgPowerLim.pl2 / skuUnit.powerUnit / 1000);
             PowerLimitRawTimeWindow timeWindow;
-            packageRaplLimit regVal {};
-            uint64_t raw = 0, cur = 0;
+            uint64_t reg;
 
-            if (!powerSkuUnit.isValid() || !memory->readMem64(raw, addr))
+            if (!powerSkuUnit.isValid() || !memory->readMem64(reg, addr))
                 return false;
 
-            regVal.packagePowerLimit1 = static_cast<uint64_t>(pkgPowerLim.pl1 / skuUnit.powerUnit / 1000);
-            regVal.packagePowerLimit1Enable = pkgPowerLim.pl1Enable;
-            regVal.packageClampingLimitation1 = pkgPowerLim.pl1Clamp;
-            regVal.packagePowerLimit2 = static_cast<uint64_t>(pkgPowerLim.pl2 / skuUnit.powerUnit / 1000);
-            regVal.packagePowerLimit2Enable = pkgPowerLim.pl2Enable;
-            regVal.lock = pkgPowerLim.lock;
+            reg = setBitfield(14, 0, pl1, reg);
+            reg = setBitfield(15, 15, pkgPowerLim.pl1Enable, reg);
+            reg = setBitfield(16, 16, pkgPowerLim.pl1Clamp, reg);
+            reg = setBitfield(46, 32, pl2, reg);
+            reg = setBitfield(47, 47, pkgPowerLim.pl2Enable, reg);
+            reg = setBitfield(63, 63, pkgPowerLim.lock, reg);
 
             timeWindow = getRawTimeWindow(static_cast<float>(pkgPowerLim.pl1Time) / 1000, skuUnit.timeUnit);
             if (timeWindow.y != -1) {
-                regVal.packageLimitation1TimeWindowY = timeWindow.y;
-                regVal.packageLimitation1TimeWindowX = timeWindow.z;
+                reg = setBitfield(21, 17, timeWindow.y, reg);
+                reg = setBitfield(23, 22, timeWindow.z, reg);
             }
 
-            if (!setRawValue(regVal, raw) || !memory->writeMem64(raw, addr) || !memory->readMem64(cur, addr))
+            if (!memory->writeMem64(reg, addr) || !memory->readMem64(reg, addr))
                 return false;
 
-            return cur == raw;
+            return getBitfield(14, 0, reg) == pl1 &&
+                getBitfield(15, 15, reg) == pkgPowerLim.pl1Enable &&
+                getBitfield(16, 16, reg) == pkgPowerLim.pl1Clamp &&
+                getBitfield(46, 32, reg) == pl2 &&
+                getBitfield(47, 47, reg) == pkgPowerLim.pl2Enable &&
+                getBitfield(63, 63, reg) == pkgPowerLim.lock;
         }
     };
 }

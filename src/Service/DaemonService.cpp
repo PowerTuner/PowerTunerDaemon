@@ -17,7 +17,7 @@
  */
 #include "../../version.h"
 #include "DaemonService.h"
-#include "../Utils/DaemonUtils.h"
+#include "../Utils/Utils.h"
 #include "PowerNotifications/PowerNotificationsFactory.h"
 #include "pwtShared/Utils.h"
 

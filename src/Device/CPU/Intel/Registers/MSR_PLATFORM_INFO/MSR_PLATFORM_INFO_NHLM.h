@@ -16,54 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <stdexcept>
-
 #include "MSR_PLATFORM_INFO.h"
-#include "../../../Utils/CPUUtils.h"
+#include "../../../Utils/Utils.h"
 
 namespace PWTD::Intel {
     class MSR_PLATFORM_INFO_NHLM final: public MSR_PLATFORM_INFO {
-    private:
-        struct platformInfoReg final {
-            // 7:0 reserved:8
-            uint64_t maxNonTurboRatio :8; // 15:8
-            // 27:16 reserved:12
-            uint64_t programmableRatioLimitForTurboMode :1; // 28
-            uint64_t programmableTDCTDPLimitForTurboMode :1; // 29
-            uint64_t reverved2 :10; // 39:30
-            uint64_t maxEfficiencyRatio :8; // 47:40
-            // 63:48 reserved:16
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint64_t raw, platformInfoReg &regVal) const {
-            try {
-                regVal.maxNonTurboRatio = getBitfield(15, 8, raw);
-                regVal.programmableRatioLimitForTurboMode = getBitfield(28, 28, raw);
-                regVal.maxEfficiencyRatio = getBitfield(47, 40, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
+        [[nodiscard]]
         PWTS::ROData<PlatformInfoData> getPlatformInfoData() const override {
-            platformInfoReg regVal {};
-            uint64_t raw = 0;
+            uint64_t reg;
 
-            if (!msrUtils->readMSR(raw, addr, 0) || !setBitfields(raw, regVal))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return {};
 
             return PWTS::ROData<PlatformInfoData>({
-                .programmableRatioLimitForTurboMode = regVal.programmableRatioLimitForTurboMode == 1,
-                .programmableTDPLimitForTurboMode = regVal.programmableTDCTDPLimitForTurboMode == 1,
+                .programmableRatioLimitForTurboMode = getBitfield(28, 28, reg) == 1,
+                .programmableTDPLimitForTurboMode = getBitfield(29, 29, reg) == 1
             }, true);
         }
     };

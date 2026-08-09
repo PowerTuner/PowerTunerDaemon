@@ -16,11 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <stdexcept>
-
 #include "../../CPURegister.h"
-#include "../../Utils/CPUUtils.h"
+#include "../../../Utils/Utils.h"
 #include "pwtShared/Include/Types/RWData.h"
 
 namespace PWTD::Intel {
@@ -28,50 +25,15 @@ namespace PWTD::Intel {
     private:
         static constexpr unsigned addr = 0x63a;
 
-        struct PP0Policy final {
-            uint64_t priority :5; // 4:0
-            // 63:5 reserved:59
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint64_t raw, PP0Policy &regVal) const {
-            try {
-                regVal.priority = getBitfield(4, 0, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
-        [[nodiscard]]
-        bool setRawValue(const PP0Policy &regVal, uint64_t &raw) const {
-            try {
-                setBitfield(4, 0, regVal.priority, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
+        [[nodiscard]]
         PWTS::RWData<int> getPP0Priority() const {
-            PP0Policy regVal {};
-            uint64_t raw = 0;
+            uint64_t reg;
 
-            if (!msrUtils->readMSR(raw, addr, 0) || !setBitfields(raw, regVal))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return {};
 
-            return PWTS::RWData<int>(static_cast<int>(regVal.priority), true);
+            return PWTS::RWData<int>(static_cast<int>(getBitfield(4, 0, reg)), true);
         }
 
         [[nodiscard]]
@@ -79,15 +41,18 @@ namespace PWTD::Intel {
             if (!data.isValid())
                 return true;
 
-            PP0Policy regVal {};
-            uint64_t raw = 0, cur = 0;
+            const int priority = data.getValue();
+            uint64_t reg;
 
-            regVal.priority = data.getValue();
-
-            if (!msrUtils->readMSR(raw, addr, 0) || !setRawValue(regVal, raw) || !msrUtils->writeMSR(raw, addr, 0) || !msrUtils->readMSR(cur, addr, 0))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return false;
 
-            return cur == raw;
+            reg = setBitfield(4, 0, priority, reg);
+
+            if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
+                return false;
+
+            return getBitfield(4, 0, reg) == priority;
         }
     };
 }

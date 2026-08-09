@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "CPUDevice.h"
-#include "../../Utils/DaemonUtils.h"
+#include "../../Utils/Utils.h"
 
 namespace PWTD {
     CPUDevice::CPUDevice(const QSharedPointer<cpu_id_t> &cpuid, const QSharedPointer<cpu_raw_data_t> &cpuRawData) {

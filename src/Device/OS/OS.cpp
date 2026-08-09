@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "OS.h"
-#include "../../Utils/DaemonUtils.h"
+#include "../../Utils/Utils.h"
 
 namespace PWTD {
     void OS::collectSystemInfo() {

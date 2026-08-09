@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "../../../CPURegister.h"
 #include "pwtShared/Include/CPU/Intel/PowerCtl.h"
 #include "pwtShared/Include/Types/RWData.h"
@@ -27,7 +26,7 @@ namespace PWTD::Intel {
         static constexpr unsigned addr = 0x1fc;
 
     public:
-        virtual PWTS::RWData<PWTS::Intel::PowerCtl> getPowerCtlData() const = 0;
+        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::PowerCtl> getPowerCtlData() const = 0;
         [[nodiscard]] virtual bool setPowerCtl(const PWTS::RWData<PWTS::Intel::PowerCtl> &data) const = 0;
     };
 }

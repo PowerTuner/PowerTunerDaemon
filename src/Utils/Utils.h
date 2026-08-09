@@ -16,23 +16,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "pwtShared/Include/OSType.h"
 
 namespace PWTD {
-    constexpr PWTS::OSType getOS() {
+    [[nodiscard]] consteval PWTS::OSType getOS() {
 #ifdef __linux__
         return PWTS::OSType::Linux;
-#elif defined(_WIN32)
+#elifdef _WIN32
         return PWTS::OSType::Windows;
 #else
         return PWTS::OSType::Unknown;
 #endif
     }
 
-    constexpr bool isLinux() { return getOS() == PWTS::OSType::Linux; }
-    constexpr bool isWindows() { return getOS() == PWTS::OSType::Windows; }
-    constexpr bool isUnknownOS() { return getOS() == PWTS::OSType::Unknown; }
+    [[nodiscard]] consteval bool isLinux() { return getOS() == PWTS::OSType::Linux; }
+    [[nodiscard]] consteval bool isWindows() { return getOS() == PWTS::OSType::Windows; }
+    [[nodiscard]] consteval bool isUnknownOS() { return getOS() == PWTS::OSType::Unknown; }
 
     [[nodiscard]] QString getMemorySizeStr(quint64 size);
+    [[nodiscard]] uint64_t getBitfield(unsigned high, unsigned low, uint64_t data);
+    [[nodiscard]] uint32_t getBitfield(unsigned high, unsigned low, uint32_t data);
+    [[nodiscard]] uint64_t setBitfield(unsigned high, unsigned low, uint64_t value, uint64_t data);
+    [[nodiscard]] uint32_t setBitfield(unsigned high, unsigned low, uint32_t value, uint32_t data);
 }

@@ -16,12 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <stdexcept>
-
 #include "../../CPURegister.h"
+#include "../../../Utils/Utils.h"
 #include "../Utils/IntelRegisterUtils.h"
-#include "../../Utils/CPUUtils.h"
 #include "pwtShared/Include/CPU/Intel/HWPRequestPkg.h"
 #include "pwtShared/Include/Types/RWData.h"
 
@@ -30,70 +27,20 @@ namespace PWTD::Intel {
     private:
         static constexpr unsigned addr = 0x772;
 
-        struct ia32HWPRequestPkg final {
-            uint64_t minimumPerformance :8; // 7:0
-            uint64_t maximumPerformance :8; // 15:8
-            uint64_t desiredPerformance :8; // 23:16
-            uint64_t energyPerformancePreference :8; // 31:24
-            uint64_t activityWindowMantissa :7; // 38:32
-            uint64_t activityWindowExponent :3; // 41:39
-            // 63:42 reserved:22
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint64_t raw, ia32HWPRequestPkg &regVal) const {
-            try {
-                regVal.minimumPerformance = getBitfield(7, 0, raw);
-                regVal.maximumPerformance = getBitfield(15, 8, raw);
-                regVal.desiredPerformance = getBitfield(23, 16, raw);
-                regVal.energyPerformancePreference = getBitfield(31, 24, raw);
-                regVal.activityWindowMantissa = getBitfield(38, 32, raw);
-                regVal.activityWindowExponent = getBitfield(41, 39, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
-        [[nodiscard]]
-        bool setRawValue(const ia32HWPRequestPkg &regVal, uint64_t &raw) const {
-            try {
-                setBitfield(7, 0, regVal.minimumPerformance, raw);
-                setBitfield(15, 8, regVal.maximumPerformance, raw);
-                setBitfield(23, 16, regVal.desiredPerformance, raw);
-                setBitfield(31, 24, regVal.energyPerformancePreference, raw);
-                setBitfield(38, 32, regVal.activityWindowMantissa, raw);
-                setBitfield(41, 39, regVal.activityWindowExponent, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
+        [[nodiscard]]
         PWTS::RWData<PWTS::Intel::HWPRequestPkg> getHWPRequestPkgData() const {
-            ia32HWPRequestPkg regVal {};
-            uint64_t raw = 0;
+            uint64_t reg;
 
-            if (!msrUtils->readMSR(raw, addr, 0) || !setBitfields(raw, regVal))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::HWPRequestPkg>({
-                .min = static_cast<int>(regVal.minimumPerformance),
-                .max = static_cast<int>(regVal.maximumPerformance),
-                .desired = static_cast<int>(regVal.desiredPerformance),
-                .epp = static_cast<int>(regVal.energyPerformancePreference),
-                .acw = static_cast<int>(regVal.activityWindowMantissa * qPow(10, regVal.activityWindowExponent)) //todo check
+                .min = static_cast<int>(getBitfield(7, 0, reg)),
+                .max = static_cast<int>(getBitfield(15, 8, reg)),
+                .desired = static_cast<int>(getBitfield(23, 16, reg)),
+                .epp = static_cast<int>(getBitfield(31, 24, reg)),
+                .acw = static_cast<int>(getBitfield(38, 32, reg) * std::pow(10, getBitfield(41, 39, reg)))
             }, true);
         }
 
@@ -104,20 +51,27 @@ namespace PWTD::Intel {
 
             const PWTS::Intel::HWPRequestPkg hwpReq = data.getValue();
             const HWPActivityWindowBits acwBits = getHWPActivityWindowBitsFromMicroSecond(hwpReq.acw);
-            ia32HWPRequestPkg regVal {};
-            uint64_t raw = 0, cur = 0;
+            uint64_t reg;
 
-            regVal.minimumPerformance = hwpReq.min;
-            regVal.maximumPerformance = hwpReq.max;
-            regVal.desiredPerformance = hwpReq.desired;
-            regVal.energyPerformancePreference = hwpReq.epp;
-            regVal.activityWindowMantissa = acwBits.mantissa;
-            regVal.activityWindowExponent = acwBits.exponent;
-
-            if (!msrUtils->readMSR(raw, addr, 0) || !setRawValue(regVal, raw) || !msrUtils->writeMSR(raw, addr, 0) || !msrUtils->readMSR(cur, addr, 0))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return false;
 
-            return cur == raw;
+            reg = setBitfield(7, 0, hwpReq.min, reg);
+            reg = setBitfield(15, 8, hwpReq.max, reg);
+            reg = setBitfield(23, 16, hwpReq.desired, reg);
+            reg = setBitfield(31, 24, hwpReq.epp, reg);
+            reg = setBitfield(38, 32, acwBits.mantissa, reg);
+            reg = setBitfield(41, 39, acwBits.exponent, reg);
+
+            if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
+                return false;
+
+            return getBitfield(7, 0, reg) == hwpReq.min &&
+                getBitfield(15, 8, reg) == hwpReq.max &&
+                getBitfield(23, 16, reg) == hwpReq.desired &&
+                getBitfield(31, 24, reg) == hwpReq.epp &&
+                getBitfield(38, 32, reg) == acwBits.mantissa &&
+                getBitfield(41, 39, reg) == acwBits.exponent;
         }
     };
 }

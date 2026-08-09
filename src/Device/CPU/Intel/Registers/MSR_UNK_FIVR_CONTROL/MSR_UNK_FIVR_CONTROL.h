@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "../../../CPURegister.h"
 #include "pwtShared/Include/CPU/Intel/FIVRControlUV.h"
 #include "pwtShared/Include/Types/ROData.h"
@@ -67,7 +66,7 @@ namespace PWTD::Intel {
         planeIndex indexes {};
 
     public:
-        struct [[nodiscard]] FIVRWriteResult final {
+        struct FIVRWriteResult final {
             bool cpu = false;
             bool gpu = false;
             bool cpuCache = false;
@@ -75,7 +74,7 @@ namespace PWTD::Intel {
             bool sysAgent = false;
         };
 
-        struct [[nodiscard]] FIVRCapabilities final {
+        struct FIVRCapabilities final {
             bool cpu = false;
             bool gpu = false;
             bool cpuCache = false;
@@ -83,6 +82,7 @@ namespace PWTD::Intel {
             bool sysAgent = false;
         };
 
+        [[nodiscard]]
         PWTS::ROData<FIVRCapabilities> getFIVRCapabilities() const {
             return PWTS::ROData<FIVRCapabilities>({
                 .cpu = indexes.cpu != -1,
@@ -93,6 +93,7 @@ namespace PWTD::Intel {
             }, true);
         }
 
+        [[nodiscard]]
         FIVRWriteResult setFIVRControl(const PWTS::RWData<PWTS::Intel::FIVRControlUV> &data) const {
             if (!data.isValid())
                 return {};

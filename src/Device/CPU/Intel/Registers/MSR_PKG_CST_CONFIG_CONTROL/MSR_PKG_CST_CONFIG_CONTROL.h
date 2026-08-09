@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "../../../CPURegister.h"
 #include "pwtShared/Include/CPU/Intel/PkgCstConfigControl.h"
 #include "pwtShared/Include/Types/RWData.h"
@@ -27,7 +26,7 @@ namespace PWTD::Intel {
         static constexpr unsigned addr = 0xe2;
 
     public:
-        virtual PWTS::RWData<PWTS::Intel::PkgCstConfigControl> getPkgCstConfigControlData(int cpu) const = 0;
+        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::PkgCstConfigControl> getPkgCstConfigControlData(int cpu) const = 0;
         [[nodiscard]] virtual bool setPkgCstConfigControlData(int cpu, const PWTS::RWData<PWTS::Intel::PkgCstConfigControl> &data) const = 0;
     };
 }

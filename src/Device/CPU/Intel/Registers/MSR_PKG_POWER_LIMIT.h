@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "MSR_RAPL_POWER_UNIT.h"
 #include "pwtShared/Include/CPU/Intel/PkgPowerLimit.h"
 #include "pwtShared/Include/Types/RWData.h"
@@ -27,91 +26,28 @@ namespace PWTD::Intel {
     private:
         static constexpr unsigned addr = 0x610;
 
-        struct pkgPowerLimit final {
-            uint64_t pl1 :15; // 14:0
-            uint64_t pl1Enable :1; // 15
-            uint64_t pl1Clamp :1; // 16
-            uint64_t pl1TimeY :5; // 21:17
-            uint64_t pl1TimeZ :2; // 23:22
-            // 31:24 reserved:8
-            uint64_t pl2 :15; // 46:32
-            uint64_t pl2Enable :1; // 47
-            uint64_t pl2Clamp :1; // 48
-            uint64_t pl2TimeY :5; // 53:49
-            uint64_t pl2TimeZ :2; // 55:54
-            // 62:56 reserved:7
-            uint64_t lock :1; // 63
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint64_t raw, pkgPowerLimit &regVal) const {
-            try {
-                regVal.pl1 = getBitfield(14, 0, raw);
-                regVal.pl1Enable = getBitfield(15, 15, raw);
-                regVal.pl1Clamp = getBitfield(16, 16, raw);
-                regVal.pl1TimeY = getBitfield(21, 17, raw);
-                regVal.pl1TimeZ = getBitfield(23, 22, raw);
-                regVal.pl2 = getBitfield(46, 32, raw);
-                regVal.pl2Enable = getBitfield(47, 47, raw);
-                regVal.pl2Clamp = getBitfield(48, 48, raw);
-                regVal.pl2TimeY = getBitfield(53, 49, raw);
-                regVal.pl2TimeZ = getBitfield(55, 54, raw);
-                regVal.lock = getBitfield(63, 63, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
-        [[nodiscard]]
-        bool setRawValue(const pkgPowerLimit &regVal, uint64_t &raw) const {
-            try {
-                setBitfield(14, 0, regVal.pl1, raw);
-                setBitfield(15, 15, regVal.pl1Enable, raw);
-                setBitfield(16, 16, regVal.pl1Clamp, raw);
-                setBitfield(21, 17, regVal.pl1TimeY, raw);
-                setBitfield(23, 22, regVal.pl1TimeZ, raw);
-                setBitfield(46, 32, regVal.pl2, raw);
-                setBitfield(47, 47, regVal.pl2Enable, raw);
-                setBitfield(48, 48, regVal.pl2Clamp, raw);
-                setBitfield(53, 49, regVal.pl2TimeY, raw);
-                setBitfield(55, 54, regVal.pl2TimeZ, raw);
-                setBitfield(63, 63, regVal.lock, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
+        [[nodiscard]]
         PWTS::RWData<PWTS::Intel::PkgPowerLimit> getPkgPowerLimitData(const PWTS::ROData<MSR_RAPL_POWER_UNIT::RAPLPowerUnits> &powerUnits) const {
-            const MSR_RAPL_POWER_UNIT::RAPLPowerUnits raplUnit = powerUnits.getValue();
-            pkgPowerLimit regVal {};
-            uint64_t raw = 0;
+            if (!powerUnits.isValid())
+                return {};
 
-            if (!powerUnits.isValid() || !msrUtils->readMSR(raw, addr, 0) || !setBitfields(raw, regVal))
+            const MSR_RAPL_POWER_UNIT::RAPLPowerUnits raplUnit = powerUnits.getValue();
+            uint64_t reg;
+
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::PkgPowerLimit>({
-                .pl1 = static_cast<int>(regVal.pl1 * raplUnit.powerUnit * 1000),
-                .pl2 = static_cast<int>(regVal.pl2 * raplUnit.powerUnit * 1000),
-                .pl1Time = static_cast<int>(qPow(2, regVal.pl1TimeY) * (1.f + static_cast<float>(regVal.pl1TimeZ)/4.f) * raplUnit.timeUnit * 1000),
-                .pl2Time = static_cast<int>(qPow(2, regVal.pl2TimeY) * (1.f + static_cast<float>(regVal.pl2TimeZ)/4.f) * raplUnit.timeUnit * 1000),
-                .pl1Clamp = regVal.pl1Clamp == 1,
-                .pl2Clamp = regVal.pl2Clamp == 1,
-                .pl1Enable = regVal.pl1Enable == 1,
-                .pl2Enable = regVal.pl2Enable == 1,
-                .lock = regVal.lock == 1,
+                .pl1 = static_cast<int>(getBitfield(14, 0, reg) * raplUnit.powerUnit * 1000),
+                .pl2 = static_cast<int>(getBitfield(46, 32, reg) * raplUnit.powerUnit * 1000),
+                .pl1Time = static_cast<int>(std::pow(2, getBitfield(21, 17, reg)) * (1.f + static_cast<float>(getBitfield(23, 22, reg)) / 4.f) * raplUnit.timeUnit * 1000),
+                .pl2Time = static_cast<int>(std::pow(2, getBitfield(53, 49, reg)) * (1.f + static_cast<float>(getBitfield(55, 54, reg)) / 4.f) * raplUnit.timeUnit * 1000),
+                .pl1Clamp = getBitfield(16, 16, reg) == 1,
+                .pl2Clamp = getBitfield(48, 48, reg) == 1,
+                .pl1Enable = getBitfield(15, 15, reg) == 1,
+                .pl2Enable = getBitfield(47, 47, reg) == 1,
+                .lock = getBitfield(63, 63, reg) == 1
             }, true);
         }
 
@@ -120,39 +56,47 @@ namespace PWTD::Intel {
             if (!data.isValid())
                 return true;
 
+            if (!powerUnits.isValid())
+                return false;
+
             const MSR_RAPL_POWER_UNIT::RAPLPowerUnits powUnits = powerUnits.getValue();
             const PWTS::Intel::PkgPowerLimit pkgPowerLim = data.getValue();
             PowerLimitRawTimeWindow timeWindow;
-            pkgPowerLimit regVal {};
-            uint64_t raw = 0, cur = 0;
+            uint64_t reg;
 
-            if (!powerUnits.isValid() || !msrUtils->readMSR(raw, addr, 0))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return false;
 
-            regVal.pl1 = static_cast<uint64_t>(pkgPowerLim.pl1 / powUnits.powerUnit / 1000);
-            regVal.pl1Enable = pkgPowerLim.pl1Enable;
-            regVal.pl1Clamp = pkgPowerLim.pl1Clamp;
-            regVal.pl2 = static_cast<uint64_t>(pkgPowerLim.pl2 / powUnits.powerUnit / 1000);
-            regVal.pl2Enable = pkgPowerLim.pl2Enable;
-            regVal.pl2Clamp = pkgPowerLim.pl2Clamp;
-            regVal.lock = pkgPowerLim.lock;
+            reg = setBitfield(14, 0, static_cast<uint64_t>(pkgPowerLim.pl1 / powUnits.powerUnit / 1000), reg);
+            reg = setBitfield(15, 15, pkgPowerLim.pl1Enable, reg);
+            reg = setBitfield(16, 16, pkgPowerLim.pl1Clamp, reg);
+            reg = setBitfield(46, 32, static_cast<uint64_t>(pkgPowerLim.pl2 / powUnits.powerUnit / 1000), reg);
+            reg = setBitfield(47, 47, pkgPowerLim.pl2Enable, reg);
+            reg = setBitfield(48, 48, pkgPowerLim.pl2Clamp, reg);
+            reg = setBitfield(63, 63, pkgPowerLim.lock, reg);
 
             timeWindow = getRawTimeWindow(static_cast<float>(pkgPowerLim.pl1Time) / 1000, powUnits.timeUnit);
             if (timeWindow.y != -1) {
-                regVal.pl1TimeY = timeWindow.y;
-                regVal.pl1TimeZ = timeWindow.z;
+                reg = setBitfield(21, 17, timeWindow.y, reg);
+                reg = setBitfield(23, 22, timeWindow.z, reg);
             }
 
             timeWindow = getRawTimeWindow(static_cast<float>(pkgPowerLim.pl2Time) / 1000, powUnits.timeUnit);
             if (timeWindow.y != -1) {
-                regVal.pl2TimeY = timeWindow.y;
-                regVal.pl2TimeZ = timeWindow.z;
+                reg = setBitfield(53, 49, timeWindow.y, reg);
+                reg = setBitfield(55, 54, timeWindow.z, reg);
             }
 
-            if (!setRawValue(regVal, raw) || !msrUtils->writeMSR(raw, addr, 0) || !msrUtils->readMSR(cur, addr, 0))
+            if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
                 return false;
 
-            return cur == raw;
+            return getBitfield(14, 0, reg) == static_cast<uint64_t>(pkgPowerLim.pl1 / powUnits.powerUnit / 1000) &&
+                getBitfield(15, 15, reg) == pkgPowerLim.pl1Enable &&
+                getBitfield(16, 16, reg) == pkgPowerLim.pl1Clamp &&
+                getBitfield(46, 32, reg) == static_cast<uint64_t>(pkgPowerLim.pl2 / powUnits.powerUnit / 1000) &&
+                getBitfield(47, 47, reg) == pkgPowerLim.pl2Enable &&
+                getBitfield(48, 48, reg) == pkgPowerLim.pl2Clamp &&
+                getBitfield(63, 63, reg) == pkgPowerLim.lock;
         }
     };
 }

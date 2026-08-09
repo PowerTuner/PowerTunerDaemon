@@ -16,11 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <stdexcept>
-
 #include "../../CPURegister.h"
-#include "../../Utils/CPUUtils.h"
+#include "../../../Utils/Utils.h"
 #include "pwtShared/Include/Types/RWData.h"
 
 namespace PWTD::Intel {
@@ -28,50 +25,15 @@ namespace PWTD::Intel {
     private:
         static constexpr unsigned addr = 0x1b0;
 
-        struct ia32EnergyPerfBias final {
-            uint64_t powerPolicyPreference :4; // 3:0
-            // 63:4 reserved:60
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint64_t raw, ia32EnergyPerfBias &regVal) const {
-            try {
-                regVal.powerPolicyPreference = getBitfield(3, 0, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
-        [[nodiscard]]
-        bool setRawValue(const ia32EnergyPerfBias &regVal, uint64_t &raw) const {
-            try {
-                setBitfield(3, 0, regVal.powerPolicyPreference, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
+        [[nodiscard]]
         PWTS::RWData<int> getPowerPolicyPreference() const {
-            ia32EnergyPerfBias regVal {};
-            uint64_t raw = 0;
+            uint64_t reg;
 
-            if (!msrUtils->readMSR(raw, addr, 0) || !setBitfields(raw, regVal))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return {};
 
-            return PWTS::RWData<int>(static_cast<int>(regVal.powerPolicyPreference), true);
+            return PWTS::RWData<int>(static_cast<int>(getBitfield(3, 0, reg)), true);
         }
 
         [[nodiscard]]
@@ -79,15 +41,18 @@ namespace PWTD::Intel {
             if (!data.isValid())
                 return true;
 
-            ia32EnergyPerfBias regVal {};
-            uint64_t raw = 0, cur = 0;
+            const int preference = data.getValue();
+            uint64_t reg;
 
-            regVal.powerPolicyPreference = data.getValue();
-
-            if (!msrUtils->readMSR(raw, addr, 0) || !setRawValue(regVal, raw) || !msrUtils->writeMSR(raw, addr, 0) || !msrUtils->readMSR(cur, addr, 0))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return false;
 
-            return cur == raw;
+            reg = setBitfield(3, 0, preference, reg);
+
+            if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
+                return false;
+
+            return getBitfield(3, 0, reg) == preference;
         }
     };
 }

@@ -16,11 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <stdexcept>
-
 #include "../../CPURegister.h"
-#include "../../Utils/CPUUtils.h"
+#include "../../../Utils/Utils.h"
 #include "pwtShared/Include/CPU/Intel/TurboPowerCurrentLimit.h"
 #include "pwtShared/Include/Types/RWData.h"
 
@@ -29,63 +26,19 @@ namespace PWTD::Intel {
     private:
         static constexpr unsigned addr = 0x1ac;
 
-        struct turboPowerCurrentLimit final {
-            uint64_t tdpLimit :15; // 14:0
-            uint64_t tdpLimitOverrideEnable :1; // 15
-            uint64_t tdcLimit :15; // 30:16
-            uint64_t tdcLimitOverrideEnable :1; // 31
-            // 63:32 reserved:32
-        };
-
-        [[nodiscard]]
-        bool setBitfields(const uint64_t raw, turboPowerCurrentLimit &regVal) const {
-            try {
-                regVal.tdpLimit = getBitfield(14, 0, raw);
-                regVal.tdpLimitOverrideEnable = getBitfield(15, 15, raw);
-                regVal.tdcLimit = getBitfield(30, 16, raw);
-                regVal.tdcLimitOverrideEnable = getBitfield(31, 31, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
-        [[nodiscard]]
-        bool setRawValue(const turboPowerCurrentLimit &regVal, uint64_t &raw) const {
-            try {
-                setBitfield(14, 0, regVal.tdpLimit, raw);
-                setBitfield(15, 15, regVal.tdpLimitOverrideEnable, raw);
-                setBitfield(30, 16, regVal.tdcLimit, raw);
-                setBitfield(31, 31, regVal.tdcLimitOverrideEnable, raw);
-
-            } catch ([[maybe_unused]] std::invalid_argument const &e) {
-                if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(e.what());
-
-                return false;
-            }
-
-            return true;
-        }
-
     public:
+        [[nodiscard]]
         PWTS::RWData<PWTS::Intel::TurboPowerCurrentLimit> getTurboPowerCurrentLimitData() const {
-            turboPowerCurrentLimit regVal {};
-            uint64_t raw = 0;
+            uint64_t reg;
 
-            if (!msrUtils->readMSR(raw, addr, 0) || !setBitfields(raw, regVal))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::TurboPowerCurrentLimit>({
-                .tdpLimit = static_cast<int>(regVal.tdpLimit * 0.125 * 1000),
-                .tdpLimitOverride = regVal.tdpLimitOverrideEnable == 1,
-                .tdcLimit = static_cast<int>(regVal.tdcLimit * 0.125 * 1000),
-                .tdcLimitOverride = regVal.tdcLimitOverrideEnable == 1
+                .tdpLimit = static_cast<int>(getBitfield(14, 0, reg) * 0.125 * 1000),
+                .tdpLimitOverride = getBitfield(15, 15, reg) == 1,
+                .tdcLimit = static_cast<int>(getBitfield(30, 16, reg) * 0.125 * 1000),
+                .tdcLimitOverride = getBitfield(31, 31, reg) == 1
             }, true);
         }
 
@@ -95,18 +48,25 @@ namespace PWTD::Intel {
                 return true;
 
             const PWTS::Intel::TurboPowerCurrentLimit limit = data.getValue();
-            turboPowerCurrentLimit regVal {};
-            uint64_t raw = 0, cur = 0;
+            const uint64_t tdpLimit = static_cast<uint64_t>(limit.tdpLimit / 0.125 / 1000);
+            const uint64_t tdcLimit = static_cast<uint64_t>(limit.tdcLimit / 0.125 / 1000);
+            uint64_t reg;
 
-            regVal.tdpLimit = static_cast<uint64_t>(limit.tdpLimit / 0.125 / 1000);
-            regVal.tdpLimitOverrideEnable = limit.tdpLimitOverride;
-            regVal.tdcLimit = static_cast<uint64_t>(limit.tdcLimit / 0.125 / 1000);
-            regVal.tdcLimitOverrideEnable = limit.tdcLimitOverride;
-
-            if (!msrUtils->readMSR(raw, addr, 0) || !setRawValue(regVal, raw) || !msrUtils->writeMSR(raw, addr, 0) || !msrUtils->readMSR(cur, addr, 0))
+            if (!msrUtils->readMSR(reg, addr, 0))
                 return false;
 
-            return cur == raw;
+            reg = setBitfield(14, 0, tdpLimit, reg);
+            reg = setBitfield(15, 15, limit.tdpLimitOverride, reg);
+            reg = setBitfield(30, 16, tdcLimit, reg);
+            reg = setBitfield(31, 31, limit.tdcLimitOverride, reg);
+
+            if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
+                return false;
+
+            return getBitfield(14, 0, reg) == tdpLimit &&
+                getBitfield(15, 15, reg) == limit.tdpLimitOverride &&
+                getBitfield(30, 16, reg) == tdcLimit &&
+                getBitfield(31, 31, reg) == limit.tdcLimitOverride;
         }
     };
 }
