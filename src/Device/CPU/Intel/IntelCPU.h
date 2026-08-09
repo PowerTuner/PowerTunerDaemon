@@ -28,7 +28,7 @@ namespace PWTD::Intel {
         };
 
         mutable PWTS::Intel::FIVRControlUV fivr {0, 0, 0, 0, 0};
-        mutable std::unique_ptr<RegistersCache> regsCache;
+        RegistersCache regsCache {};
         std::unique_ptr<MCHBAR> mchbar;
         std::unique_ptr<IA32_ENERGY_PERF_BIAS> ia32EnergyPerfBias;
         std::unique_ptr<IA32_MISC_ENABLE> ia32MiscEnable;
@@ -53,7 +53,7 @@ namespace PWTD::Intel {
         std::unique_ptr<MSR_TEMPERATURE_TARGET> msrTemperatureTarget;
 
         void setupCPUModelRegisters();
-        void buildRegistersCache() const;
+        void buildRegistersCache();
         [[nodiscard]] bool hasIA32PkgThermStatusBit() const;
         [[nodiscard]] bool hasTurboBoostTechBit() const;
         [[nodiscard]] bool hasEnhancedSpeedStepBit() const;

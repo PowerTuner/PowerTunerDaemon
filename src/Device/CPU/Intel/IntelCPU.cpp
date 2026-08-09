@@ -147,18 +147,16 @@ namespace PWTD::Intel {
         }
     }
 
-    void IntelCPU::buildRegistersCache() const {
-        regsCache = std::make_unique<RegistersCache>();
-
+    void IntelCPU::buildRegistersCache() {
         if (msrDev->openMsrFd(0)) {
             if (msrPkgPowerLimit)
-                regsCache->raplPowerUnit = MSR_RAPL_POWER_UNIT().get();
+                regsCache.raplPowerUnit = MSR_RAPL_POWER_UNIT().get();
 
             if (msrTemperatureTarget) {
                 const PWTS::RWData<PWTS::Intel::TemperatureTarget> tempTarget = msrTemperatureTarget->get();
 
                 if (tempTarget.isValid())
-                    regsCache->temperatureTarget = PWTS::ROData<int>(tempTarget.getValue().temperatureTarget, true);
+                    regsCache.temperatureTarget = PWTS::ROData<int>(tempTarget.getValue().temperatureTarget, true);
             }
 
             msrDev->closeMsrFd(0);
@@ -387,7 +385,7 @@ namespace PWTD::Intel {
         }
 
         if (features.contains(PWTS::Feature::INTEL_PKG_POWER_LIMIT))
-            packet.intelData->pkgPowerLimit = msrPkgPowerLimit->get(regsCache->raplPowerUnit);
+            packet.intelData->pkgPowerLimit = msrPkgPowerLimit->get(regsCache.raplPowerUnit);
 
         if (features.contains(PWTS::Feature::INTEL_VR_CURRENT_CFG))
             packet.intelData->vrCurrentCfg = msrVrCurrentConfig->get();
@@ -578,7 +576,7 @@ namespace PWTD::Intel {
         if (hasTurboPowCurrentLimit && !msrTurboPowerCurrentLimit->set(data->turboPowerCurrentLimit))
             errors.insert(PWTS::DError::W_TURBO_POWER_CURRENT_LIMIT);
 
-        if (features.contains(PWTS::Feature::INTEL_PKG_POWER_LIMIT) && !msrPkgPowerLimit->set(data->pkgPowerLimit, regsCache->raplPowerUnit))
+        if (features.contains(PWTS::Feature::INTEL_PKG_POWER_LIMIT) && !msrPkgPowerLimit->set(data->pkgPowerLimit, regsCache.raplPowerUnit))
             errors.insert(PWTS::DError::W_PKG_POWER_LIMIT);
 
         if (features.contains(PWTS::Feature::INTEL_HWP_GROUP)) {
@@ -694,9 +692,9 @@ namespace PWTD::Intel {
 
         msrDev->closeMsrFd(0);
 
-        if (!pkgThermStatusI || !regsCache->temperatureTarget.isValid())
+        if (!pkgThermStatusI || !regsCache.temperatureTarget.isValid())
             return {};
 
-        return PWTS::ROData<int>(regsCache->temperatureTarget.getValue() - pkgThermStatusI->digitalReadout, true);
+        return PWTS::ROData<int>(regsCache.temperatureTarget.getValue() - pkgThermStatusI->digitalReadout, true);
     }
 }
