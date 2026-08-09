@@ -23,7 +23,7 @@ namespace PWTD::Intel {
     class IntelCPU final: public CPUDevice {
     private:
         struct RegistersCache final {
-            PWTS::ROData<MSR_RAPL_POWER_UNIT::RAPLPowerUnits> raplPowerUnit;
+            std::optional<MSR_RAPL_POWER_UNIT::Units> raplPowerUnit;
             PWTS::ROData<int> temperatureTarget;
         };
 
@@ -53,7 +53,7 @@ namespace PWTD::Intel {
         std::unique_ptr<MSR_TEMPERATURE_TARGET> msrTemperatureTarget;
 
         void setupCPUModelRegisters();
-        void cacheStaticRegistersData() const;
+        void buildRegistersCache() const;
         [[nodiscard]] bool hasIA32PkgThermStatusBit() const;
         [[nodiscard]] bool hasTurboBoostTechBit() const;
         [[nodiscard]] bool hasEnhancedSpeedStepBit() const;

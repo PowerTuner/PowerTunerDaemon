@@ -52,7 +52,7 @@ namespace PWTD::Intel {
                 ia32HwpCtl = std::make_unique<IA32_HWP_CTL>();
         }
 
-        cacheStaticRegistersData();
+        buildRegistersCache();
     }
 
     void IntelCPU::setupCPUModelRegisters() {
@@ -82,7 +82,7 @@ namespace PWTD::Intel {
                         break;
                     case IvyBridge: {
                         msrMiscPwrMgmt = std::make_unique<MSR_MISC_PWR_MGMT_NHLM>();
-                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_IVB>();
+                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_NHLM>();
                         msrPkgPowerLimit = std::make_unique<MSR_PKG_POWER_LIMIT>();
                         msrVrCurrentConfig = std::make_unique<MSR_VR_CURRENT_CONFIG_SB>();
                         msrPP0Policy = std::make_unique<MSR_PP0_POLICY>();
@@ -95,7 +95,7 @@ namespace PWTD::Intel {
                         break;
                     case IceLakeU: {
                         msrMiscPwrMgmt = std::make_unique<MSR_MISC_PWR_MGMT_NHLM>();
-                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_IVB>();
+                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_NHLM>();
                         msrPkgPowerLimit = std::make_unique<MSR_PKG_POWER_LIMIT>();
                         msrVrCurrentConfig = std::make_unique<MSR_VR_CURRENT_CONFIG_SB>();
                         msrPP0Policy = std::make_unique<MSR_PP0_POLICY>();
@@ -107,7 +107,7 @@ namespace PWTD::Intel {
                         break;
                     case TigerLakeU: {
                         msrMiscPwrMgmt = std::make_unique<MSR_MISC_PWR_MGMT_NHLM>();
-                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_IVB>();
+                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_NHLM>();
                         msrPkgPowerLimit = std::make_unique<MSR_PKG_POWER_LIMIT>();
                         msrVrCurrentConfig = std::make_unique<MSR_VR_CURRENT_CONFIG_SB>();
                         msrPP0Policy = std::make_unique<MSR_PP0_POLICY>();
@@ -117,7 +117,7 @@ namespace PWTD::Intel {
                     }
                         break;
                     case AlderLakeN: {
-                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_IVB>();
+                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_NHLM>();
                         msrPkgPowerLimit = std::make_unique<MSR_PKG_POWER_LIMIT>();
                         msrVrCurrentConfig = std::make_unique<MSR_VR_CURRENT_CONFIG_SB>();
                         msrPP0Policy = std::make_unique<MSR_PP0_POLICY>();
@@ -127,7 +127,7 @@ namespace PWTD::Intel {
                     }
                         break;
                     case LunarLake: {
-                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_IVB>();
+                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_NHLM>();
                         msrPkgPowerLimit = std::make_unique<MSR_PKG_POWER_LIMIT>();
                         msrVrCurrentConfig = std::make_unique<MSR_VR_CURRENT_CONFIG_CU1>();
                         msrPP0Policy = std::make_unique<MSR_PP0_POLICY>();
@@ -147,18 +147,15 @@ namespace PWTD::Intel {
         }
     }
 
-    void IntelCPU::cacheStaticRegistersData() const {
+    void IntelCPU::buildRegistersCache() const {
         regsCache = std::make_unique<RegistersCache>();
 
         if (msrDev->openMsrFd(0)) {
-            if (msrPkgPowerLimit) {
-                const std::unique_ptr<MSR_RAPL_POWER_UNIT> msrRaplPowUnit = std::make_unique<MSR_RAPL_POWER_UNIT>();
-
-                regsCache->raplPowerUnit = msrRaplPowUnit->getPowerUnitData();
-            }
+            if (msrPkgPowerLimit)
+                regsCache->raplPowerUnit = MSR_RAPL_POWER_UNIT().get();
 
             if (msrTemperatureTarget) {
-                const PWTS::RWData<PWTS::Intel::TemperatureTarget> tempTarget = msrTemperatureTarget->getTemperatureTargetData();
+                const PWTS::RWData<PWTS::Intel::TemperatureTarget> tempTarget = msrTemperatureTarget->get();
 
                 if (tempTarget.isValid())
                     regsCache->temperatureTarget = PWTS::ROData<int>(tempTarget.getValue().temperatureTarget, true);
@@ -185,7 +182,7 @@ namespace PWTD::Intel {
 
     // eax bit is cleared when disabled, so show the feature even when disable is 1
     bool IntelCPU::hasTurboBoostTechBit() const {
-        const PWTS::RWData<PWTS::Intel::MiscProcFeatures> miscFeaturesData = ia32MiscEnable->getMiscProcessorFeaturesData();
+        const PWTS::RWData<PWTS::Intel::MiscProcFeatures> miscFeaturesData = ia32MiscEnable->get();
         const uint32_t eax = cpuidRaw->basic_cpuid[6][cpu_registers_t::EAX];
         const int disableTurbo = !miscFeaturesData.isValid() ? 0 : miscFeaturesData.getValue().disableTurboMode;
 
@@ -243,25 +240,15 @@ namespace PWTD::Intel {
         }
 
         QSet<PWTS::Feature> features;
-        bool canProgTDPLimitForTurboMode = false;
-        bool canProgRatioLimitForTurboMode = false;
+        std::optional<MSR_PLATFORM_INFO::Info> platformInfo;
 
         if (msrPlatformInfo) {
-            const PWTS::ROData<PlatformInfoData> data = msrPlatformInfo->getPlatformInfoData();
+            platformInfo = msrPlatformInfo->get();
 
             features.unite({PWTS::Feature::INTEL_PLATFORM_INFO, PWTS::Feature::INTEL_CPU_GROUP});
 
             if (dynamic_cast<MSR_PLATFORM_INFO_NHLM *>(msrPlatformInfo.get()) != nullptr)
                 features.insert(PWTS::Feature::INTEL_PLATFORM_INFO_NHLM);
-            else if (dynamic_cast<MSR_PLATFORM_INFO_IVB *>(msrPlatformInfo.get()) != nullptr)
-                features.insert(PWTS::Feature::INTEL_PLATFORM_INFO_IVB);
-
-            if (data.isValid()) {
-                const PlatformInfoData val = data.getValue();
-
-                canProgTDPLimitForTurboMode = val.programmableTDPLimitForTurboMode;
-                canProgRatioLimitForTurboMode = val.programmableRatioLimitForTurboMode;
-            }
         }
 
         if (ia32PackageThermStatus)
@@ -279,7 +266,7 @@ namespace PWTD::Intel {
         if (msrTurboPowerCurrentLimit) {
             features.unite({PWTS::Feature::INTEL_TURBO_POWER_CURRENT_LIMIT, PWTS::Feature::INTEL_CPU_GROUP});
 
-            if (canProgTDPLimitForTurboMode)
+            if (platformInfo && platformInfo->programmableTDPLimitForTurboMode)
                 features.insert(PWTS::Feature::INTEL_TURBO_POWER_CURRENT_LIMIT_RW);
         }
 
@@ -295,7 +282,7 @@ namespace PWTD::Intel {
         if (msrTurboRatioLimit) {
             features.unite({PWTS::Feature::INTEL_TURBO_RATIO_LIMIT, PWTS::Feature::INTEL_CPU_GROUP});
 
-            if (canProgRatioLimitForTurboMode)
+            if (platformInfo && platformInfo->programmableRatioLimitForTurboMode)
                 features.insert(PWTS::Feature::INTEL_TURBO_RATIO_LIMIT_RW);
         }
 
@@ -324,7 +311,7 @@ namespace PWTD::Intel {
         }
 
         if (msrUnkFivrControl) {
-            const PWTS::ROData<MSR_UNK_FIVR_CONTROL::FIVRCapabilities> fivrCaps = msrUnkFivrControl->getFIVRCapabilities();
+            const PWTS::ROData<MSR_UNK_FIVR_CONTROL::FIVRCapabilities> fivrCaps = msrUnkFivrControl->getCapabilities();
 
             if (fivrCaps.isValid()) {
                 const MSR_UNK_FIVR_CONTROL::FIVRCapabilities caps = fivrCaps.getValue();
@@ -400,49 +387,49 @@ namespace PWTD::Intel {
         }
 
         if (features.contains(PWTS::Feature::INTEL_PKG_POWER_LIMIT))
-            packet.intelData->pkgPowerLimit = msrPkgPowerLimit->getPkgPowerLimitData(regsCache->raplPowerUnit);
+            packet.intelData->pkgPowerLimit = msrPkgPowerLimit->get(regsCache->raplPowerUnit);
 
         if (features.contains(PWTS::Feature::INTEL_VR_CURRENT_CFG))
-            packet.intelData->vrCurrentCfg = msrVrCurrentConfig->getVrCurrentConfigData();
+            packet.intelData->vrCurrentCfg = msrVrCurrentConfig->get();
 
         if (features.contains(PWTS::Feature::INTEL_PP1_CURRENT_CFG))
-            packet.intelData->pp1CurrentCfg = msrPP1CurrentConfig->getPP1CurrentConfigData();
+            packet.intelData->pp1CurrentCfg = msrPP1CurrentConfig->get();
 
         if (features.contains(PWTS::Feature::INTEL_TURBO_POWER_CURRENT_LIMIT))
-            packet.intelData->turboPowerCurrentLimit = msrTurboPowerCurrentLimit->getTurboPowerCurrentLimitData();
+            packet.intelData->turboPowerCurrentLimit = msrTurboPowerCurrentLimit->get();
 
         if (features.contains(PWTS::Feature::INTEL_CPU_POWER_BALANCE))
-            packet.intelData->pp0Priority = msrPP0Policy->getPP0Priority();
+            packet.intelData->pp0Priority = msrPP0Policy->get();
 
         if (features.contains(PWTS::Feature::INTEL_GPU_POWER_BALANCE))
-            packet.intelData->pp1Priority = msrPP1Policy->getPP1Priority();
+            packet.intelData->pp1Priority = msrPP1Policy->get();
 
         if (features.contains(PWTS::Feature::INTEL_ENERGY_PERF_BIAS))
-            packet.intelData->energyPerfBias = ia32EnergyPerfBias->getPowerPolicyPreference();
+            packet.intelData->energyPerfBias = ia32EnergyPerfBias->get();
 
         if (features.contains(PWTS::Feature::INTEL_TURBO_RATIO_LIMIT))
-            packet.intelData->turboRatioLimit = msrTurboRatioLimit->getTurboRatioLimitData();
+            packet.intelData->turboRatioLimit = msrTurboRatioLimit->get();
 
         if (features.contains(PWTS::Feature::INTEL_IA32_MISC_ENABLE_GROUP))
-            packet.intelData->miscProcFeatures = ia32MiscEnable->getMiscProcessorFeaturesData();
+            packet.intelData->miscProcFeatures = ia32MiscEnable->get();
 
         if (features.contains(PWTS::Feature::INTEL_POWER_CTL))
-            packet.intelData->powerCtl = msrPowerCtl->getPowerCtlData();
+            packet.intelData->powerCtl = msrPowerCtl->get();
 
         if (features.contains(PWTS::Feature::INTEL_MISC_PWR_MGMT))
-            packet.intelData->miscPwrMgmt = msrMiscPwrMgmt->getMiscPwrMgmtData();
+            packet.intelData->miscPwrMgmt = msrMiscPwrMgmt->get();
 
         if (features.contains(PWTS::Feature::INTEL_UNDERVOLT_GROUP))
             packet.intelData->undervoltData = PWTS::RWData<PWTS::Intel::FIVRControlUV>(fivr, true);
 
         if (features.contains(PWTS::Feature::INTEL_HWP_GROUP)) {
-            packet.intelData->hwpEnable = ia32PmEnable->getHWPEnableBit();
+            packet.intelData->hwpEnable = ia32PmEnable->get();
 
             if (features.contains(PWTS::Feature::INTEL_HWP_REQ_PKG))
-                packet.intelData->hwpRequestPkg = ia32HWPRequestPkg->getHWPRequestPkgData();
+                packet.intelData->hwpRequestPkg = ia32HWPRequestPkg->get();
 
             if (features.contains(PWTS::Feature::INTEL_HWP_CTL))
-                packet.intelData->hwpPkgCtlPolarity = ia32HwpCtl->getHwpCtlBit();
+                packet.intelData->hwpPkgCtlPolarity = ia32HwpCtl->get();
         }
 
         msrDev->closeMsrFd(0);
@@ -466,7 +453,7 @@ namespace PWTD::Intel {
         }
 
         if (features.contains(PWTS::Feature::INTEL_PKG_CST_CONFIG_CONTROL))
-            coreData.pkgCstConfigControl = msrPkgCstConfigControl->getPkgCstConfigControlData(cpu);
+            coreData.pkgCstConfigControl = msrPkgCstConfigControl->get(cpu);
 
         msrDev->closeMsrFd(cpu);
         packet.intelData->coreData.append(coreData);
@@ -490,8 +477,8 @@ namespace PWTD::Intel {
         }
 
         if (features.contains(PWTS::Feature::INTEL_HWP_GROUP)) {
-            thdData.hwpCapapabilities = ia32HWPCapabilities->getHWPCapabilitiesData(cpu);
-            thdData.hwpRequest = ia32HWPRequest->getHWPRequestData(cpu);
+            thdData.hwpCapapabilities = ia32HWPCapabilities->get(cpu);
+            thdData.hwpRequest = ia32HWPRequest->get(cpu);
         }
 
         msrDev->closeMsrFd(cpu);
@@ -539,35 +526,35 @@ namespace PWTD::Intel {
         const bool hasTurboPowCurrentLimit = features.contains(PWTS::Feature::INTEL_TURBO_POWER_CURRENT_LIMIT) &&
                                              features.contains(PWTS::Feature::INTEL_TURBO_POWER_CURRENT_LIMIT_RW);
 
-        if (features.contains(PWTS::Feature::INTEL_VR_CURRENT_CFG) && !msrVrCurrentConfig->setVrCurrentConfig(data->vrCurrentCfg))
+        if (features.contains(PWTS::Feature::INTEL_VR_CURRENT_CFG) && !msrVrCurrentConfig->set(data->vrCurrentCfg))
             errors.insert(PWTS::DError::W_VR_CURRENT_CFG);
 
-        if (features.contains(PWTS::Feature::INTEL_PP1_CURRENT_CFG) && !msrPP1CurrentConfig->setPP1CurrentConfig(data->pp1CurrentCfg))
+        if (features.contains(PWTS::Feature::INTEL_PP1_CURRENT_CFG) && !msrPP1CurrentConfig->set(data->pp1CurrentCfg))
             errors.insert(PWTS::DError::W_PP1_CURRENT_CFG);
 
-        if (features.contains(PWTS::Feature::INTEL_CPU_POWER_BALANCE) && !msrPP0Policy->setPP0Priority(data->pp0Priority))
+        if (features.contains(PWTS::Feature::INTEL_CPU_POWER_BALANCE) && !msrPP0Policy->set(data->pp0Priority))
             errors.insert(PWTS::DError::W_CPU_BLNC);
 
-        if (features.contains(PWTS::Feature::INTEL_GPU_POWER_BALANCE) && !msrPP1Policy->setPP1Priority(data->pp1Priority))
+        if (features.contains(PWTS::Feature::INTEL_GPU_POWER_BALANCE) && !msrPP1Policy->set(data->pp1Priority))
             errors.insert(PWTS::DError::W_GPU_BLNC);
 
-        if (features.contains(PWTS::Feature::INTEL_ENERGY_PERF_BIAS) && !ia32EnergyPerfBias->setPowerPolicyPreference(data->energyPerfBias))
+        if (features.contains(PWTS::Feature::INTEL_ENERGY_PERF_BIAS) && !ia32EnergyPerfBias->set(data->energyPerfBias))
             errors.insert(PWTS::DError::W_ENERGY_PERF_BIAS);
 
-        if (hasTurboRatioLimit && !msrTurboRatioLimit->setTurboRatioLimit(data->turboRatioLimit))
+        if (hasTurboRatioLimit && !msrTurboRatioLimit->set(data->turboRatioLimit))
             errors.insert(PWTS::DError::W_TURBO_RATIO_LIMIT);
 
-        if (features.contains(PWTS::Feature::INTEL_IA32_MISC_ENABLE_GROUP) && !ia32MiscEnable->setMiscProcessorFeatures(data->miscProcFeatures))
+        if (features.contains(PWTS::Feature::INTEL_IA32_MISC_ENABLE_GROUP) && !ia32MiscEnable->set(data->miscProcFeatures))
             errors.insert(PWTS::DError::W_MISC_PROC_FEATURES);
 
-        if (features.contains(PWTS::Feature::INTEL_POWER_CTL) && !msrPowerCtl->setPowerCtl(data->powerCtl))
+        if (features.contains(PWTS::Feature::INTEL_POWER_CTL) && !msrPowerCtl->set(data->powerCtl))
             errors.insert(PWTS::DError::W_POWER_CTL);
 
-        if (features.contains(PWTS::Feature::INTEL_MISC_PWR_MGMT) && !msrMiscPwrMgmt->setMiscPwrMgmt(data->miscPwrMgmt))
+        if (features.contains(PWTS::Feature::INTEL_MISC_PWR_MGMT) && !msrMiscPwrMgmt->set(data->miscPwrMgmt))
             errors.insert(PWTS::DError::W_MISC_PWR_MGMT);
 
         if (features.contains(PWTS::Feature::INTEL_UNDERVOLT_GROUP)) {
-            const MSR_UNK_FIVR_CONTROL::FIVRWriteResult res = msrUnkFivrControl->setFIVRControl(data->undervoltData);
+            const MSR_UNK_FIVR_CONTROL::FIVRWriteResult res = msrUnkFivrControl->set(data->undervoltData);
 
             if (data->undervoltData.isValid()) // don't save invalid data
                 fivr = data->undervoltData.getValue();
@@ -588,20 +575,20 @@ namespace PWTD::Intel {
                 errors.insert(PWTS::DError::W_SA_UV);
         }
 
-        if (hasTurboPowCurrentLimit && !msrTurboPowerCurrentLimit->setTurboPowerCurrentLimit(data->turboPowerCurrentLimit))
+        if (hasTurboPowCurrentLimit && !msrTurboPowerCurrentLimit->set(data->turboPowerCurrentLimit))
             errors.insert(PWTS::DError::W_TURBO_POWER_CURRENT_LIMIT);
 
-        if (features.contains(PWTS::Feature::INTEL_PKG_POWER_LIMIT) && !msrPkgPowerLimit->setPkgPowerLimit(data->pkgPowerLimit, regsCache->raplPowerUnit))
+        if (features.contains(PWTS::Feature::INTEL_PKG_POWER_LIMIT) && !msrPkgPowerLimit->set(data->pkgPowerLimit, regsCache->raplPowerUnit))
             errors.insert(PWTS::DError::W_PKG_POWER_LIMIT);
 
         if (features.contains(PWTS::Feature::INTEL_HWP_GROUP)) {
-            if (ia32PmEnable->getHWPEnableBit().getValue() == 0 && !ia32PmEnable->setHWPEnableBit(data->hwpEnable))
+            if (ia32PmEnable->get().getValue() == 0 && !ia32PmEnable->set(data->hwpEnable))
                 errors.insert(PWTS::DError::W_HWP_ENABLE);
 
-            if (features.contains(PWTS::Feature::INTEL_HWP_REQ_PKG) && !ia32HWPRequestPkg->setHWPRequestPkg(data->hwpRequestPkg))
+            if (features.contains(PWTS::Feature::INTEL_HWP_REQ_PKG) && !ia32HWPRequestPkg->set(data->hwpRequestPkg))
                 errors.insert(PWTS::DError::W_HWP_REQ_PKG);
 
-            if (features.contains(PWTS::Feature::INTEL_HWP_CTL) && !ia32HwpCtl->setHWPCtlBit(data->hwpPkgCtlPolarity))
+            if (features.contains(PWTS::Feature::INTEL_HWP_CTL) && !ia32HwpCtl->set(data->hwpPkgCtlPolarity))
                 errors.insert(PWTS::DError::W_HWP_CTL);
         }
 
@@ -621,7 +608,7 @@ namespace PWTD::Intel {
             return;
         }
 
-        if (features.contains(PWTS::Feature::INTEL_PKG_CST_CONFIG_CONTROL) && !msrPkgCstConfigControl->setPkgCstConfigControlData(coreIdx, data.pkgCstConfigControl))
+        if (features.contains(PWTS::Feature::INTEL_PKG_CST_CONFIG_CONTROL) && !msrPkgCstConfigControl->set(coreIdx, data.pkgCstConfigControl))
             errors.insert(PWTS::DError::W_PKG_CST_CONFIG_CONTROL);
 
         msrDev->closeMsrFd(cpu);
@@ -640,7 +627,7 @@ namespace PWTD::Intel {
 
         const PWTS::Intel::IntelThreadData &data = packet.intelData->threadData[cpu];
 
-        if (features.contains(PWTS::Feature::INTEL_HWP_GROUP) && !ia32HWPRequest->setHWPRequest(cpu, data.hwpRequest))
+        if (features.contains(PWTS::Feature::INTEL_HWP_GROUP) && !ia32HWPRequest->set(cpu, data.hwpRequest))
             errors.insert(PWTS::DError::W_HWP_REQ);
 
         msrDev->closeMsrFd(cpu);
@@ -703,13 +690,13 @@ namespace PWTD::Intel {
             return {};
         }
 
-        const PWTS::ROData<PWTS::Intel::PkgThermalStatusInfo> pkgThermInfo = ia32PackageThermStatus->getPkgThermStatusData();
+        const std::optional<PWTS::Intel::PkgThermalStatusInfo> pkgThermStatusI = ia32PackageThermStatus->get();
 
         msrDev->closeMsrFd(0);
 
-        if (!pkgThermInfo.isValid() || !regsCache->temperatureTarget.isValid())
+        if (!pkgThermStatusI || !regsCache->temperatureTarget.isValid())
             return {};
 
-        return PWTS::ROData<int>(regsCache->temperatureTarget.getValue() - pkgThermInfo.getValue().digitalReadout, true);
+        return PWTS::ROData<int>(regsCache->temperatureTarget.getValue() - pkgThermStatusI->digitalReadout, true);
     }
 }

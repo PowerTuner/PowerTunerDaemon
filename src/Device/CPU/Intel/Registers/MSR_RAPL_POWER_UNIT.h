@@ -18,7 +18,6 @@
 #pragma once
 #include "../../CPURegister.h"
 #include "../../../Utils/Utils.h"
-#include "pwtShared/Include/Types/ROData.h"
 
 namespace PWTD::Intel {
     class MSR_RAPL_POWER_UNIT final: public CPURegister {
@@ -26,22 +25,22 @@ namespace PWTD::Intel {
         static constexpr unsigned addr = 0x606;
 
     public:
-        struct [[nodiscard]] RAPLPowerUnits final {
-            double powerUnit;
-            double timeUnit;
+        struct Units final {
+            double power;
+            double time;
         };
 
         [[nodiscard]]
-        PWTS::ROData<RAPLPowerUnits> getPowerUnitData() const {
+        std::optional<Units> get() const {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))
                 return {};
 
-            return PWTS::ROData<RAPLPowerUnits>({
-                .powerUnit = 1 / std::pow(2, getBitfield(3, 0, reg)),
-                .timeUnit = 1 / std::pow(2, getBitfield(19, 16, reg))
-            }, true);
+            return Units {
+                .power = 1 / std::pow(2, getBitfield(3, 0, reg)),
+                .time = 1 / std::pow(2, getBitfield(19, 16, reg))
+            };
         }
     };
 }

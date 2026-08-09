@@ -23,7 +23,7 @@ namespace PWTD::Intel {
     class MSR_POWER_CTL_NHLM final: public MSR_POWER_CTL {
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::PowerCtl> getPowerCtlData() const override {
+        PWTS::RWData<PWTS::Intel::PowerCtl> get() const override {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))
@@ -35,7 +35,7 @@ namespace PWTD::Intel {
         }
 
         [[nodiscard]]
-        bool setPowerCtl(const PWTS::RWData<PWTS::Intel::PowerCtl> &data) const override {
+        bool set(const PWTS::RWData<PWTS::Intel::PowerCtl> &data) const override {
             if (!data.isValid())
                 return true;
 

@@ -23,7 +23,7 @@ namespace PWTD::Intel {
     class MSR_MISC_PWR_MGMT_NHLM final: public MSR_MISC_PWR_MGMT {
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::MiscPwrMgmt> getMiscPwrMgmtData() const override {
+        PWTS::RWData<PWTS::Intel::MiscPwrMgmt> get() const override {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))
@@ -35,7 +35,7 @@ namespace PWTD::Intel {
         }
 
         [[nodiscard]]
-        bool setMiscPwrMgmt(const PWTS::RWData<PWTS::Intel::MiscPwrMgmt> &data) const override {
+        bool set(const PWTS::RWData<PWTS::Intel::MiscPwrMgmt> &data) const override {
             if (!data.isValid())
                 return true;
 

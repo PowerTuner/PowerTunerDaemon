@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "../Include/RegistersIncludes.h"
 #include "pwtShared/Include/Feature.h"
 #include "pwtShared/Include/Packets/DaemonPacket.h"
@@ -26,14 +25,14 @@ namespace PWTD::Intel {
     class MCHBAR final {
     private:
         struct RegistersCache final {
-            PWTS::ROData<MCHBAR_PACKAGE_POWER_SKU_UNIT::PkgPowerSKUUnits> pkgPowerSkuUnit;
+            std::optional<MCHBAR_PACKAGE_POWER_SKU_UNIT::Units> pkgPowerSkuUnit;
         };
 
         uint32_t baseAddress;
         mutable QScopedPointer<RegistersCache> regsCache;
         QScopedPointer<MCHBAR_PACKAGE_RAPL_LIMIT> mchbarPackageRaplLimit;
 
-        void cacheStaticRegistersData() const;
+        void buildRegistersCache() const;
 
     public:
         explicit MCHBAR(int cpuFamily);

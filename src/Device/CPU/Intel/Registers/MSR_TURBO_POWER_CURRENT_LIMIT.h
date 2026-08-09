@@ -28,7 +28,7 @@ namespace PWTD::Intel {
 
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::TurboPowerCurrentLimit> getTurboPowerCurrentLimitData() const {
+        PWTS::RWData<PWTS::Intel::TurboPowerCurrentLimit> get() const {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))
@@ -43,7 +43,7 @@ namespace PWTD::Intel {
         }
 
         [[nodiscard]]
-        bool setTurboPowerCurrentLimit(const PWTS::RWData<PWTS::Intel::TurboPowerCurrentLimit> &data) const {
+        bool set(const PWTS::RWData<PWTS::Intel::TurboPowerCurrentLimit> &data) const {
             if (!data.isValid())
                 return true;
 

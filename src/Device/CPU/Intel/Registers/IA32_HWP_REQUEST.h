@@ -18,7 +18,7 @@
 #pragma once
 #include "../../CPURegister.h"
 #include "../../../Utils/Utils.h"
-#include "../Utils/IntelRegisterUtils.h"
+#include "../IntelUtils.h"
 #include "pwtShared/Include/CPU/Intel/HWPRequest.h"
 #include "pwtShared/Include/Types/RWData.h"
 
@@ -29,7 +29,7 @@ namespace PWTD::Intel {
 
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::HWPRequest> getHWPRequestData(const int cpu) const {
+        PWTS::RWData<PWTS::Intel::HWPRequest> get(const int cpu) const {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, cpu))
@@ -41,7 +41,7 @@ namespace PWTD::Intel {
                     .max = static_cast<int>(getBitfield(15, 8, reg)),
                     .desired = static_cast<int>(getBitfield(23, 16, reg)),
                     .epp = static_cast<int>(getBitfield(31, 24, reg)),
-                    .acw = static_cast<int>(getBitfield(38, 32, reg) * std::pow(10, getBitfield(41, 39, reg)))
+                    .acw = static_cast<int>(static_cast<double>(getBitfield(38, 32, reg)) * std::pow(10, getBitfield(41, 39, reg)))
                 },
                 .packageControl = getBitfield(42, 42, reg) == 1,
                 .acwValid = getBitfield(59, 59, reg) == 1,
@@ -53,12 +53,12 @@ namespace PWTD::Intel {
         }
 
         [[nodiscard]]
-        bool setHWPRequest(const int cpu, const PWTS::RWData<PWTS::Intel::HWPRequest> &data) const {
+        bool set(const int cpu, const PWTS::RWData<PWTS::Intel::HWPRequest> &data) const {
             if (!data.isValid() || data.isIgnored())
                 return true;
 
             const PWTS::Intel::HWPRequest hwpReq = data.getValue();
-            const HWPActivityWindowBits acwBits = getHWPActivityWindowBitsFromMicroSecond(hwpReq.requestPkg.acw);
+            const auto [exponent, mantissa] = USecToRawHWPActivityWindow(hwpReq.requestPkg.acw);
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, cpu))
@@ -68,8 +68,8 @@ namespace PWTD::Intel {
             reg = setBitfield(15, 8, hwpReq.requestPkg.max, reg);
             reg = setBitfield(23, 16, hwpReq.requestPkg.desired, reg);
             reg = setBitfield(31, 24, hwpReq.requestPkg.epp, reg);
-            reg = setBitfield(38, 32, acwBits.mantissa, reg);
-            reg = setBitfield(41, 39, acwBits.exponent, reg);
+            reg = setBitfield(38, 32, mantissa, reg);
+            reg = setBitfield(41, 39, exponent, reg);
             reg = setBitfield(42, 42, hwpReq.packageControl, reg);
             reg = setBitfield(59, 59, hwpReq.acwValid, reg);
             reg = setBitfield(60, 60, hwpReq.eppValid, reg);
@@ -84,8 +84,8 @@ namespace PWTD::Intel {
                 getBitfield(15, 8, reg) == hwpReq.requestPkg.max &&
                 getBitfield(23, 16, reg) == hwpReq.requestPkg.desired &&
                 getBitfield(31, 24, reg) == hwpReq.requestPkg.epp &&
-                getBitfield(38, 32, reg) == acwBits.mantissa &&
-                getBitfield(41, 39, reg) == acwBits.exponent &&
+                getBitfield(38, 32, reg) == mantissa &&
+                getBitfield(41, 39, reg) == exponent &&
                 (getBitfield(42, 42, reg) == 1) == hwpReq.packageControl &&
                 (getBitfield(59, 59, reg) == 1) == hwpReq.acwValid &&
                 (getBitfield(60, 60, reg) == 1) == hwpReq.eppValid &&

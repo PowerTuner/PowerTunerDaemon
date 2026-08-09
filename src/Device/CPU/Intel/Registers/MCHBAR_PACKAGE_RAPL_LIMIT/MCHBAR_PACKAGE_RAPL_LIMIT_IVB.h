@@ -17,7 +17,7 @@
  */
 #pragma once
 #include "MCHBAR_PACKAGE_RAPL_LIMIT.h"
-#include "../../Utils/IntelRegisterUtils.h"
+#include "../../IntelUtils.h"
 
 namespace PWTD::Intel {
     class MCHBAR_PACKAGE_RAPL_LIMIT_IVB final: public MCHBAR_PACKAGE_RAPL_LIMIT {
@@ -25,17 +25,16 @@ namespace PWTD::Intel {
         explicit MCHBAR_PACKAGE_RAPL_LIMIT_IVB(const uint32_t base): MCHBAR_PACKAGE_RAPL_LIMIT(base) {}
 
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit> getPkgRaplLimitData(const PWTS::ROData<MCHBAR_PACKAGE_POWER_SKU_UNIT::PkgPowerSKUUnits> &powerSkuUnit) const override {
-            const MCHBAR_PACKAGE_POWER_SKU_UNIT::PkgPowerSKUUnits skuUnit = powerSkuUnit.getValue();
+        PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit> get(const std::optional<MCHBAR_PACKAGE_POWER_SKU_UNIT::Units> &pu) const override {
             uint64_t reg;
 
-            if (!powerSkuUnit.isValid() || !memory->readMem64(reg, addr))
+            if (!pu || !memory->readMem64(reg, addr))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit>({
-                .pl1 = static_cast<int>(getBitfield(14, 0, reg) * skuUnit.powerUnit * 1000),
-                .pl2 = static_cast<int>(getBitfield(46, 32, reg) * skuUnit.powerUnit * 1000),
-                .pl1Time = static_cast<int>(std::pow(2, getBitfield(21, 17, reg)) * (1.f + static_cast<float>(getBitfield(23, 22, reg))/4.f) * skuUnit.timeUnit * 1000),
+                .pl1 = static_cast<int>(static_cast<double>(getBitfield(14, 0, reg)) * pu->power * 1000),
+                .pl2 = static_cast<int>(static_cast<double>(getBitfield(46, 32, reg)) * pu->power * 1000),
+                .pl1Time = static_cast<int>(std::pow(2, getBitfield(21, 17, reg)) * (1 + static_cast<double>(getBitfield(23, 22, reg)) / 4.0) * pu->time * 1000),
                 .pl1Enable = getBitfield(15, 15, reg) == 1,
                 .pl2Enable = getBitfield(47, 47, reg) == 1,
                 .lock = getBitfield(63, 63, reg) == 1
@@ -43,19 +42,19 @@ namespace PWTD::Intel {
         }
 
         [[nodiscard]]
-        bool setPkgRaplLimit(const PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit> &data, const PWTS::ROData<MCHBAR_PACKAGE_POWER_SKU_UNIT::PkgPowerSKUUnits> &powerSkuUnit) const override {
+        bool set(const PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit> &data, const std::optional<MCHBAR_PACKAGE_POWER_SKU_UNIT::Units> &pu) const override {
+            uint64_t reg;
+
             if (!data.isValid())
                 return true;
 
-            const MCHBAR_PACKAGE_POWER_SKU_UNIT::PkgPowerSKUUnits skuUnit = powerSkuUnit.getValue();
-            const PWTS::Intel::MCHBARPkgRaplLimit pkgPowerLim = data.getValue();
-            const int pl1 = static_cast<uint64_t>(pkgPowerLim.pl1 / skuUnit.powerUnit / 1000);
-            const int pl2 = static_cast<uint64_t>(pkgPowerLim.pl2 / skuUnit.powerUnit / 1000);
-            PowerLimitRawTimeWindow timeWindow;
-            uint64_t reg;
-
-            if (!powerSkuUnit.isValid() || !memory->readMem64(reg, addr))
+            if (!pu || !memory->readMem64(reg, addr))
                 return false;
+
+            const PWTS::Intel::MCHBARPkgRaplLimit pkgPowerLim = data.getValue();
+            const int pl1 = static_cast<int>(pkgPowerLim.pl1 / pu->power / 1000);
+            const int pl2 = static_cast<int>(pkgPowerLim.pl2 / pu->power / 1000);
+            const std::optional<std::pair<int, int>> pl1Window = getRawTimeWindow(static_cast<double>(pkgPowerLim.pl1Time) / 1000, pu->time);
 
             reg = setBitfield(14, 0, pl1, reg);
             reg = setBitfield(15, 15, pkgPowerLim.pl1Enable, reg);
@@ -63,10 +62,11 @@ namespace PWTD::Intel {
             reg = setBitfield(47, 47, pkgPowerLim.pl2Enable, reg);
             reg = setBitfield(63, 63, pkgPowerLim.lock, reg);
 
-            timeWindow = getRawTimeWindow(static_cast<float>(pkgPowerLim.pl1Time) / 1000, skuUnit.timeUnit);
-            if (timeWindow.y != -1) {
-                reg = setBitfield(21, 17, timeWindow.y, reg);
-                reg = setBitfield(23, 22, timeWindow.z, reg);
+            if (pl1Window) {
+                const auto [y, z] = pl1Window.value();
+
+                reg = setBitfield(21, 17, y, reg);
+                reg = setBitfield(23, 22, z, reg);
             }
 
             if (!memory->writeMem64(reg, addr) || !memory->readMem64(reg, addr))

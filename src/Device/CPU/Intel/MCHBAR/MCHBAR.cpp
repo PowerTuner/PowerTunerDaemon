@@ -53,17 +53,17 @@ namespace PWTD::Intel {
                 break;
         }
 
-        cacheStaticRegistersData();
+        buildRegistersCache();
         return true;
     }
 
-    void MCHBAR::cacheStaticRegistersData() const {
+    void MCHBAR::buildRegistersCache() const {
         regsCache.reset(new RegistersCache);
 
         if (!mchbarPackageRaplLimit.isNull()) {
             const std::unique_ptr<MCHBAR_PACKAGE_POWER_SKU_UNIT> powUnit = std::make_unique<MCHBAR_PACKAGE_POWER_SKU_UNIT>(baseAddress);
 
-            regsCache->pkgPowerSkuUnit = powUnit->getPkgSKUPowerUnitData();
+            regsCache->pkgPowerSkuUnit = powUnit->get();
         }
     }
 
@@ -87,7 +87,7 @@ namespace PWTD::Intel {
             return;
 
         if (features.contains(PWTS::Feature::INTEL_MCHBAR_PKG_RAPL_LIMIT))
-            packet.intelData->mchbarPkgRaplLimit = mchbarPackageRaplLimit->getPkgRaplLimitData(regsCache->pkgPowerSkuUnit);
+            packet.intelData->mchbarPkgRaplLimit = mchbarPackageRaplLimit->get(regsCache->pkgPowerSkuUnit);
     }
 
     QSet<PWTS::DError> MCHBAR::applySettings(const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet) const {
@@ -97,7 +97,7 @@ namespace PWTD::Intel {
         const QSharedPointer<PWTS::Intel::IntelData> data = packet.intelData;
         QSet<PWTS::DError> errors;
 
-        if (features.contains(PWTS::Feature::INTEL_MCHBAR_PKG_RAPL_LIMIT) && !mchbarPackageRaplLimit->setPkgRaplLimit(data->mchbarPkgRaplLimit, regsCache->pkgPowerSkuUnit))
+        if (features.contains(PWTS::Feature::INTEL_MCHBAR_PKG_RAPL_LIMIT) && !mchbarPackageRaplLimit->set(data->mchbarPkgRaplLimit, regsCache->pkgPowerSkuUnit))
             errors.insert(PWTS::DError::W_POWER_LIMIT_MCHBAR);
 
         return errors;

@@ -23,7 +23,7 @@ namespace PWTD::Intel {
 class MSR_PKG_CST_CONFIG_CONTROL_CU1 final: public MSR_PKG_CST_CONFIG_CONTROL {
 public:
     [[nodiscard]]
-    PWTS::RWData<PWTS::Intel::PkgCstConfigControl> getPkgCstConfigControlData(const int cpu) const override {
+    PWTS::RWData<PWTS::Intel::PkgCstConfigControl> get(const int cpu) const override {
         uint64_t reg;
 
         if (!msrUtils->readMSR(reg, addr, cpu))
@@ -45,7 +45,7 @@ public:
     }
 
     [[nodiscard]]
-    bool setPkgCstConfigControlData(const int cpu, const PWTS::RWData<PWTS::Intel::PkgCstConfigControl> &data) const override {
+    bool set(const int cpu, const PWTS::RWData<PWTS::Intel::PkgCstConfigControl> &data) const override {
         if (!data.isValid())
             return true;
 

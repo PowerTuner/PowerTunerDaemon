@@ -27,7 +27,7 @@ namespace PWTD::AMD {
 
     public:
         [[nodiscard]]
-        PWTS::RWData<int> getCPPCEnableBit() const {
+        PWTS::RWData<int> get() const {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))
@@ -37,7 +37,7 @@ namespace PWTD::AMD {
         }
 
         [[nodiscard]]
-        bool setCPPCEnableBit(const PWTS::RWData<int> &data) const {
+        bool set(const PWTS::RWData<int> &data) const {
             if (!data.isValid() || data.isIgnored())
                 return true;
 

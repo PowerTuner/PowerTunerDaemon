@@ -18,29 +18,28 @@
 #pragma once
 #include "../MCHBAR/MCHBARRegister.h"
 #include "../../../Utils/Utils.h"
-#include "pwtShared/Include/Types/ROData.h"
 
 namespace PWTD::Intel {
     class MCHBAR_PACKAGE_POWER_SKU_UNIT final: public MCHBARRegister {
     public:
-        struct PkgPowerSKUUnits final {
-            double powerUnit;
-            double timeUnit;
+        struct Units final {
+            double power;
+            double time;
         };
 
         explicit MCHBAR_PACKAGE_POWER_SKU_UNIT(const uint32_t base): MCHBARRegister(base, 0x5938) {}
 
         [[nodiscard]]
-        PWTS::ROData<PkgPowerSKUUnits> getPkgSKUPowerUnitData() const {
+        std::optional<Units> get() const {
             uint64_t reg;
 
             if (!memory->readMem32(reg, addr))
                 return {};
 
-            return PWTS::ROData<PkgPowerSKUUnits>({
-                .powerUnit = 1 / std::pow(2, getBitfield(3, 0, reg)),
-                .timeUnit = 1 / std::pow(2, getBitfield(19, 16, reg))
-            }, true);
+            return Units {
+                .power = 1 / std::pow(2, getBitfield(3, 0, reg)),
+                .time = 1 / std::pow(2, getBitfield(19, 16, reg))
+            };
         }
     };
 }

@@ -197,7 +197,6 @@ if (WITH_INTEL)
 		src/Device/CPU/Intel/Registers/IA32_HWP_CTL.h
 		src/Device/CPU/Intel/Registers/MSR_PLATFORM_INFO/MSR_PLATFORM_INFO.h
 		src/Device/CPU/Intel/Registers/MSR_PLATFORM_INFO/MSR_PLATFORM_INFO_NHLM.h
-		src/Device/CPU/Intel/Registers/MSR_PLATFORM_INFO/MSR_PLATFORM_INFO_IVB.h
 		src/Device/CPU/Intel/Registers/MSR_TURBO_POWER_CURRENT_LIMIT.h
 		src/Device/CPU/Intel/Registers/MSR_RAPL_POWER_UNIT.h
 		src/Device/CPU/Intel/Registers/MSR_PKG_POWER_LIMIT.h
@@ -229,6 +228,8 @@ if (WITH_INTEL)
 
 		src/Device/CPU/Intel/IntelCPU.h
 		src/Device/CPU/Intel/IntelCPU.cpp
+        src/Device/CPU/Intel/IntelUtils.cpp
+        src/Device/CPU/Intel/IntelUtils.h
 
 		src/Device/CPU/Intel/MCHBAR/MCHBAR.h
 		src/Device/CPU/Intel/MCHBAR/MCHBAR.cpp
@@ -240,12 +241,6 @@ if (WITH_INTEL)
 		src/Device/CPU/Intel/Include/CPUModel.h
 		src/Device/CPU/Intel/Include/ModelRegistersIncludes.h
 		src/Device/CPU/Intel/Include/RegistersIncludes.h
-		src/Device/CPU/Intel/Include/HWPActivityWindowBits.h
-		src/Device/CPU/Intel/Include/PlatformInfoData.h
-		src/Device/CPU/Intel/Include/PowerLimitRawTimeWindow.h
-
-		src/Device/CPU/Intel/Utils/IntelRegisterUtils.cpp
-		src/Device/CPU/Intel/Utils/IntelRegisterUtils.h
 
 		src/DiskManagers/ProfileUtils/Vendor/ProfileIntelUtils.h
 		src/DiskManagers/ProfileUtils/Vendor/ProfileIntelUtils.cpp

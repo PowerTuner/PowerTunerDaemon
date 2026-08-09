@@ -17,45 +17,40 @@
  */
 #include <cmath>
 
-#include "IntelRegisterUtils.h"
+#include "IntelUtils.h"
 
 namespace PWTD::Intel {
     // from https://patchwork.kernel.org/project/xen-devel/patch/20210308210210.116278-13-jandryuk@gmail.com
-    HWPActivityWindowBits getHWPActivityWindowBitsFromMicroSecond(int us) {
-        HWPActivityWindowBits acwBits {};
-
-        acwBits.exponent = 0;
+    std::pair<int, int> USecToRawHWPActivityWindow(int us) {
+        int exponent = 0;
+        int mantissa = 0;
 
         /* looking for 7 bits of mantissa and 3 bits of exponent */
         while (us > 127) {
             us /= 10;
-            ++acwBits.exponent;
+            ++exponent;
         }
 
-        acwBits.exponent &= 0x7;
-        acwBits.mantissa = us & 0x7f;
+        exponent &= 0x7;
+        mantissa = us & 0x7f;
 
-        return acwBits;
+        return std::make_pair(exponent, mantissa);
     }
 
-    PowerLimitRawTimeWindow getRawTimeWindow(const float seconds, const double timeUnit) {
+    std::optional<std::pair<int, int>> getRawTimeWindow(const double seconds, const double timeUnit) {
         if (seconds == 0)
-            return {.y = 0, .z = 0};
+            return {};
 
         const double raw = seconds / timeUnit;
-        PowerLimitRawTimeWindow rtm {};
 
         for (int z=0; z<=3; ++z) {
-            const double lhsMultiplier = 1.f + (static_cast<float>(z) / 4.f);
+            const double lhsMultiplier = 1 + (static_cast<double>(z) / 4.0);
             const double y = std::log2(raw / lhsMultiplier); // log rhs
 
-            if ((std::pow(2, y) * lhsMultiplier) == raw) {
-                rtm.y = static_cast<int>(y);
-                rtm.z = z;
-                break;
-            }
+            if ((std::pow(2, y) * lhsMultiplier) == raw)
+                return std::make_pair(static_cast<int>(y), z);
         }
 
-        return rtm;
+        return {};
     }
 }

@@ -28,7 +28,7 @@ namespace PWTD::AMD {
 
     public:
         [[nodiscard]]
-        PWTS::ROData<PWTS::AMD::PStateCurrentLimit> getPStateCurrentLimitData() const {
+        PWTS::ROData<PWTS::AMD::PStateCurrentLimit> get() const {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))

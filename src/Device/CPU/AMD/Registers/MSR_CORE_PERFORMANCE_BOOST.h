@@ -26,7 +26,7 @@ namespace PWTD::AMD {
         static constexpr uint32_t addr = 0xc0010015;
 
     public:
-        PWTS::RWData<int> getCorePerformanceBoostData(const int cpu) const {
+        PWTS::RWData<int> get(const int cpu) const {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, cpu))
@@ -36,7 +36,7 @@ namespace PWTD::AMD {
         }
 
         [[nodiscard]]
-        bool setCorePerformanceBoost(const int cpu, const PWTS::RWData<int> &data) const {
+        bool set(const int cpu, const PWTS::RWData<int> &data) const {
             if (!data.isValid())
                 return true;
 

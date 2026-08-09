@@ -27,7 +27,8 @@ namespace PWTD::Intel {
         static constexpr unsigned addr = 0x1ad;
 
     public:
-        PWTS::RWData<PWTS::Intel::TurboRatioLimit> getTurboRatioLimitData() const {
+        [[nodiscard]]
+        PWTS::RWData<PWTS::Intel::TurboRatioLimit> get() const {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))
@@ -46,7 +47,7 @@ namespace PWTD::Intel {
         }
 
         [[nodiscard]]
-        bool setTurboRatioLimit(const PWTS::RWData<PWTS::Intel::TurboRatioLimit> &data) const {
+        bool set(const PWTS::RWData<PWTS::Intel::TurboRatioLimit> &data) const {
             if (!data.isValid())
                 return true;
 

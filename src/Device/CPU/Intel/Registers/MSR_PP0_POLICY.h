@@ -27,7 +27,7 @@ namespace PWTD::Intel {
 
     public:
         [[nodiscard]]
-        PWTS::RWData<int> getPP0Priority() const {
+        PWTS::RWData<int> get() const {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))
@@ -37,7 +37,7 @@ namespace PWTD::Intel {
         }
 
         [[nodiscard]]
-        bool setPP0Priority(const PWTS::RWData<int> &data) const {
+        bool set(const PWTS::RWData<int> &data) const {
             if (!data.isValid())
                 return true;
 

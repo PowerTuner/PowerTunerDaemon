@@ -28,7 +28,7 @@ namespace PWTD::AMD {
 
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::AMD::CPPCRequest> getCPPCRequestData(const int cpu) const {
+        PWTS::RWData<PWTS::AMD::CPPCRequest> get(const int cpu) const {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, cpu))
@@ -43,7 +43,7 @@ namespace PWTD::AMD {
         }
 
         [[nodiscard]]
-        bool setCPPCRequest(const int cpu, const PWTS::RWData<PWTS::AMD::CPPCRequest> &data) const {
+        bool set(const int cpu, const PWTS::RWData<PWTS::AMD::CPPCRequest> &data) const {
             if (!data.isValid() || data.isIgnored())
                 return true;
 

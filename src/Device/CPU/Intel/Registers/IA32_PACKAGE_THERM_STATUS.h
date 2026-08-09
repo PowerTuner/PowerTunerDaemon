@@ -19,7 +19,6 @@
 #include "../../CPURegister.h"
 #include "../../../Utils/Utils.h"
 #include "pwtShared/Include/CPU/Intel/PkgThermalStatusInfo.h"
-#include "pwtShared/Include/Types/ROData.h"
 
 namespace PWTD::Intel {
     class IA32_PACKAGE_THERM_STATUS final: public CPURegister {
@@ -28,15 +27,15 @@ namespace PWTD::Intel {
 
     public:
         [[nodiscard]]
-        PWTS::ROData<PWTS::Intel::PkgThermalStatusInfo> getPkgThermStatusData() const {
+        std::optional<PWTS::Intel::PkgThermalStatusInfo> get() const {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))
                 return {};
 
-            return PWTS::ROData<PWTS::Intel::PkgThermalStatusInfo>({
+            return PWTS::Intel::PkgThermalStatusInfo {
                 .digitalReadout = static_cast<int>(getBitfield(22, 16, reg))
-            }, true);
+            };
         }
     };
 }

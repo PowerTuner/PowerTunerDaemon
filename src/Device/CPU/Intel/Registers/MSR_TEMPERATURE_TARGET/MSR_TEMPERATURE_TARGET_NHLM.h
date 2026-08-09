@@ -23,7 +23,7 @@ namespace PWTD::Intel {
     class MSR_TEMPERATURE_TARGET_NHLM final: public MSR_TEMPERATURE_TARGET {
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::TemperatureTarget> getTemperatureTargetData() const override {
+        PWTS::RWData<PWTS::Intel::TemperatureTarget> get() const override {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))

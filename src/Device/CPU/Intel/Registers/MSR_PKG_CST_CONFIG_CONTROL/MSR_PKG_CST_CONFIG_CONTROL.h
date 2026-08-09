@@ -26,7 +26,7 @@ namespace PWTD::Intel {
         static constexpr unsigned addr = 0xe2;
 
     public:
-        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::PkgCstConfigControl> getPkgCstConfigControlData(int cpu) const = 0;
-        [[nodiscard]] virtual bool setPkgCstConfigControlData(int cpu, const PWTS::RWData<PWTS::Intel::PkgCstConfigControl> &data) const = 0;
+        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::PkgCstConfigControl> get(int cpu) const = 0;
+        [[nodiscard]] virtual bool set(int cpu, const PWTS::RWData<PWTS::Intel::PkgCstConfigControl> &data) const = 0;
     };
 }

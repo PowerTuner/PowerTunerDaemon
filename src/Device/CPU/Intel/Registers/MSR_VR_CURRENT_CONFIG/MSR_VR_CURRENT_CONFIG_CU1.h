@@ -23,25 +23,25 @@ namespace PWTD::Intel {
     class MSR_VR_CURRENT_CONFIG_CU1 final: public MSR_VR_CURRENT_CONFIG {
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::VRCurrentConfig> getVrCurrentConfigData() const override {
+        PWTS::RWData<PWTS::Intel::VRCurrentConfig> get() const override {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::VRCurrentConfig>({
-                .pl4 = static_cast<int>(getBitfield(15, 0, reg) * 0.125 * 1000),
+                .pl4 = static_cast<int>(static_cast<double>(getBitfield(15, 0, reg)) * 0.125 * 1000),
                 .lock = getBitfield(31, 31, reg) == 1
             }, true);
         }
 
         [[nodiscard]]
-        bool setVrCurrentConfig(const PWTS::RWData<PWTS::Intel::VRCurrentConfig> &data) const override {
+        bool set(const PWTS::RWData<PWTS::Intel::VRCurrentConfig> &data) const override {
             if (!data.isValid())
                 return true;
 
             const PWTS::Intel::VRCurrentConfig vrCfg = data.getValue();
-            const uint64_t pl4 = static_cast<uint64_t>(vrCfg.pl4 / 0.125 / 1000);
+            const int pl4 = static_cast<int>(vrCfg.pl4 / 0.125 / 1000);
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))
@@ -53,7 +53,8 @@ namespace PWTD::Intel {
             if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
                 return false;
 
-            return getBitfield(15, 0, reg) == pl4 && getBitfield(31, 31, reg) == vrCfg.lock;
+            return getBitfield(15, 0, reg) == pl4 &&
+                getBitfield(31, 31, reg) == vrCfg.lock;
         }
     };
 }

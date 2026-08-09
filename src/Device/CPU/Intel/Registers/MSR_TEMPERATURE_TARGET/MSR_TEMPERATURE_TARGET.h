@@ -26,6 +26,6 @@ namespace PWTD::Intel {
         static constexpr unsigned addr = 0x1a2;
 
     public:
-        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::TemperatureTarget> getTemperatureTargetData() const = 0;
+        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::TemperatureTarget> get() const = 0;
     };
 }

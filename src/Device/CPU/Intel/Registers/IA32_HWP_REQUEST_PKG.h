@@ -18,7 +18,7 @@
 #pragma once
 #include "../../CPURegister.h"
 #include "../../../Utils/Utils.h"
-#include "../Utils/IntelRegisterUtils.h"
+#include "../IntelUtils.h"
 #include "pwtShared/Include/CPU/Intel/HWPRequestPkg.h"
 #include "pwtShared/Include/Types/RWData.h"
 
@@ -29,7 +29,7 @@ namespace PWTD::Intel {
 
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::HWPRequestPkg> getHWPRequestPkgData() const {
+        PWTS::RWData<PWTS::Intel::HWPRequestPkg> get() const {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))
@@ -40,17 +40,17 @@ namespace PWTD::Intel {
                 .max = static_cast<int>(getBitfield(15, 8, reg)),
                 .desired = static_cast<int>(getBitfield(23, 16, reg)),
                 .epp = static_cast<int>(getBitfield(31, 24, reg)),
-                .acw = static_cast<int>(getBitfield(38, 32, reg) * std::pow(10, getBitfield(41, 39, reg)))
+                .acw = static_cast<int>(static_cast<double>(getBitfield(38, 32, reg)) * std::pow(10, getBitfield(41, 39, reg)))
             }, true);
         }
 
         [[nodiscard]]
-        bool setHWPRequestPkg(const PWTS::RWData<PWTS::Intel::HWPRequestPkg> &data) const {
+        bool set(const PWTS::RWData<PWTS::Intel::HWPRequestPkg> &data) const {
             if (!data.isValid() || data.isIgnored())
                 return true;
 
             const PWTS::Intel::HWPRequestPkg hwpReq = data.getValue();
-            const HWPActivityWindowBits acwBits = getHWPActivityWindowBitsFromMicroSecond(hwpReq.acw);
+            const auto [exponent, mantissa] = USecToRawHWPActivityWindow(hwpReq.acw);
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))
@@ -60,8 +60,8 @@ namespace PWTD::Intel {
             reg = setBitfield(15, 8, hwpReq.max, reg);
             reg = setBitfield(23, 16, hwpReq.desired, reg);
             reg = setBitfield(31, 24, hwpReq.epp, reg);
-            reg = setBitfield(38, 32, acwBits.mantissa, reg);
-            reg = setBitfield(41, 39, acwBits.exponent, reg);
+            reg = setBitfield(38, 32, mantissa, reg);
+            reg = setBitfield(41, 39, exponent, reg);
 
             if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
                 return false;
@@ -70,8 +70,8 @@ namespace PWTD::Intel {
                 getBitfield(15, 8, reg) == hwpReq.max &&
                 getBitfield(23, 16, reg) == hwpReq.desired &&
                 getBitfield(31, 24, reg) == hwpReq.epp &&
-                getBitfield(38, 32, reg) == acwBits.mantissa &&
-                getBitfield(41, 39, reg) == acwBits.exponent;
+                getBitfield(38, 32, reg) == mantissa &&
+                getBitfield(41, 39, reg) == exponent;
         }
     };
 }

@@ -28,7 +28,7 @@ namespace PWTD::Intel {
 
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::MiscProcFeatures> getMiscProcessorFeaturesData() const {
+        PWTS::RWData<PWTS::Intel::MiscProcFeatures> get() const {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))
@@ -41,7 +41,7 @@ namespace PWTD::Intel {
         }
 
         [[nodiscard]]
-        bool setMiscProcessorFeatures(const PWTS::RWData<PWTS::Intel::MiscProcFeatures> &data) const {
+        bool set(const PWTS::RWData<PWTS::Intel::MiscProcFeatures> &data) const {
             if (!data.isValid())
                 return true;
 

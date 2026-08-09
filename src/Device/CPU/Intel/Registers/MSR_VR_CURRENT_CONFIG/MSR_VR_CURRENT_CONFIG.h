@@ -26,7 +26,7 @@ namespace PWTD::Intel {
         static constexpr unsigned addr = 0x601;
 
     public:
-        virtual PWTS::RWData<PWTS::Intel::VRCurrentConfig> getVrCurrentConfigData() const = 0;
-        [[nodiscard]] virtual bool setVrCurrentConfig(const PWTS::RWData<PWTS::Intel::VRCurrentConfig> &data) const = 0;
+        virtual PWTS::RWData<PWTS::Intel::VRCurrentConfig> get() const = 0;
+        [[nodiscard]] virtual bool set(const PWTS::RWData<PWTS::Intel::VRCurrentConfig> &data) const = 0;
     };
 }

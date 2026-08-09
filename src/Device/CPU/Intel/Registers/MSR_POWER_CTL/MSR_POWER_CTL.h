@@ -26,7 +26,7 @@ namespace PWTD::Intel {
         static constexpr unsigned addr = 0x1fc;
 
     public:
-        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::PowerCtl> getPowerCtlData() const = 0;
-        [[nodiscard]] virtual bool setPowerCtl(const PWTS::RWData<PWTS::Intel::PowerCtl> &data) const = 0;
+        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::PowerCtl> get() const = 0;
+        [[nodiscard]] virtual bool set(const PWTS::RWData<PWTS::Intel::PowerCtl> &data) const = 0;
     };
 }

@@ -27,7 +27,7 @@ namespace PWTD::AMD {
 
     public:
         [[nodiscard]]
-        PWTS::RWData<int> getPStateControlData(const int cpu) const {
+        PWTS::RWData<int> get(const int cpu) const {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, cpu))
@@ -37,7 +37,7 @@ namespace PWTD::AMD {
         }
 
         [[nodiscard]]
-        bool setPStateControl(const int cpu, const PWTS::RWData<int> &data) const {
+        bool set(const int cpu, const PWTS::RWData<int> &data) const {
             if (!data.isValid())
                 return true;
 

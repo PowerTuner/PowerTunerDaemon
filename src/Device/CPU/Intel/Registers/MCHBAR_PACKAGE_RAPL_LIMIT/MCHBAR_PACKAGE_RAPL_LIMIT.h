@@ -26,7 +26,7 @@ namespace PWTD::Intel {
         explicit MCHBAR_PACKAGE_RAPL_LIMIT(const uint32_t base): MCHBARRegister(base, 0x59a0) {}
         virtual ~MCHBAR_PACKAGE_RAPL_LIMIT() = default;
 
-        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit> getPkgRaplLimitData(const PWTS::ROData<MCHBAR_PACKAGE_POWER_SKU_UNIT::PkgPowerSKUUnits> &powerSkuUnit) const = 0;
-        [[nodiscard]] virtual bool setPkgRaplLimit(const PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit> &data, const PWTS::ROData<MCHBAR_PACKAGE_POWER_SKU_UNIT::PkgPowerSKUUnits> &powerSkuUnit) const = 0;
+        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit> get(const std::optional<MCHBAR_PACKAGE_POWER_SKU_UNIT::Units> &pu) const = 0;
+        [[nodiscard]] virtual bool set(const PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit> &data, const std::optional<MCHBAR_PACKAGE_POWER_SKU_UNIT::Units> &pu) const = 0;
     };
 }

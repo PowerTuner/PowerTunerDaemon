@@ -34,7 +34,7 @@ static QString getAppDataPath() {
     const QList<QString> locations = {
 #ifdef _WIN32
         QString("C:/ProgramData/%1").arg(QCoreApplication::applicationName()),
-#elifdef  __linux__
+#elifdef __linux__
         QString("%1/%2").arg("/var/lib", QCoreApplication::applicationName()),
 #endif
         QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation),

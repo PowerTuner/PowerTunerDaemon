@@ -17,8 +17,6 @@
  */
 #pragma once
 #include "../../../CPURegister.h"
-#include "../../Include/PlatformInfoData.h"
-#include "pwtShared/Include/Types/ROData.h"
 
 namespace PWTD::Intel {
     class MSR_PLATFORM_INFO: public CPURegister {
@@ -26,6 +24,11 @@ namespace PWTD::Intel {
         static constexpr unsigned addr = 0xce;
 
     public:
-        [[nodiscard]] virtual PWTS::ROData<PlatformInfoData> getPlatformInfoData() const = 0;
+        struct Info final {
+            bool programmableRatioLimitForTurboMode;
+            bool programmableTDPLimitForTurboMode;
+        };
+
+        [[nodiscard]] virtual std::optional<Info> get() const = 0;
     };
 }

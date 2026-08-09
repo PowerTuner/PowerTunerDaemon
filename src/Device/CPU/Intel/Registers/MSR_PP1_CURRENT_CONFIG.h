@@ -28,7 +28,7 @@ namespace PWTD::Intel {
 
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::PP1CurrentConfig> getPP1CurrentConfigData() const {
+        PWTS::RWData<PWTS::Intel::PP1CurrentConfig> get() const {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))
@@ -41,7 +41,7 @@ namespace PWTD::Intel {
         }
 
         [[nodiscard]]
-        bool setPP1CurrentConfig(const PWTS::RWData<PWTS::Intel::PP1CurrentConfig> &data) const {
+        bool set(const PWTS::RWData<PWTS::Intel::PP1CurrentConfig> &data) const {
             if (!data.isValid())
                 return true;
 

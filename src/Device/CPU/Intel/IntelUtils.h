@@ -16,10 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+#include <optional>
 
 namespace PWTD::Intel {
-    struct [[nodiscard]] PlatformInfoData final {
-        bool programmableRatioLimitForTurboMode;
-        bool programmableTDPLimitForTurboMode;
-    };
+    [[nodiscard]] std::pair<int, int> USecToRawHWPActivityWindow(int us);
+    [[nodiscard]] std::optional<std::pair<int, int>> getRawTimeWindow(double seconds, double timeUnit);
 }

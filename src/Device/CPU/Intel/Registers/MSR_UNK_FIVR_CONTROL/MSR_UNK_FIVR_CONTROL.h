@@ -83,7 +83,7 @@ namespace PWTD::Intel {
         };
 
         [[nodiscard]]
-        PWTS::ROData<FIVRCapabilities> getFIVRCapabilities() const {
+        PWTS::ROData<FIVRCapabilities> getCapabilities() const {
             return PWTS::ROData<FIVRCapabilities>({
                 .cpu = indexes.cpu != -1,
                 .gpu = indexes.gpu != -1,
@@ -94,7 +94,7 @@ namespace PWTD::Intel {
         }
 
         [[nodiscard]]
-        FIVRWriteResult setFIVRControl(const PWTS::RWData<PWTS::Intel::FIVRControlUV> &data) const {
+        FIVRWriteResult set(const PWTS::RWData<PWTS::Intel::FIVRControlUV> &data) const {
             if (!data.isValid())
                 return {};
 

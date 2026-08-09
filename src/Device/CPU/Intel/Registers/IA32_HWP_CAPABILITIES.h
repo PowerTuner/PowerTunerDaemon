@@ -28,7 +28,7 @@ namespace PWTD::Intel {
 
     public:
         [[nodiscard]]
-        PWTS::ROData<PWTS::Intel::HWPCapabilities> getHWPCapabilitiesData(const int cpu) const {
+        PWTS::ROData<PWTS::Intel::HWPCapabilities> get(const int cpu) const {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, cpu))

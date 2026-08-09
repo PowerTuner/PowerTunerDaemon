@@ -99,10 +99,10 @@ namespace PWTD::AMD {
         }
 
         if (features.contains(PWTS::Feature::AMD_HWPSTATE))
-            packet.amdData->pstateCurrentLimit = msrPStateCurrentLimit->getPStateCurrentLimitData();
+            packet.amdData->pstateCurrentLimit = msrPStateCurrentLimit->get();
 
         if (features.contains(PWTS::Feature::AMD_CPPC))
-            packet.amdData->cppcEnableBit = msrCppcEnable->getCPPCEnableBit();
+            packet.amdData->cppcEnableBit = msrCppcEnable->get();
 
         msrDev->closeMsrFd(0);
     }
@@ -131,15 +131,15 @@ namespace PWTD::AMD {
         }
 
         if (features.contains(PWTS::Feature::AMD_CPPC)) {
-            thdData.cppcCapability1 = msrCppcCapability1->getCPPCCapability1Data(cpu);
-            thdData.cppcRequest = msrCppcRequest->getCPPCRequestData(cpu);
+            thdData.cppcCapability1 = msrCppcCapability1->get(cpu);
+            thdData.cppcRequest = msrCppcRequest->get(cpu);
         }
 
         if (features.contains(PWTS::Feature::AMD_HWPSTATE))
-            thdData.pstateCmd = msrPStateControl->getPStateControlData(cpu);
+            thdData.pstateCmd = msrPStateControl->get(cpu);
 
         if (features.contains(PWTS::Feature::AMD_CORE_PERFORMANCE_BOOST))
-            thdData.corePerfBoost = msrCorePerformanceBoost->getCorePerformanceBoostData(cpu);
+            thdData.corePerfBoost = msrCorePerformanceBoost->get(cpu);
 
         msrDev->closeMsrFd(cpu);
         packet.amdData->threadData.append(thdData);
@@ -183,7 +183,7 @@ namespace PWTD::AMD {
         const QSharedPointer<PWTS::AMD::AMDData> data = packet.amdData;
 
         if (features.contains(PWTS::Feature::AMD_CPPC)) {
-            if (msrCppcEnable->getCPPCEnableBit().getValue() == 0 && !msrCppcEnable->setCPPCEnableBit(data->cppcEnableBit))
+            if (msrCppcEnable->get().getValue() == 0 && !msrCppcEnable->set(data->cppcEnableBit))
                 errors.insert(PWTS::DError::W_AMD_CPPC_ENBL_BIT);
         }
 
@@ -203,13 +203,13 @@ namespace PWTD::AMD {
 
         const PWTS::AMD::AMDThreadData &data = packet.amdData->threadData[cpu];
 
-        if (features.contains(PWTS::Feature::AMD_HWPSTATE) && !msrPStateControl->setPStateControl(cpu, data.pstateCmd))
+        if (features.contains(PWTS::Feature::AMD_HWPSTATE) && !msrPStateControl->set(cpu, data.pstateCmd))
             errors.insert(PWTS::DError::W_AMD_HWPSTATE_CMD);
 
-        if (features.contains(PWTS::Feature::AMD_CORE_PERFORMANCE_BOOST) && !msrCorePerformanceBoost->setCorePerformanceBoost(cpu, data.corePerfBoost))
+        if (features.contains(PWTS::Feature::AMD_CORE_PERFORMANCE_BOOST) && !msrCorePerformanceBoost->set(cpu, data.corePerfBoost))
             errors.insert(PWTS::DError::W_AMD_CORE_PERFORMANCE_BOOST);
 
-        if (features.contains(PWTS::Feature::AMD_CPPC) && !msrCppcRequest->setCPPCRequest(cpu, data.cppcRequest))
+        if (features.contains(PWTS::Feature::AMD_CPPC) && !msrCppcRequest->set(cpu, data.cppcRequest))
             errors.insert(PWTS::DError::W_AMD_CPPC_REQ);
 
         msrDev->closeMsrFd(cpu);

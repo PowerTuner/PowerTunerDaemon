@@ -23,16 +23,16 @@ namespace PWTD::Intel {
     class MSR_PLATFORM_INFO_NHLM final: public MSR_PLATFORM_INFO {
     public:
         [[nodiscard]]
-        PWTS::ROData<PlatformInfoData> getPlatformInfoData() const override {
+        std::optional<Info> get() const override {
             uint64_t reg;
 
             if (!msrUtils->readMSR(reg, addr, 0))
                 return {};
 
-            return PWTS::ROData<PlatformInfoData>({
+            return Info {
                 .programmableRatioLimitForTurboMode = getBitfield(28, 28, reg) == 1,
                 .programmableTDPLimitForTurboMode = getBitfield(29, 29, reg) == 1
-            }, true);
+            };
         }
     };
 }

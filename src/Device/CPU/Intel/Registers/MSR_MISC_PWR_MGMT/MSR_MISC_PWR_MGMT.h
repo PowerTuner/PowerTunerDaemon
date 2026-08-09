@@ -26,7 +26,7 @@ namespace PWTD::Intel {
         static constexpr unsigned addr = 0x1aa;
 
     public:
-        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::MiscPwrMgmt> getMiscPwrMgmtData() const = 0;
-        [[nodiscard]] virtual bool setMiscPwrMgmt(const PWTS::RWData<PWTS::Intel::MiscPwrMgmt> &data) const = 0;
+        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::MiscPwrMgmt> get() const = 0;
+        [[nodiscard]] virtual bool set(const PWTS::RWData<PWTS::Intel::MiscPwrMgmt> &data) const = 0;
     };
 }

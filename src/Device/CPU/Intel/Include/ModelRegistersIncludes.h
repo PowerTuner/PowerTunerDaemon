@@ -28,9 +28,6 @@
 #include "../Registers/MSR_POWER_CTL/MSR_POWER_CTL_SB.h"
 #include "../Registers/MSR_VR_CURRENT_CONFIG/MSR_VR_CURRENT_CONFIG_SB.h"
 
-// ivy bridge
-#include "../Registers/MSR_PLATFORM_INFO/MSR_PLATFORM_INFO_IVB.h"
-
 // ice lake
 #include "../Registers/MSR_UNK_FIVR_CONTROL/MSR_UNK_FIVR_CONTROL_ICL.h"
 #include "../Registers/MCHBAR_PACKAGE_RAPL_LIMIT/MCHBAR_PACKAGE_RAPL_LIMIT_IVB.h"
