@@ -26,6 +26,7 @@ namespace PWTD::AMD {
         static constexpr uint32_t addr = 0xc0010015;
 
     public:
+        [[nodiscard]]
         PWTS::RWData<int> get(const int cpu) const {
             uint64_t reg;
 

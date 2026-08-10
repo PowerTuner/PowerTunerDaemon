@@ -27,6 +27,7 @@ namespace PWTD::AMD {
         static constexpr uint32_t addr = 0xc00102b0;
 
     public:
+        [[nodiscard]]
         PWTS::ROData<PWTS::AMD::CPPCCapability1> get(const int cpu) const {
             uint64_t reg;
 
