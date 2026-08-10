@@ -26,7 +26,7 @@ namespace PWTD::Intel {
         PWTS::RWData<PWTS::Intel::PkgCstConfigControl> get(const int cpu) const override {
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, cpu))
+            if (!msrDev->read(addr, cpu, reg))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::PkgCstConfigControl>({
@@ -48,7 +48,7 @@ namespace PWTD::Intel {
             const PWTS::Intel::PkgCstConfigControl pkgCstCfgCtrl = data.getValue();
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, cpu))
+            if (!msrDev->read(addr, cpu, reg))
                 return false;
 
             reg = setBitfield(2, 0, pkgCstCfgCtrl.packageCStateLimit, reg);
@@ -59,7 +59,7 @@ namespace PWTD::Intel {
             reg = setBitfield(27, 27, pkgCstCfgCtrl.c3UndemotionEnable, reg);
             reg = setBitfield(28, 28, pkgCstCfgCtrl.c1UndemotionEnable, reg);
 
-            if (!msrUtils->writeMSR(reg, addr, cpu) || !msrUtils->readMSR(reg, addr, cpu))
+            if (!msrDev->write(reg, addr, cpu) || !msrDev->read(addr, cpu, reg))
                 return false;
 
             return getBitfield(2, 0, reg) == pkgCstCfgCtrl.packageCStateLimit &&

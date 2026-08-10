@@ -19,17 +19,14 @@
 
 #include "../../MSR.h"
 
-namespace PWTD::WIN {
+namespace PWTD::MSR {
     class MSRWindows final: public MSR {
     private:
         bool isDriverOpen = false;
 
     public:
-        [[nodiscard]] bool openMsrFd(int cpu) override;
-        void closeMsrFd(int cpu) override;
-        [[nodiscard]] bool readMSR(uint64_t &ret, uint32_t adr, int cpu) const override;
-        [[nodiscard]] bool readMSR(uint32_t &ret, uint32_t adr, int cpu) const override;
-        [[nodiscard]] bool writeMSR(uint64_t value, uint32_t adr, int cpu) const override;
-        [[nodiscard]] bool writeMSR(uint32_t value, uint32_t adr, int cpu) const override;
+        [[nodiscard]] bool openFd(int cpu) override;
+        [[nodiscard]] bool read(uint32_t adr, int cpu, uint64_t &out) const override;
+        [[nodiscard]] bool write(uint64_t value, uint32_t adr, int cpu) const override;
     };
 }

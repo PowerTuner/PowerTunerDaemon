@@ -18,15 +18,16 @@
 #include <libkmod.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <format>
 
 #include "MSRLinux.h"
 
-namespace PWTD::LNX {
+namespace PWTD::MSR {
     void MSRLinux::addSlotForCPU(const int cpu) {
-        if (msrFDMap.contains(cpu))
+        if (fdMap.contains(cpu))
             return;
 
-        msrFDMap.insert(cpu, {.fd = -1, .openCount = 0});
+        fdMap[cpu] = {.fd = -1, .count = 0};
     }
 
     bool MSRLinux::loadMsrModule() {
@@ -54,69 +55,65 @@ namespace PWTD::LNX {
         return moduleLoaded;
     }
 
-    bool MSRLinux::openMsrFd(const int cpu) {
+    bool MSRLinux::openFd(const int cpu) {
         if (!loadMsrModule())
             return false;
 
         addSlotForCPU(cpu);
 
-        if (msrFDMap[cpu].fd >= 0) {
-            ++msrFDMap[cpu].openCount;
+        msrFD &msr = fdMap[cpu];
+
+        if (msr.fd >= 0) {
+            ++msr.count;
             return true;
         }
 
-        const std::string path {QString("/dev/cpu/%1/msr").arg(cpu).toStdString()};
+        const std::string path = std::format("/dev/cpu/{}/msr", cpu);
 
-        msrFDMap[cpu].fd = open(path.c_str(), O_RDWR | O_SYNC);
+        msr.fd = open(path.c_str(), O_RDWR | O_SYNC);
 
-        if (msrFDMap[cpu].fd >= 0) {
-            ++msrFDMap[cpu].openCount;
+        if (msr.fd >= 0) {
+            ++msr.count;
             return true;
         }
 
         return false;
     }
 
-    void MSRLinux::closeMsrFd(const int cpu) {
-        if (msrFDMap[cpu].openCount == 0) [[unlikely]]
+    void MSRLinux::closeFd(const int cpu) {
+        msrFD &msr = fdMap[cpu];
+
+        if (msr.count == 0) [[unlikely]]
             return;
 
-        --msrFDMap[cpu].openCount;
+        --msr.count;
 
-        if (msrFDMap[cpu].openCount > 0)
+        if (msr.count > 0)
             return;
 
-        close(msrFDMap[cpu].fd);
+        close(msr.fd);
 
-        msrFDMap[cpu].fd = -1;
-        msrFDMap[cpu].openCount = 0;
+        msr.fd = -1;
+        msr.count = 0;
     }
 
-    bool MSRLinux::readMSR(uint64_t &ret, const uint32_t adr, const int cpu) const {
-        if (msrFDMap[cpu].openCount == 0) [[unlikely]]
+    bool MSRLinux::read(const uint32_t adr, const int cpu, uint64_t &out) const {
+        constexpr size_t outSz = sizeof(uint64_t);
+        const msrFD &msr = fdMap.at(cpu);
+
+        if (msr.count == 0 || pread(msr.fd, &out, outSz, adr) != outSz) [[unlikely]]
             return false;
 
-        return pread(msrFDMap[cpu].fd, &ret, sizeof ret, adr) == sizeof ret;
+        return pread(msr.fd, &out, outSz, adr) == outSz;
     }
 
-    bool MSRLinux::readMSR(uint32_t &ret, const uint32_t adr, const int cpu) const {
-        if (msrFDMap[cpu].openCount == 0) [[unlikely]]
+    bool MSRLinux::write(const uint64_t value, const uint32_t adr, const int cpu) const {
+        constexpr size_t valueSz = sizeof(uint64_t);
+        const msrFD &msr = fdMap.at(cpu);
+
+        if (msr.count == 0) [[unlikely]]
             return false;
 
-        return pread(msrFDMap[cpu].fd, &ret, sizeof ret, adr) == sizeof ret;
-    }
-
-    bool MSRLinux::writeMSR(const uint64_t value, const uint32_t adr, const int cpu) const {
-        if (msrFDMap[cpu].openCount == 0) [[unlikely]]
-            return false;
-
-        return pwrite(msrFDMap[cpu].fd, &value, sizeof value, adr) == sizeof value;
-    }
-
-    bool MSRLinux::writeMSR(const uint32_t value, const uint32_t adr, const int cpu) const {
-        if (msrFDMap[cpu].openCount == 0) [[unlikely]]
-            return false;
-
-        return pwrite(msrFDMap[cpu].fd, &value, sizeof value, adr) == sizeof value;
+        return pwrite(msr.fd, &value, valueSz, adr) == valueSz;
     }
 }

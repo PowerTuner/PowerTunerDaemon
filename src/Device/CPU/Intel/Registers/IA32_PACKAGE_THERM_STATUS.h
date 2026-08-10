@@ -30,7 +30,7 @@ namespace PWTD::Intel {
         std::optional<PWTS::Intel::PkgThermalStatusInfo> get() const {
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return {};
 
             return PWTS::Intel::PkgThermalStatusInfo {

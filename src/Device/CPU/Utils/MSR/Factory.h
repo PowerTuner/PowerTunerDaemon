@@ -16,17 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+#include <memory>
 
-#include "MSR.h"
+#ifdef __linux__
+#include "OS/Linux/MSRLinux.h"
+#elifdef _WIN32
+#include "OS/Windows/MSRWindows.h"
+#endif
 
-namespace PWTD {
-    class MSRNull final: public MSR {
-    public:
-        [[nodiscard]] bool openMsrFd(const int cpu) override { return false; }
-        [[nodiscard]] bool readMSR(uint64_t &ret, const uint32_t adr, const int cpu) const override { return false; }
-        [[nodiscard]] bool readMSR(uint32_t &ret, const uint32_t adr, const int cpu) const override { return false; }
-        [[nodiscard]] bool writeMSR(const uint64_t value, const uint32_t adr, const int cpu) const override { return false; }
-        [[nodiscard]] bool writeMSR(const uint32_t value, const uint32_t adr, const int cpu) const override { return false; }
-        void closeMsrFd(const int cpu) override {}
-    };
+namespace PWTD::MSR {
+    [[nodiscard]]
+    inline std::shared_ptr<MSR> factory() {
+#ifdef __linux__
+        static std::shared_ptr<MSR> instance = std::make_shared<MSRLinux>();
+#elifdef _WIN32
+        static std::shared_ptr<MSR> instance = std::make_shared<MSRWindows>();
+#else
+        static std::shared_ptr<MSR> instance = std::make_shared<MSR>();
+#endif
+        return instance;
+    }
 }

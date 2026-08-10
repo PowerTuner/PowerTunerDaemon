@@ -31,7 +31,7 @@ namespace PWTD::AMD {
         PWTS::RWData<PWTS::AMD::CPPCRequest> get(const int cpu) const {
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, cpu))
+            if (!msrDev->read(addr, cpu, reg))
                 return {};
 
             return PWTS::RWData<PWTS::AMD::CPPCRequest>({
@@ -50,7 +50,7 @@ namespace PWTD::AMD {
             const PWTS::AMD::CPPCRequest cppcReq = data.getValue();
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, cpu))
+            if (!msrDev->read(addr, cpu, reg))
                 return false;
 
             reg = setBitfield(7, 0, cppcReq.maxPerf, reg);
@@ -58,7 +58,7 @@ namespace PWTD::AMD {
             reg = setBitfield(23, 16, cppcReq.desPerf, reg);
             reg = setBitfield(31, 24, cppcReq.epp, reg);
 
-            if (!msrUtils->writeMSR(reg, addr, cpu) || !msrUtils->readMSR(reg, addr, cpu))
+            if (!msrDev->write(reg, addr, cpu) || !msrDev->read(addr, cpu, reg))
                 return false;
 
             return getBitfield(7, 0, reg) == cppcReq.maxPerf &&

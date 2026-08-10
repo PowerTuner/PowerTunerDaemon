@@ -34,10 +34,9 @@ set(PROJECT_SOURCES
 	src/Device/Device.h
 	src/Device/Device.cpp
 
-    src/Device/CPU/Utils/MSR/MSRFactory.h
+    src/Device/CPU/Utils/MSR/Factory.h
 	src/Device/CPU/Utils/MSR/MSR.h
-	src/Device/CPU/Utils/MSR/MSRNull.h
-	src/Device/CPU/Utils/Memory/MemoryFactory.h
+    src/Device/CPU/Utils/Memory/MemoryFactory.h
 	src/Device/CPU/Utils/Memory/Memory.h
 	src/Device/CPU/Utils/Memory/MemoryNull.h
 

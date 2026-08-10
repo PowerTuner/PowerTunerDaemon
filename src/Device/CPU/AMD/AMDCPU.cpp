@@ -20,7 +20,6 @@
 namespace PWTD::AMD {
     AMDCPU::AMDCPU(const QSharedPointer<cpu_id_t> &cpuID, const QSharedPointer<cpu_raw_data_t> &cpuRawData): CPUDevice(cpuID, cpuRawData) {
         cpuInfo->vendor = PWTS::CPUVendor::AMD;
-        msrDev = MSRFactory::getMSRInstance();
         ryzenAdj = std::make_unique<RyzenAdj>();
 
         if (!ryzenAdj->init(cpuID->num_cores))
@@ -60,7 +59,7 @@ namespace PWTD::AMD {
     }
 
     QSet<PWTS::Feature> AMDCPU::getFeatures() const {
-        if (!msrDev->openMsrFd(0)) {
+        if (!msrDev->openFd(0)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
                 logger.write(QStringLiteral("failed to open msr fd"));
 
@@ -78,7 +77,7 @@ namespace PWTD::AMD {
         if (msrCppcEnable)
             features.unite({PWTS::Feature::AMD_CPPC, PWTS::Feature::AMD_CPU_GROUP});
 
-        msrDev->closeMsrFd(0);
+        msrDev->closeFd(0);
 
         if (ryzenAdj)
             features.unite(ryzenAdj->getFeatures());
@@ -90,7 +89,7 @@ namespace PWTD::AMD {
         if (!features.contains(PWTS::Feature::AMD_CPU_GROUP))
             return;
 
-        if (!msrDev->openMsrFd(0)) {
+        if (!msrDev->openFd(0)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
                 logger.write(QStringLiteral("failed to open msr fd"));
 
@@ -104,7 +103,7 @@ namespace PWTD::AMD {
         if (features.contains(PWTS::Feature::AMD_CPPC))
             packet.amdData->cppcEnableBit = msrCppcEnable->get();
 
-        msrDev->closeMsrFd(0);
+        msrDev->closeFd(0);
     }
 
     void AMDCPU::fillCoreData(const int cpu, const QSet<PWTS::Feature> &features, PWTS::DaemonPacket &packet) const {
@@ -121,7 +120,7 @@ namespace PWTD::AMD {
             return;
         }
 
-        if (!msrDev->openMsrFd(cpu)) {
+        if (!msrDev->openFd(cpu)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
                 logger.write(QString("failed to open msr fd for cpu %1").arg(cpu));
 
@@ -141,7 +140,7 @@ namespace PWTD::AMD {
         if (features.contains(PWTS::Feature::AMD_CORE_PERFORMANCE_BOOST))
             thdData.corePerfBoost = msrCorePerformanceBoost->get(cpu);
 
-        msrDev->closeMsrFd(cpu);
+        msrDev->closeFd(cpu);
         packet.amdData->threadData.append(thdData);
     }
 
@@ -172,7 +171,7 @@ namespace PWTD::AMD {
         if (!features.contains(PWTS::Feature::AMD_CPU_GROUP))
             return;
 
-        if (!msrDev->openMsrFd(0)) {
+        if (!msrDev->openFd(0)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
                 logger.write(QStringLiteral("failed to open msr fd"));
 
@@ -187,14 +186,14 @@ namespace PWTD::AMD {
                 errors.insert(PWTS::DError::W_AMD_CPPC_ENBL_BIT);
         }
 
-        msrDev->closeMsrFd(0);
+        msrDev->closeFd(0);
     }
 
     void AMDCPU::applyThreadSettings(const int cpu, const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) const {
         if (!features.contains(PWTS::Feature::AMD_CPU_GROUP))
             return;
 
-        if (!msrDev->openMsrFd(cpu)) {
+        if (!msrDev->openFd(cpu)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
                 logger.write(QString("failed to open msr fd for cpu %1").arg(cpu));
 
@@ -212,7 +211,7 @@ namespace PWTD::AMD {
         if (features.contains(PWTS::Feature::AMD_CPPC) && !msrCppcRequest->set(cpu, data.cppcRequest))
             errors.insert(PWTS::DError::W_AMD_CPPC_REQ);
 
-        msrDev->closeMsrFd(cpu);
+        msrDev->closeFd(cpu);
     }
 
     QSet<PWTS::DError> AMDCPU::applySettings(const QSet<PWTS::Feature> &features, const QList<int> &coreIdxList, const PWTS::ClientPacket &packet) const {

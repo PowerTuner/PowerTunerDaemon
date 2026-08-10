@@ -31,7 +31,7 @@ namespace PWTD::AMD {
         PWTS::ROData<PWTS::AMD::PStateCurrentLimit> get() const {
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return {};
 
             return PWTS::ROData<PWTS::AMD::PStateCurrentLimit>({

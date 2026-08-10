@@ -26,7 +26,7 @@ namespace PWTD::Intel {
         PWTS::RWData<PWTS::Intel::PowerCtl> get() const override {
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::PowerCtl>({
@@ -45,7 +45,7 @@ namespace PWTD::Intel {
             const PWTS::Intel::PowerCtl powCtl = data.getValue();
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return false;
 
             reg = setBitfield(0, 0, powCtl.bdProcHot, reg);
@@ -53,7 +53,7 @@ namespace PWTD::Intel {
             reg = setBitfield(19, 19, powCtl.disableEnergyEfficiencyOpt, reg);
             reg = setBitfield(20, 20, powCtl.disableRaceToHaltOpt, reg);
 
-            if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->write(reg, addr, 0) || !msrDev->read(addr, 0, reg))
                 return false;
 
             return getBitfield(0, 0, reg) == powCtl.bdProcHot &&

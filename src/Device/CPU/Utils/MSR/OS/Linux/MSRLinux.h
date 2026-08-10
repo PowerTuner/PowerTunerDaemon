@@ -16,31 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <QHash>
+#include <unordered_map>
 
 #include "../../MSR.h"
 
-namespace PWTD::LNX {
+namespace PWTD::MSR {
     class MSRLinux final: public MSR {
     private:
         struct msrFD final {
             int fd;
-            int openCount;
+            int count;
         };
 
-        QHash<int, msrFD> msrFDMap;
+        std::unordered_map<int, msrFD> fdMap;
         bool moduleLoaded = false;
 
         [[nodiscard]] bool loadMsrModule();
         void addSlotForCPU(int cpu);
 
     public:
-        [[nodiscard]] bool openMsrFd(int cpu) override;
-        [[nodiscard]] bool readMSR(uint64_t &ret, uint32_t adr, int cpu) const override;
-        [[nodiscard]] bool readMSR(uint32_t &ret, uint32_t adr, int cpu) const override;
-        [[nodiscard]] bool writeMSR(uint64_t value, uint32_t adr, int cpu) const override;
-        [[nodiscard]] bool writeMSR(uint32_t value, uint32_t adr, int cpu) const override;
-        void closeMsrFd(int cpu) override;
+        [[nodiscard]] bool openFd(int cpu) override;
+        [[nodiscard]] bool read(uint32_t adr, int cpu, uint64_t &out) const override;
+        [[nodiscard]] bool write(uint64_t value, uint32_t adr, int cpu) const override;
+        void closeFd(int cpu) override;
     };
 }

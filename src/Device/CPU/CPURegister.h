@@ -16,19 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include "Utils/MSR/MSRFactory.h"
+#include "Utils/MSR/Factory.h"
 #include "../../Utils/FileLogger/FileLogger.h"
 
 namespace PWTD {
     class CPURegister {
     protected:
-        QSharedPointer<MSR> msrUtils;
         FileLogger &logger = FileLogger::get();
+        std::shared_ptr<MSR::MSR> msrDev;
 
     public:
         CPURegister() {
-            msrUtils = MSRFactory::getMSRInstance();
+            msrDev = MSR::factory();
         }
 
         virtual ~CPURegister() = default;

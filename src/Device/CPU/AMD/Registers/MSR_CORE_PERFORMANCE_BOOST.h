@@ -29,7 +29,7 @@ namespace PWTD::AMD {
         PWTS::RWData<int> get(const int cpu) const {
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, cpu))
+            if (!msrDev->read(addr, cpu, reg))
                 return {};
 
             return PWTS::RWData<int>(static_cast<int>(getBitfield(25, 25, reg)), true);
@@ -42,12 +42,12 @@ namespace PWTD::AMD {
 
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, cpu))
+            if (!msrDev->read(addr, cpu, reg))
                 return false;
 
             reg = setBitfield(25, 25, data.getValue(), reg);
 
-            if (!msrUtils->writeMSR(reg, addr, cpu) || !msrUtils->readMSR(reg, addr, cpu))
+            if (!msrDev->write(reg, addr, cpu) || !msrDev->read(addr, cpu, reg))
                 return false;
 
             return getBitfield(25, 25, reg) == data.getValue();

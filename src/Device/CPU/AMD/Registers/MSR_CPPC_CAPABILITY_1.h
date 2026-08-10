@@ -30,7 +30,7 @@ namespace PWTD::AMD {
         PWTS::ROData<PWTS::AMD::CPPCCapability1> get(const int cpu) const {
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, cpu))
+            if (!msrDev->read(addr, cpu, reg))
                 return {};
 
             return PWTS::ROData<PWTS::AMD::CPPCCapability1>({

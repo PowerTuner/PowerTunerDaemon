@@ -26,7 +26,7 @@ namespace PWTD::Intel {
         std::optional<Info> get() const override {
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return {};
 
             return Info {

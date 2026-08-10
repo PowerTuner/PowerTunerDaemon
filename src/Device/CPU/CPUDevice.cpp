@@ -17,11 +17,13 @@
  */
 #include "CPUDevice.h"
 #include "../../Utils/Utils.h"
+#include "Utils/MSR/Factory.h"
 
 namespace PWTD {
     CPUDevice::CPUDevice(const QSharedPointer<cpu_id_t> &cpuid, const QSharedPointer<cpu_raw_data_t> &cpuRawData) {
         cpuidRaw = cpuRawData;
         cpuInfo = QSharedPointer<PWTS::CpuInfo>::create();
+        msrDev = MSR::factory();
 
         const int l1Data = cpuid->l1_data_cache > 0 ? (cpuid->l1_data_cache * 1024) : 0;
         const int l1Ins = cpuid->l1_instruction_cache > 0 ? (cpuid->l1_instruction_cache * 1024) : 0;

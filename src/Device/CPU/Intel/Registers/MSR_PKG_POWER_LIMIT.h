@@ -31,7 +31,7 @@ namespace PWTD::Intel {
         PWTS::RWData<PWTS::Intel::PkgPowerLimit> get(const std::optional<MSR_RAPL_POWER_UNIT::Units> &pu) const {
             uint64_t reg;
 
-            if (!pu || !msrUtils->readMSR(reg, addr, 0))
+            if (!pu || !msrDev->read(addr, 0, reg))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::PkgPowerLimit>({
@@ -54,7 +54,7 @@ namespace PWTD::Intel {
             if (!data.isValid())
                 return true;
 
-            if (!pu || !msrUtils->readMSR(reg, addr, 0))
+            if (!pu || !msrDev->read(addr, 0, reg))
                 return false;
 
             const PWTS::Intel::PkgPowerLimit pkgPowerLim = data.getValue();
@@ -85,7 +85,7 @@ namespace PWTD::Intel {
                 reg = setBitfield(55, 54, z, reg);
             }
 
-            if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->write(reg, addr, 0) || !msrDev->read(addr, 0, reg))
                 return false;
 
             return getBitfield(14, 0, reg) == pl1 &&

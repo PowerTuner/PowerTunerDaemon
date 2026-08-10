@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "libcpuid.h"
 #include "pwtShared/Include/CPU/CpuInfo.h"
 #include "pwtShared/Include/Feature.h"
@@ -31,7 +30,7 @@ namespace PWTD {
         FileLogger &logger = FileLogger::get();
         QSharedPointer<PWTS::CpuInfo> cpuInfo;
         QSharedPointer<cpu_raw_data_t> cpuidRaw;
-        QSharedPointer<MSR> msrDev;
+        std::shared_ptr<MSR::MSR> msrDev;
 
     public:
         CPUDevice(const QSharedPointer<cpu_id_t> &cpuid, const QSharedPointer<cpu_raw_data_t> &cpuRawData);

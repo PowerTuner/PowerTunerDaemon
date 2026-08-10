@@ -30,7 +30,7 @@ namespace PWTD::Intel {
         PWTS::RWData<int> get() const {
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return {};
 
             return PWTS::RWData<int>(static_cast<int>(getBitfield(4, 0, reg)), true);
@@ -44,12 +44,12 @@ namespace PWTD::Intel {
             const int priority = data.getValue();
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return false;
 
             reg = setBitfield(4, 0, priority, reg);
 
-            if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->write(reg, addr, 0) || !msrDev->read(addr, 0, reg))
                 return false;
 
             return getBitfield(4, 0, reg) == priority;

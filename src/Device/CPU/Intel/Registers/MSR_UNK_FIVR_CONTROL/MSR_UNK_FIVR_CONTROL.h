@@ -41,7 +41,7 @@ namespace PWTD::Intel {
             const auto [rd, wr] = uv;
             uint64_t reg = 0;
 
-            if (!msrUtils->writeMSR(wr, addr, 0) || !msrUtils->writeMSR(rd, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->write(wr, addr, 0) || !msrDev->write(rd, addr, 0) || !msrDev->read(addr, 0, reg))
                 return false;
 
             return (reg & 0xffffffff) == (wr & 0xffffffff);

@@ -31,7 +31,7 @@ namespace PWTD::Intel {
         PWTS::RWData<PWTS::Intel::MiscProcFeatures> get() const {
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::MiscProcFeatures>({
@@ -48,13 +48,13 @@ namespace PWTD::Intel {
             const PWTS::Intel::MiscProcFeatures miscFeat = data.getValue();
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return false;
 
             reg = setBitfield(16, 16, miscFeat.enhancedSpeedStep, reg);
             reg = setBitfield(38, 38, miscFeat.disableTurboMode, reg);
 
-            if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->write(reg, addr, 0) || !msrDev->read(addr, 0, reg))
                 return false;
 
             return getBitfield(16, 16, reg) == miscFeat.enhancedSpeedStep &&

@@ -31,7 +31,7 @@ namespace PWTD::Intel {
         PWTS::RWData<PWTS::Intel::TurboRatioLimit> get() const {
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::TurboRatioLimit>({
@@ -54,7 +54,7 @@ namespace PWTD::Intel {
             const PWTS::Intel::TurboRatioLimit limit = data.getValue();
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return false;
 
             reg = setBitfield(7, 0, limit.maxRatioLimit1C, reg);
@@ -66,7 +66,7 @@ namespace PWTD::Intel {
             reg = setBitfield(55, 48, limit.maxRatioLimit7C, reg);
             reg = setBitfield(63, 56, limit.maxRatioLimit8C, reg);
 
-            if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->write(reg, addr, 0) || !msrDev->read(addr, 0, reg))
                 return false;
 
             return getBitfield(7, 0, reg) == limit.maxRatioLimit1C &&

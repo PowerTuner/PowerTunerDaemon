@@ -31,7 +31,7 @@ namespace PWTD::Intel {
         PWTS::RWData<PWTS::Intel::TurboPowerCurrentLimit> get() const {
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::TurboPowerCurrentLimit>({
@@ -52,7 +52,7 @@ namespace PWTD::Intel {
             const uint64_t tdcLimit = static_cast<uint64_t>(limit.tdcLimit / 0.125 / 1000);
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return false;
 
             reg = setBitfield(14, 0, tdpLimit, reg);
@@ -60,7 +60,7 @@ namespace PWTD::Intel {
             reg = setBitfield(30, 16, tdcLimit, reg);
             reg = setBitfield(31, 31, limit.tdcLimitOverride, reg);
 
-            if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->write(reg, addr, 0) || !msrDev->read(addr, 0, reg))
                 return false;
 
             return getBitfield(14, 0, reg) == tdpLimit &&

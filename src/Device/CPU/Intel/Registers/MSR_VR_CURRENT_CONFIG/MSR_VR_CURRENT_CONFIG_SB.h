@@ -26,7 +26,7 @@ namespace PWTD::Intel {
         PWTS::RWData<PWTS::Intel::VRCurrentConfig> get() const override {
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::VRCurrentConfig>({
@@ -44,13 +44,13 @@ namespace PWTD::Intel {
             const int pl4 = static_cast<int>(vrCfg.pl4 / 0.125 / 1000);
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return false;
 
             reg = setBitfield(12, 0, pl4, reg);
             reg = setBitfield(31, 31, vrCfg.lock, reg);
 
-            if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->write(reg, addr, 0) || !msrDev->read(addr, 0, reg))
                 return false;
 
             return getBitfield(12, 0, reg) == pl4 &&

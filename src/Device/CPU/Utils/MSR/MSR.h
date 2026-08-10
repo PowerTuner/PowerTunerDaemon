@@ -16,19 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include <cstdint>
 
-namespace PWTD {
+namespace PWTD::MSR {
     class MSR {
     public:
         virtual ~MSR() = default;
 
-        [[nodiscard]] virtual bool openMsrFd(int cpu) = 0;
-        [[nodiscard]] virtual bool readMSR(uint64_t &ret, uint32_t adr, int cpu) const = 0;
-        [[nodiscard]] virtual bool readMSR(uint32_t &ret, uint32_t adr, int cpu) const = 0;
-        [[nodiscard]] virtual bool writeMSR(uint64_t value, uint32_t adr, int cpu) const = 0;
-        [[nodiscard]] virtual bool writeMSR(uint32_t value, uint32_t adr, int cpu) const = 0;
-        virtual void closeMsrFd(int cpu) = 0;
+        [[nodiscard]] virtual bool openFd(const int cpu) { return false; }
+        [[nodiscard]] virtual bool read(const uint32_t adr, const int cpu, uint64_t &out) const { return false; }
+        [[nodiscard]] virtual bool write(const uint64_t value, const uint32_t adr, const int cpu) const { return false; }
+        virtual void closeFd(const int cpu) {}
     };
 }

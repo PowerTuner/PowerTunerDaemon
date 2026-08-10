@@ -31,7 +31,7 @@ namespace PWTD::Intel {
         PWTS::RWData<PWTS::Intel::PP1CurrentConfig> get() const {
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::PP1CurrentConfig>({
@@ -49,13 +49,13 @@ namespace PWTD::Intel {
             const uint64_t limit = static_cast<uint64_t>(cfg.limit / 0.125 / 1000);
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->read(addr, 0, reg))
                 return false;
 
             reg = setBitfield(12, 0, limit, reg);
             reg = setBitfield(31, 31, cfg.lock, reg);
 
-            if (!msrUtils->writeMSR(reg, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
+            if (!msrDev->write(reg, addr, 0) || !msrDev->read(addr, 0, reg))
                 return false;
 
             return getBitfield(12, 0, reg) == limit &&

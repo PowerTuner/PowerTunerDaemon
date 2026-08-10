@@ -23,7 +23,6 @@
 namespace PWTD::Intel {
     IntelCPU::IntelCPU(const QSharedPointer<cpu_id_t> &cpuID, const QSharedPointer<cpu_raw_data_t> &cpuRawData): CPUDevice(cpuID, cpuRawData) {
         cpuInfo->vendor = PWTS::CPUVendor::Intel;
-        msrDev = MSRFactory::getMSRInstance();
         mchbar = std::make_unique<MCHBAR>(cpuID->x86.family);
 
         if (!mchbar->init(cpuID->x86.family, cpuID->x86.ext_model))
@@ -148,7 +147,7 @@ namespace PWTD::Intel {
     }
 
     void IntelCPU::buildRegistersCache() {
-        if (msrDev->openMsrFd(0)) {
+        if (msrDev->openFd(0)) {
             if (msrPkgPowerLimit)
                 regsCache.raplPowerUnit = MSR_RAPL_POWER_UNIT().get();
 
@@ -159,7 +158,7 @@ namespace PWTD::Intel {
                     regsCache.temperatureTarget = PWTS::ROData<int>(tempTarget.getValue().temperatureTarget, true);
             }
 
-            msrDev->closeMsrFd(0);
+            msrDev->closeFd(0);
 
         } else if (logger.isLevel(PWTS::LogLevel::Error)) {
             logger.write("failed to create registers cache");
@@ -230,7 +229,7 @@ namespace PWTD::Intel {
     }
 
     QSet<PWTS::Feature> IntelCPU::getFeatures() const {
-        if (!msrDev->openMsrFd(0)) {
+        if (!msrDev->openFd(0)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
                 logger.write(QStringLiteral("failed to open msr fd"));
 
@@ -358,7 +357,7 @@ namespace PWTD::Intel {
         if (msrTemperatureTarget)
             features.unite({PWTS::Feature::INTEL_TEMPERATURE_TARGET, PWTS::Feature::INTEL_CPU_GROUP});
 
-        msrDev->closeMsrFd(0);
+        msrDev->closeFd(0);
 
         if (mchbar)
             features.unite(mchbar->getFeatures());
@@ -370,7 +369,7 @@ namespace PWTD::Intel {
         if (!features.contains(PWTS::Feature::INTEL_CPU_GROUP))
             return;
 
-        if (!msrDev->openMsrFd(0)) {
+        if (!msrDev->openFd(0)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
                 logger.write(QStringLiteral("failed to open msr fd"));
 
@@ -424,7 +423,7 @@ namespace PWTD::Intel {
                 packet.intelData->hwpPkgCtlPolarity = ia32HwpCtl->get();
         }
 
-        msrDev->closeMsrFd(0);
+        msrDev->closeFd(0);
     }
 
     void IntelCPU::fillCoreData(const int cpu, const QSet<PWTS::Feature> &features, PWTS::DaemonPacket &packet) const {
@@ -435,7 +434,7 @@ namespace PWTD::Intel {
             return;
         }
 
-        if (!msrDev->openMsrFd(cpu)) {
+        if (!msrDev->openFd(cpu)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
                 logger.write(QString("failed to open msr fd for cpu %1").arg(cpu));
 
@@ -447,7 +446,7 @@ namespace PWTD::Intel {
         if (features.contains(PWTS::Feature::INTEL_PKG_CST_CONFIG_CONTROL))
             coreData.pkgCstConfigControl = msrPkgCstConfigControl->get(cpu);
 
-        msrDev->closeMsrFd(cpu);
+        msrDev->closeFd(cpu);
         packet.intelData->coreData.append(coreData);
     }
 
@@ -459,7 +458,7 @@ namespace PWTD::Intel {
             return;
         }
 
-        if (!msrDev->openMsrFd(cpu)) {
+        if (!msrDev->openFd(cpu)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
                 logger.write(QString("failed to open msr fd for cpu %1").arg(cpu));
 
@@ -473,7 +472,7 @@ namespace PWTD::Intel {
             thdData.hwpRequest = ia32HWPRequest->get(cpu);
         }
 
-        msrDev->closeMsrFd(cpu);
+        msrDev->closeFd(cpu);
         packet.intelData->threadData.append(thdData);
     }
 
@@ -504,7 +503,7 @@ namespace PWTD::Intel {
         if (!features.contains(PWTS::Feature::INTEL_CPU_GROUP))
             return;
 
-        if (!msrDev->openMsrFd(0)) {
+        if (!msrDev->openFd(0)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
                 logger.write(QStringLiteral("failed to open msr fd"));
 
@@ -581,7 +580,7 @@ namespace PWTD::Intel {
                 errors.insert(PWTS::DError::W_HWP_CTL);
         }
 
-        msrDev->closeMsrFd(0);
+        msrDev->closeFd(0);
     }
 
     void IntelCPU::applyCoreSettings(const int cpu, const int coreIdx, const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) const {
@@ -590,7 +589,7 @@ namespace PWTD::Intel {
 
         const PWTS::Intel::IntelCoreData &data = packet.intelData->coreData[cpu];
 
-        if (!msrDev->openMsrFd(coreIdx)) {
+        if (!msrDev->openFd(coreIdx)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
                 logger.write(QString("failed to open msr fd for cpu %1").arg(coreIdx));
 
@@ -600,14 +599,14 @@ namespace PWTD::Intel {
         if (features.contains(PWTS::Feature::INTEL_PKG_CST_CONFIG_CONTROL) && !msrPkgCstConfigControl->set(coreIdx, data.pkgCstConfigControl))
             errors.insert(PWTS::DError::W_PKG_CST_CONFIG_CONTROL);
 
-        msrDev->closeMsrFd(cpu);
+        msrDev->closeFd(cpu);
     }
 
     void IntelCPU::applyThreadSettings(const int cpu, const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) const {
         if (!features.contains(PWTS::Feature::INTEL_CPU_GROUP))
             return;
 
-        if (!msrDev->openMsrFd(cpu)) {
+        if (!msrDev->openFd(cpu)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
                 logger.write(QString("failed to open msr fd for cpu %1").arg(cpu));
 
@@ -619,7 +618,7 @@ namespace PWTD::Intel {
         if (features.contains(PWTS::Feature::INTEL_HWP_GROUP) && !ia32HWPRequest->set(cpu, data.hwpRequest))
             errors.insert(PWTS::DError::W_HWP_REQ);
 
-        msrDev->closeMsrFd(cpu);
+        msrDev->closeFd(cpu);
     }
 
     QSet<PWTS::DError> IntelCPU::applySettings(const QSet<PWTS::Feature> &features, const QList<int> &coreIdxList, const PWTS::ClientPacket &packet) const {
@@ -672,7 +671,7 @@ namespace PWTD::Intel {
         if (!ia32PackageThermStatus || !msrTemperatureTarget)
             return {};
 
-        if (!msrDev->openMsrFd(0)) {
+        if (!msrDev->openFd(0)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
                 logger.write(QString("failed to open msr fd"));
 
@@ -681,7 +680,7 @@ namespace PWTD::Intel {
 
         const std::optional<PWTS::Intel::PkgThermalStatusInfo> pkgThermStatusI = ia32PackageThermStatus->get();
 
-        msrDev->closeMsrFd(0);
+        msrDev->closeFd(0);
 
         if (!pkgThermStatusI || !regsCache.temperatureTarget.isValid())
             return {};

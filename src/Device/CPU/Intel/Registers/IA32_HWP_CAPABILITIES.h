@@ -31,7 +31,7 @@ namespace PWTD::Intel {
         PWTS::ROData<PWTS::Intel::HWPCapabilities> get(const int cpu) const {
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, cpu))
+            if (!msrDev->read(addr, cpu, reg))
                 return {};
 
             return PWTS::ROData<PWTS::Intel::HWPCapabilities>({

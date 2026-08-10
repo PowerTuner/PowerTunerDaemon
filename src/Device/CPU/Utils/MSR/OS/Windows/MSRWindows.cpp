@@ -20,16 +20,14 @@
 #include "../../../../../../external/winring0/OlsDef.h"
 #include "MSRWindows.h"
 
-namespace PWTD::WIN {
-    bool MSRWindows::openMsrFd([[maybe_unused]] const int cpu) {
+namespace PWTD::MSR {
+    bool MSRWindows::openFd([[maybe_unused]] const int cpu) {
         isDriverOpen = GetDllStatus() == OLS_DLL_NO_ERROR && IsMsr();
 
         return isDriverOpen;
     }
 
-    void MSRWindows::closeMsrFd([[maybe_unused]] const int cpu) {}
-
-    bool MSRWindows::readMSR(uint32_t &ret, const uint32_t adr, const int cpu) const {
+    bool MSRWindows::read(const uint32_t adr, const int cpu, uint64_t &out) const {
         if (!isDriverOpen)
             return false;
 
@@ -39,29 +37,11 @@ namespace PWTD::WIN {
         if (!RdmsrTx(adr, &eax, &edx, 1ULL << cpu))
             return false;
 
-        ret = eax;
+        out = eax;
         return true;
     }
 
-    bool MSRWindows::readMSR(uint64_t &ret, const uint32_t adr, const int cpu) const {
-        if (!isDriverOpen)
-            return false;
-
-        DWORD eax = 0;
-        DWORD edx = 0;
-
-        if (!RdmsrTx(adr, &eax, &edx, 1ULL << cpu))
-            return false;
-
-        ret = (static_cast<uint64_t>(edx) << 32) | eax;
-        return true;
-    }
-
-    bool MSRWindows::writeMSR(const uint32_t value, const uint32_t adr, const int cpu) const {
-        return isDriverOpen && WrmsrTx(adr, value, 0, 1ULL << cpu);
-    }
-
-    bool MSRWindows::writeMSR(const uint64_t value, const uint32_t adr, const int cpu) const {
+    bool MSRWindows::write(const uint64_t value, const uint32_t adr, const int cpu) const {
         return isDriverOpen && WrmsrTx(adr, value & 0x00000000ffffffff, value >> 32, 1ULL << cpu);
     }
 }

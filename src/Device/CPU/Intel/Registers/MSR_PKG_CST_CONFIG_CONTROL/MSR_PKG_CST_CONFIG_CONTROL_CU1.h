@@ -26,7 +26,7 @@ public:
     PWTS::RWData<PWTS::Intel::PkgCstConfigControl> get(const int cpu) const override {
         uint64_t reg;
 
-        if (!msrUtils->readMSR(reg, addr, cpu))
+        if (!msrDev->read(addr, cpu, reg))
             return {};
 
         return PWTS::RWData<PWTS::Intel::PkgCstConfigControl>({
@@ -52,7 +52,7 @@ public:
         const PWTS::Intel::PkgCstConfigControl pkgCstCfgCtrl = data.getValue();
         uint64_t reg;
 
-        if (!msrUtils->readMSR(reg, addr, cpu))
+        if (!msrDev->read(addr, cpu, reg))
             return false;
 
         reg = setBitfield(3, 0, pkgCstCfgCtrl.packageCStateLimit, reg);
@@ -67,7 +67,7 @@ public:
         reg = setBitfield(30, 30, pkgCstCfgCtrl.pkgcUndemotionEnable, reg);
         reg = setBitfield(31, 31, pkgCstCfgCtrl.timedMwaitEnable, reg);
 
-        if (!msrUtils->writeMSR(reg, addr, cpu) || !msrUtils->readMSR(reg, addr, cpu))
+        if (!msrDev->write(reg, addr, cpu) || !msrDev->read(addr, cpu, reg))
             return false;
 
         return getBitfield(3, 0, reg) == pkgCstCfgCtrl.packageCStateLimit &&

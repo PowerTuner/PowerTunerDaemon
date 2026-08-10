@@ -32,7 +32,7 @@ namespace PWTD::Intel {
         PWTS::RWData<PWTS::Intel::HWPRequest> get(const int cpu) const {
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, cpu))
+            if (!msrDev->read(addr, cpu, reg))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::HWPRequest>({
@@ -61,7 +61,7 @@ namespace PWTD::Intel {
             const auto [exponent, mantissa] = USecToRawHWPActivityWindow(hwpReq.requestPkg.acw);
             uint64_t reg;
 
-            if (!msrUtils->readMSR(reg, addr, cpu))
+            if (!msrDev->read(addr, cpu, reg))
                 return false;
 
             reg = setBitfield(7, 0, hwpReq.requestPkg.min, reg);
@@ -77,7 +77,7 @@ namespace PWTD::Intel {
             reg = setBitfield(62, 62, hwpReq.maxValid, reg);
             reg = setBitfield(63, 63, hwpReq.minValid, reg);
 
-            if (!msrUtils->writeMSR(reg, addr, cpu) || !msrUtils->readMSR(reg, addr, cpu))
+            if (!msrDev->write(reg, addr, cpu) || !msrDev->read(addr, cpu, reg))
                 return false;
 
             return getBitfield(7, 0, reg) == hwpReq.requestPkg.min &&
