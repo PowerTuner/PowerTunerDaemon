@@ -41,7 +41,7 @@ namespace PWTD::AMD {
         void applyThreadSettings(int cpu, const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) const;
 
     public:
-        AMDCPU(const QSharedPointer<cpu_id_t> &cpuID, const QSharedPointer<cpu_raw_data_t> &cpuRawData);
+        AMDCPU(const std::shared_ptr<cpu_id_t> &cpuid, const std::shared_ptr<cpu_raw_data_t> &cpuRawData);
 
         [[nodiscard]] QSet<PWTS::Feature> getFeatures() const override;
         void fillDaemonPacket(const QSet<PWTS::Feature> &features, const QList<int> &coreIdxList, PWTS::DaemonPacket &packet) const override;

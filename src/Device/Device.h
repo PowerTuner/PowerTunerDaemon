@@ -31,7 +31,7 @@ namespace PWTD {
     private:
         inline static QSharedPointer<Device> instance;
         FileLogger &logger = FileLogger::get();
-        QSharedPointer<CPUDevice> cpu;
+        std::unique_ptr<CPUDevice> cpu;
         QList<QSharedPointer<GPUDevice>> gpus;
         QList<QSharedPointer<FANDevice>> fans;
         QSharedPointer<OS> os;

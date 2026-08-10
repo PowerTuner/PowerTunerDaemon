@@ -29,11 +29,11 @@ namespace PWTD {
     protected:
         FileLogger &logger = FileLogger::get();
         QSharedPointer<PWTS::CpuInfo> cpuInfo;
-        QSharedPointer<cpu_raw_data_t> cpuidRaw;
+        std::shared_ptr<cpu_raw_data_t> cpuidRaw;
         std::shared_ptr<MSR::MSR> msrDev;
 
     public:
-        CPUDevice(const QSharedPointer<cpu_id_t> &cpuid, const QSharedPointer<cpu_raw_data_t> &cpuRawData);
+        CPUDevice(const std::shared_ptr<cpu_id_t> &cpuid, const std::shared_ptr<cpu_raw_data_t> &cpuRawData);
         virtual ~CPUDevice() = default;
 
         [[nodiscard]] virtual QSet<PWTS::Feature> getFeatures() const = 0;

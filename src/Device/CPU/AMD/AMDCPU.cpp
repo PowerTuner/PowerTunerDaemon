@@ -18,11 +18,11 @@
 #include "AMDCPU.h"
 
 namespace PWTD::AMD {
-    AMDCPU::AMDCPU(const QSharedPointer<cpu_id_t> &cpuID, const QSharedPointer<cpu_raw_data_t> &cpuRawData): CPUDevice(cpuID, cpuRawData) {
+    AMDCPU::AMDCPU(const std::shared_ptr<cpu_id_t> &cpuid, const std::shared_ptr<cpu_raw_data_t> &cpuRawData): CPUDevice(cpuid, cpuRawData) {
         cpuInfo->vendor = PWTS::CPUVendor::AMD;
         ryzenAdj = std::make_unique<RyzenAdj>();
 
-        if (!ryzenAdj->init(cpuID->num_cores))
+        if (!ryzenAdj->init(cpuid->num_cores))
             ryzenAdj.reset();
 
         if (hasHWPStateBit()) {

@@ -20,7 +20,7 @@
 #include "Utils/MSR/Factory.h"
 
 namespace PWTD {
-    CPUDevice::CPUDevice(const QSharedPointer<cpu_id_t> &cpuid, const QSharedPointer<cpu_raw_data_t> &cpuRawData) {
+    CPUDevice::CPUDevice(const std::shared_ptr<cpu_id_t> &cpuid, const std::shared_ptr<cpu_raw_data_t> &cpuRawData) {
         cpuidRaw = cpuRawData;
         cpuInfo = QSharedPointer<PWTS::CpuInfo>::create();
         msrDev = MSR::factory();

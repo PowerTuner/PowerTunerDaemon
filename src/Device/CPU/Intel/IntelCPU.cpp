@@ -21,11 +21,11 @@
 #include "Include/CPUModel.h"
 
 namespace PWTD::Intel {
-    IntelCPU::IntelCPU(const QSharedPointer<cpu_id_t> &cpuID, const QSharedPointer<cpu_raw_data_t> &cpuRawData): CPUDevice(cpuID, cpuRawData) {
+    IntelCPU::IntelCPU(const std::shared_ptr<cpu_id_t> &cpuid, const std::shared_ptr<cpu_raw_data_t> &cpuRawData): CPUDevice(cpuid, cpuRawData) {
         cpuInfo->vendor = PWTS::CPUVendor::Intel;
-        mchbar = std::make_unique<MCHBAR>(cpuID->x86.ext_model);
+        mchbar = std::make_unique<MCHBAR>(cpuid->x86.ext_model);
 
-        if (!mchbar->init(cpuID->x86.family, cpuID->x86.ext_model))
+        if (!mchbar->init(cpuid->x86.family, cpuid->x86.ext_model))
             mchbar.reset();
 
         setupCPUModelRegisters();

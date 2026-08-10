@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "CPUDeviceFactory.h"
+#include "Factory.h"
 #ifdef WITH_INTEL
 #include "Intel/IntelCPU.h"
 #endif
@@ -23,13 +23,13 @@
 #include "AMD/AMDCPU.h"
 #endif
 
-namespace PWTD {
-    QSharedPointer<CPUDevice> CPUDeviceFactory::getCpuDevice() {
+namespace PWTD::CPU {
+    std::unique_ptr<CPUDevice> factory() {
         if (!cpuid_present())
             return {};
 
-        const QSharedPointer<cpu_raw_data_t> rawData = QSharedPointer<cpu_raw_data_t>::create();
-        const QSharedPointer<cpu_id_t> cpuID = QSharedPointer<cpu_id_t>::create();
+        const std::shared_ptr<cpu_id_t> cpuID = std::make_shared<cpu_id_t>();
+        const std::shared_ptr<cpu_raw_data_t> rawData = std::make_shared<cpu_raw_data_t>();
 
         if (cpuid_get_raw_data(rawData.get()) < 0 || cpu_identify(rawData.get(), cpuID.get()) < 0)
             return {};
@@ -37,11 +37,11 @@ namespace PWTD {
         switch (cpuID->vendor) {
 #ifdef WITH_INTEL
             case VENDOR_INTEL:
-                return QSharedPointer<Intel::IntelCPU>::create(cpuID, rawData);
+                return std::make_unique<Intel::IntelCPU>(cpuID, rawData);
 #endif
 #ifdef WITH_AMD
             case VENDOR_AMD:
-                return QSharedPointer<AMD::AMDCPU>::create(cpuID, rawData);
+                return std::make_unique<AMD::AMDCPU>(cpuID, rawData);
 #endif
             default:
                 break;

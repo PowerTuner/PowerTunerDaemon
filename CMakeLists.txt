@@ -50,8 +50,8 @@ set(PROJECT_SOURCES
 
 	src/Device/CPU/CPUDevice.h
 	src/Device/CPU/CPUDevice.cpp
-	src/Device/CPU/CPUDeviceFactory.h
-	src/Device/CPU/CPUDeviceFactory.cpp
+    src/Device/CPU/Factory.h
+    src/Device/CPU/Factory.cpp
 	src/Device/CPU/CPURegister.h
 
 	src/Device/GPU/GPUDevice.cpp

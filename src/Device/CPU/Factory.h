@@ -16,18 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "CPUDevice.h"
 
-namespace PWTD {
-    class CPUDeviceFactory final {
-    private:
-        CPUDeviceFactory() = default;
-
-    public:
-        CPUDeviceFactory(const CPUDeviceFactory &) = delete;
-        CPUDeviceFactory &operator=(const CPUDeviceFactory &) = delete;
-
-        [[nodiscard]] static QSharedPointer<CPUDevice> getCpuDevice();
-    };
+namespace PWTD::CPU {
+    [[nodiscard]] std::unique_ptr<CPUDevice> factory();
 }

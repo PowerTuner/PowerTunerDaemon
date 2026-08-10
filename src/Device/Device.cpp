@@ -18,7 +18,7 @@
 #include <QCryptographicHash>
 
 #include "Device.h"
-#include "CPU/CPUDeviceFactory.h"
+#include "CPU/Factory.h"
 #include "GPU/GPUDeviceFactory.h"
 #include "FAN/FANFactory.h"
 #include "OS/OSFactory.h"
@@ -28,13 +28,14 @@ namespace PWTD {
         QSharedPointer<PWTS::CpuInfo> cpuInfo;
 
         os = OSFactory::getOS();
+        if (!os)
+            return;
 
         if (!os->setupOSAccess() && logger.isLevel(PWTS::LogLevel::Error))
             logger.write(QStringLiteral("failed to setup os access, some features may be disabled"));
 
-        cpu = CPUDeviceFactory::getCpuDevice();
-
-        if (cpu.isNull() || os.isNull())
+        cpu = CPU::factory();
+        if (!cpu)
             return;
 
         os->collectSystemInfo();
@@ -74,7 +75,7 @@ namespace PWTD {
     }
 
     bool Device::isCPUSupported() const {
-        return !cpu.isNull();
+        return cpu != nullptr;
     }
 
     bool Device::isOSSupported() const {
