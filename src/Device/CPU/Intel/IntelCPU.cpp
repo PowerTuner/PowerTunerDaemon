@@ -66,19 +66,7 @@ namespace PWTD::Intel {
                         msrTemperatureTarget = std::make_unique<MSR_TEMPERATURE_TARGET_NHLM>();
                     }
                         break;
-                    case SandyBridge: {
-                        msrMiscPwrMgmt = std::make_unique<MSR_MISC_PWR_MGMT_NHLM>();
-                        msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_NHLM>();
-                        msrPkgPowerLimit = std::make_unique<MSR_PKG_POWER_LIMIT>();
-                        msrVrCurrentConfig = std::make_unique<MSR_VR_CURRENT_CONFIG_SB>();
-                        msrPP0Policy = std::make_unique<MSR_PP0_POLICY>();
-                        msrPP1Policy = std::make_unique<MSR_PP1_POLICY>();
-                        msrPP1CurrentConfig = std::make_unique<MSR_PP1_CURRENT_CONFIG>();
-                        msrPkgCstConfigControl = std::make_unique<MSR_PKG_CST_CONFIG_CONTROL_SB>();
-                        msrPowerCtl = std::make_unique<MSR_POWER_CTL_SB>();
-                        msrTemperatureTarget = std::make_unique<MSR_TEMPERATURE_TARGET_NHLM>();
-                    }
-                        break;
+                    case SandyBridge:
                     case IvyBridge: {
                         msrMiscPwrMgmt = std::make_unique<MSR_MISC_PWR_MGMT_NHLM>();
                         msrPlatformInfo = std::make_unique<MSR_PLATFORM_INFO_NHLM>();
