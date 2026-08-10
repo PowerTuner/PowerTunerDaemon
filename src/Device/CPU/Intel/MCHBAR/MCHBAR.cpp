@@ -16,15 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "MCHBAR.h"
-#include "MCHBARUtils.h"
 #include "../../Utils/Memory/MemoryFactory.h"
 #include "../Include/CPUFamily.h"
 #include "../Include/CPUModel.h"
 #include "../Include/ModelRegistersIncludes.h"
+#include "../IntelUtils.h"
 
 namespace PWTD::Intel {
-    MCHBAR::MCHBAR(const int cpuFamily) {
-        baseAddress = getMCHBARBaseAddress(cpuFamily);
+    MCHBAR::MCHBAR(const int cpuModel) {
+        baseAddress = getMCHBARBaseAddress(cpuModel);
     }
 
     bool MCHBAR::init(const int cpuFamily, const int cpuModel) {

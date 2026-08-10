@@ -233,8 +233,6 @@ if (WITH_INTEL)
 		src/Device/CPU/Intel/MCHBAR/MCHBAR.h
 		src/Device/CPU/Intel/MCHBAR/MCHBAR.cpp
 		src/Device/CPU/Intel/MCHBAR/MCHBARRegister.h
-		src/Device/CPU/Intel/MCHBAR/MCHBARUtils.h
-		src/Device/CPU/Intel/MCHBAR/MCHBARUtils.cpp
 
 		src/Device/CPU/Intel/Include/CPUFamily.h
 		src/Device/CPU/Intel/Include/CPUModel.h

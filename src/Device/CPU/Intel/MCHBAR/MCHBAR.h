@@ -28,14 +28,14 @@ namespace PWTD::Intel {
             std::optional<MCHBAR_PACKAGE_POWER_SKU_UNIT::Units> pkgPowerSkuUnit;
         };
 
-        uint32_t baseAddress;
         RegistersCache regsCache {};
+        uint32_t baseAddress;
         std::unique_ptr<MCHBAR_PACKAGE_RAPL_LIMIT> mchbarPackageRaplLimit;
 
         void buildRegistersCache();
 
     public:
-        explicit MCHBAR(int cpuFamily);
+        explicit MCHBAR(int cpuModel);
 
         [[nodiscard]] bool init(int cpuFamily, int cpuModel);
         [[nodiscard]] QSet<PWTS::Feature> getFeatures() const;

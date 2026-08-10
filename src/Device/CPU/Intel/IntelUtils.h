@@ -17,8 +17,10 @@
  */
 #pragma once
 #include <optional>
+#include <cstdint>
 
 namespace PWTD::Intel {
     [[nodiscard]] std::pair<int, int> USecToRawHWPActivityWindow(int us);
     [[nodiscard]] std::optional<std::pair<int, int>> getRawTimeWindow(double seconds, double timeUnit);
+    [[nodiscard]] uint32_t getMCHBARBaseAddress(int cpuModel);
 }

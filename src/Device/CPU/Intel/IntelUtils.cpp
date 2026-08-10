@@ -15,9 +15,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+#ifdef __linux__
+extern "C" {
+#include <pci/pci.h>
+}
+#elifdef _WIN32
+#include "../Include/CPUModel.h"
+#endif
 #include <cmath>
 
 #include "IntelUtils.h"
+#include "../../Utils/FileLogger/FileLogger.h"
 
 namespace PWTD::Intel {
     // from https://patchwork.kernel.org/project/xen-devel/patch/20210308210210.116278-13-jandryuk@gmail.com
@@ -52,5 +60,95 @@ namespace PWTD::Intel {
         }
 
         return {};
+    }
+
+#ifdef __linux__
+    [[nodiscard]]
+    static uint32_t getMCHBARBaseAddressLinux() {
+        FileLogger &logger = FileLogger::get();
+        struct pci_access *pacc = pci_alloc();
+        struct pci_filter filter {};
+        bool foundDev = false;
+        struct pci_dev *dev;
+        uint16_t hi, lo;
+
+        if (pacc == nullptr) {
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QStringLiteral("pci alloc fail"));
+
+            return 0;
+        }
+
+        pci_init(pacc);
+        pci_scan_bus(pacc);
+        pci_filter_init(pacc, &filter);
+
+        filter.domain = 0;
+        filter.bus = 0;
+        filter.slot = 0;
+        filter.func = 0;
+
+        for (dev=pacc->devices; dev; dev=dev->next) {
+            if (pci_filter_match(&filter, dev)) {
+                foundDev = true;
+                break;
+            }
+        }
+
+        if (!foundDev) {
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QStringLiteral("no pci device found"));
+
+            pci_cleanup(pacc);
+            return 0;
+        }
+
+        hi = pci_read_word(dev, 0x4a);
+        lo = pci_read_word(dev, 0x48);
+
+        pci_cleanup(pacc);
+
+        if (hi == 0) {
+            if (logger.isLevel(PWTS::LogLevel::Error))
+                logger.write(QStringLiteral("failed to read MCHBAR base address"));
+
+            return 0;
+
+        } else if (!(lo & 0x0001)) {
+            if (logger.isLevel(PWTS::LogLevel::Info))
+                logger.write(QStringLiteral("MCHBAR is disabled"));
+
+            return 0;
+        }
+
+        return (hi << 16);
+    }
+#elifdef _WIN32
+    // no way to get mchbar on new devices, also winring is to be removed, so...
+    [[nodiscard]]
+    static uint32_t getMCHBARBaseAddressWindows(const int cpuModel) {
+        switch (cpuModel) {
+            case SandyBridge:
+            case IvyBridge:
+            case IceLakeU:
+                return 0xfed1;
+            case TigerLakeU:
+            case AlderLakeN:
+            case LunarLake:
+                return 0xfedc;
+            default:
+                return 0;
+        }
+    }
+#endif
+
+    uint32_t getMCHBARBaseAddress(const int cpuModel) {
+#ifdef __linux__
+        return getMCHBARBaseAddressLinux();
+#elifdef _WIN32
+        return getMCHBARBaseAddressWindows(cpuModel);
+#else
+        return 0;
+#endif
     }
 }
