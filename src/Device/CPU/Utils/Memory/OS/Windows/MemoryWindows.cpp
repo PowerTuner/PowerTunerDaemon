@@ -19,7 +19,7 @@
 
 #include <cstring>
 
-namespace PWTD::WIN {
+namespace PWTD::MEM {
     MemoryWindows::MemoryWindows() {
         inpOutDll = LoadLibraryW(L"inpoutx64.dll");
 
@@ -41,14 +41,31 @@ namespace PWTD::WIN {
     }
 
     MemoryWindows::~MemoryWindows() {
-        FreeLibrary(inpOutDll);
+        if (inpOutDll != nullptr)
+            FreeLibrary(inpOutDll);
     }
 
-    bool MemoryWindows::isAccessible() const {
-        return inpOutDll != nullptr;
+    bool MemoryWindows::forbidden() const {
+        return inpOutDll == nullptr;
     }
 
-    bool MemoryWindows::rwMem(uint64_t &data, const uint64_t addr, const size_t size, const bool write) const {
+    std::optional<uint64_t> MemoryWindows::read(const uint64_t addr, const size_t size) const {
+        if (inpOutDll == nullptr)
+            return {};
+
+        HANDLE physMemoryHandle;
+        uint32_t *linAddr = reinterpret_cast<uint32_t *>(mapMem(addr, size, &physMemoryHandle));
+        uint64_t ret = 0;
+
+        if (linAddr == nullptr)
+            return {};
+
+        std::memcpy(&ret, linAddr, size);
+        unmapMem(physMemoryHandle, *linAddr);
+        return ret;
+    }
+
+    bool MemoryWindows::write(const uint64_t val, const uint64_t addr, const size_t size) const {
         if (inpOutDll == nullptr)
             return false;
 
@@ -58,17 +75,60 @@ namespace PWTD::WIN {
         if (linAddr == nullptr)
             return false;
 
-        if (write) {
-            std::memcpy(linAddr, &data, size);
-
-        } else {
-            uint64_t ret = 0;
-
-            std::memcpy(&ret, linAddr, size);
-            data = ret;
-        }
-
+        std::memcpy(linAddr, &val, size);
         unmapMem(physMemoryHandle, *linAddr);
         return true;
+    }
+
+    bool MemoryWindows::read8(const uint64_t addr, uint8_t &out) const {
+        const std::optional<uint64_t> mem = read(addr, sizeof(uint8_t));
+
+        if (mem)
+            out = static_cast<uint8_t>(*mem);
+
+        return mem.has_value();
+    }
+
+    bool MemoryWindows::read16(const uint64_t addr, uint16_t &out) const {
+        const std::optional<uint64_t> mem = read(addr, sizeof(uint16_t));
+
+        if (mem)
+            out = static_cast<uint16_t>(*mem);
+
+        return mem.has_value();
+    }
+
+    bool MemoryWindows::read32(const uint64_t addr, uint32_t &out) const {
+        const std::optional<uint64_t> mem = read(addr, sizeof(uint32_t));
+
+        if (mem)
+            out = static_cast<uint32_t>(*mem);
+
+        return mem.has_value();
+    }
+
+    bool MemoryWindows::read64(const uint64_t addr, uint64_t &out) const {
+        const std::optional<uint64_t> mem = read(addr, sizeof(uint64_t));
+
+        if (mem)
+            out = *mem;
+
+        return mem.has_value();
+    }
+
+    bool MemoryWindows::write8(const uint8_t val, const uint64_t addr) const {
+        return write(val, addr, sizeof(uint8_t));
+    }
+
+    bool MemoryWindows::write16(const uint16_t val, const uint64_t addr) const {
+        return write(val, addr, sizeof(uint16_t));
+    }
+
+    bool MemoryWindows::write32(const uint32_t val, const uint64_t addr) const {
+        return write(val, addr, sizeof(uint32_t));
+    }
+
+    bool MemoryWindows::write64(const uint64_t val, const uint64_t addr) const {
+        return write(val, addr, sizeof(uint64_t));
     }
 }

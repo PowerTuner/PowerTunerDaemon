@@ -16,23 +16,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+#include <optional>
+#include <utility>
 
 #include "../../../Memory/Memory.h"
 
-namespace PWTD::LNX {
+namespace PWTD::MEM {
     class MemoryLinux final: public Memory {
     private:
-        [[nodiscard]] bool rwMem(uint64_t &data, uint64_t addr, size_t size, bool write) const;
+        [[nodiscard]] std::optional<std::pair<unsigned char *, size_t>> mapMemory(uint64_t addr, size_t size, int memFlags, int mapFlags) const;
+        [[nodiscard]] std::optional<uint64_t> read(uint64_t addr, size_t size) const;
+        [[nodiscard]] bool write(uint64_t data, uint64_t addr, size_t size) const;
 
     public:
-        [[nodiscard]] bool isAccessible() const override;
-        [[nodiscard]] bool readMem8(uint64_t &val, const uint64_t addr) const override { return rwMem(val, addr, sizeof(uint8_t), false); }
-        [[nodiscard]] bool readMem16(uint64_t &val, const uint64_t addr) const override { return rwMem(val, addr, sizeof(uint16_t), false); }
-        [[nodiscard]] bool readMem32(uint64_t &val, const uint64_t addr) const override { return rwMem(val, addr, sizeof(uint32_t), false); }
-        [[nodiscard]] bool readMem64(uint64_t &val, const uint64_t addr) const override { return rwMem(val, addr, sizeof(uint64_t), false); }
-        [[nodiscard]] bool writeMem8(uint64_t &val, const uint64_t addr) const override { return rwMem(val, addr, sizeof(uint8_t), true); }
-        [[nodiscard]] bool writeMem16(uint64_t &val, const uint64_t addr) const override { return rwMem(val, addr, sizeof(uint16_t), true); }
-        [[nodiscard]] bool writeMem32(uint64_t &val, const uint64_t addr) const override { return rwMem(val, addr, sizeof(uint32_t), true); }
-        [[nodiscard]] bool writeMem64(uint64_t &val, const uint64_t addr) const override { return rwMem(val, addr, sizeof(uint64_t), true); }
+        [[nodiscard]] bool forbidden() const override;
+        [[nodiscard]] bool read8(uint64_t addr, uint8_t &out) const override;
+        [[nodiscard]] bool read16(uint64_t addr, uint16_t &out) const override;
+        [[nodiscard]] bool read32(uint64_t addr, uint32_t &out) const override;
+        [[nodiscard]] bool read64(uint64_t addr, uint64_t &out) const override;
+        [[nodiscard]] bool write8(uint8_t val, uint64_t addr) const override;
+        [[nodiscard]] bool write16(uint16_t val, uint64_t addr) const override;
+        [[nodiscard]] bool write32(uint32_t val, uint64_t addr) const override;
+        [[nodiscard]] bool write64(uint64_t val, uint64_t addr) const override;
     };
 }

@@ -16,20 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include "../../Utils/Memory/MemoryFactory.h"
+#include "../../Utils/Memory/Factory.h"
 #include "../../../../Utils/FileLogger/FileLogger.h"
 
 namespace PWTD::Intel {
     class MCHBARRegister {
     protected:
         FileLogger &logger = FileLogger::get();
-        QSharedPointer<Memory> memory;
+        std::shared_ptr<MEM::Memory> memory;
         uint64_t addr;
 
     public:
         MCHBARRegister(const uint32_t base, const uint32_t offset) {
-            memory = MemoryFactory::getInstance();
+            memory = MEM::factory();
             addr = base + offset;
         }
     };

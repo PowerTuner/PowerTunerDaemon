@@ -36,11 +36,10 @@ set(PROJECT_SOURCES
 
     src/Device/CPU/Utils/MSR/Factory.h
 	src/Device/CPU/Utils/MSR/MSR.h
-    src/Device/CPU/Utils/Memory/MemoryFactory.h
+    src/Device/CPU/Utils/Memory/Factory.h
 	src/Device/CPU/Utils/Memory/Memory.h
-	src/Device/CPU/Utils/Memory/MemoryNull.h
 
-	src/Device/FAN/Include/FanControls.h
+    src/Device/FAN/Include/FanControls.h
 	src/Device/FAN/Include/FanBoard.h
 	src/Device/FAN/Include/FanType.h
 	src/Device/FAN/FANDevice.h

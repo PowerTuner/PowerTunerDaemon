@@ -16,40 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <QSharedPointer>
-
 #ifdef __linux__
 #include "OS/Linux/MemoryLinux.h"
-#elif defined(_WIN32)
+#elifdef _WIN32
 #include "OS/Windows/MemoryWindows.h"
-#else
-#include "MemoryNull.h"
 #endif
 
-namespace PWTD {
-    class MemoryFactory final {
-    protected:
-        inline static QSharedPointer<Memory> instance;
-
-        MemoryFactory() = default;
-
-    public:
-        MemoryFactory(const MemoryFactory &) = delete;
-        MemoryFactory &operator=(const MemoryFactory &) = delete;
-
-        static QSharedPointer<Memory> getInstance() {
-            if (!instance.isNull())
-                return instance;
-
+namespace PWTD::MEM {
+    [[nodiscard]]
+    inline std::shared_ptr<Memory> factory() {
 #ifdef __linux__
-            instance = QSharedPointer<LNX::MemoryLinux>::create();
-#elif defined(_WIN32)
-            instance = QSharedPointer<WIN::MemoryWindows>::create();
+        static std::shared_ptr<Memory> instance = std::make_shared<MemoryLinux>();
+#elifdef _WIN32
+        static std::shared_ptr<Memory> instance = std::make_shared<MemoryWindows>();
 #else
-            instance = QSharedPointer<MemoryNull>::create();
+        static std::shared_ptr<Memory> instance = std::make_shared<Memory>();
 #endif
-            return instance;
-        }
-    };
+        return instance;
+    }
 }

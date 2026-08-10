@@ -31,9 +31,9 @@ namespace PWTD::Intel {
 
         [[nodiscard]]
         std::optional<Units> get() const {
-            uint64_t reg;
+            uint32_t reg;
 
-            if (!memory->readMem32(reg, addr))
+            if (!memory->read32(addr, reg))
                 return {};
 
             return Units {

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "MCHBAR.h"
-#include "../../Utils/Memory/MemoryFactory.h"
+#include "../../Utils/Memory/Factory.h"
 #include "../Include/CPUFamily.h"
 #include "../Include/CPUModel.h"
 #include "../Include/ModelRegistersIncludes.h"
@@ -28,7 +28,7 @@ namespace PWTD::Intel {
     }
 
     bool MCHBAR::init(const int cpuFamily, const int cpuModel) {
-        if (baseAddress == 0 || !MemoryFactory::getInstance()->isAccessible())
+        if (baseAddress == 0 || MEM::factory()->forbidden())
             return false;
 
         switch (cpuFamily) {

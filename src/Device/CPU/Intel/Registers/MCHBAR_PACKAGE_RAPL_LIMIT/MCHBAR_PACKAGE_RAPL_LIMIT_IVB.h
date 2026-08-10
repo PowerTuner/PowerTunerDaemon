@@ -28,7 +28,7 @@ namespace PWTD::Intel {
         PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit> get(const std::optional<MCHBAR_PACKAGE_POWER_SKU_UNIT::Units> &pu) const override {
             uint64_t reg;
 
-            if (!pu || !memory->readMem64(reg, addr))
+            if (!pu || !memory->read64(addr, reg))
                 return {};
 
             return PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit>({
@@ -48,7 +48,7 @@ namespace PWTD::Intel {
             if (!data.isValid())
                 return true;
 
-            if (!pu || !memory->readMem64(reg, addr))
+            if (!pu || !memory->read64(addr, reg))
                 return false;
 
             const PWTS::Intel::MCHBARPkgRaplLimit pkgPowerLim = data.getValue();
@@ -69,7 +69,7 @@ namespace PWTD::Intel {
                 reg = setBitfield(23, 22, z, reg);
             }
 
-            if (!memory->writeMem64(reg, addr) || !memory->readMem64(reg, addr))
+            if (!memory->write64(reg, addr) || !memory->read64(addr, reg))
                 return false;
 
             return getBitfield(14, 0, reg) == pl1 &&
