@@ -309,28 +309,22 @@ namespace PWTD::Intel {
         }
 
         if (msrUnkFivrControl) {
-            const PWTS::ROData<MSR_UNK_FIVR_CONTROL::FIVRCapabilities> fivrCaps = msrUnkFivrControl->getCapabilities();
+            features.unite({PWTS::Feature::INTEL_UNDERVOLT_GROUP, PWTS::Feature::INTEL_CPU_GROUP});
 
-            if (fivrCaps.isValid()) {
-                const MSR_UNK_FIVR_CONTROL::FIVRCapabilities caps = fivrCaps.getValue();
+            if (msrUnkFivrControl->hasCPU())
+                features.insert(PWTS::Feature::INTEL_UNDERVOLT_CPU);
 
-                features.unite({PWTS::Feature::INTEL_UNDERVOLT_GROUP, PWTS::Feature::INTEL_CPU_GROUP});
+            if (msrUnkFivrControl->hasGPU())
+                features.insert(PWTS::Feature::INTEL_UNDERVOLT_GPU);
 
-                if (caps.cpu)
-                    features.insert(PWTS::Feature::INTEL_UNDERVOLT_CPU);
+            if (msrUnkFivrControl->hasCPUCache())
+                features.insert(PWTS::Feature::INTEL_UNDERVOLT_CACHE);
 
-                if (caps.gpu)
-                    features.insert(PWTS::Feature::INTEL_UNDERVOLT_GPU);
+            if (msrUnkFivrControl->hasUnslice())
+                features.insert(PWTS::Feature::INTEL_UNDERVOLT_UNSLICE);
 
-                if (caps.cpuCache)
-                    features.insert(PWTS::Feature::INTEL_UNDERVOLT_CACHE);
-
-                if (caps.unslice)
-                    features.insert(PWTS::Feature::INTEL_UNDERVOLT_UNSLICE);
-
-                if (caps.sysAgent)
-                    features.insert(PWTS::Feature::INTEL_UNDERVOLT_SYSAGENT);
-            }
+            if (msrUnkFivrControl->hasSysAgent())
+                features.insert(PWTS::Feature::INTEL_UNDERVOLT_SYSAGENT);
         }
 
         if (ia32PmEnable) {
@@ -551,25 +545,22 @@ namespace PWTD::Intel {
         if (features.contains(PWTS::Feature::INTEL_MISC_PWR_MGMT) && !msrMiscPwrMgmt->set(data->miscPwrMgmt))
             errors.insert(PWTS::DError::W_MISC_PWR_MGMT);
 
-        if (features.contains(PWTS::Feature::INTEL_UNDERVOLT_GROUP)) {
-            const MSR_UNK_FIVR_CONTROL::FIVRWriteResult res = msrUnkFivrControl->set(data->undervoltData);
+        if (features.contains(PWTS::Feature::INTEL_UNDERVOLT_GROUP) && data->undervoltData.isValid()) {
+            fivr = data->undervoltData.getValue();
 
-            if (data->undervoltData.isValid()) // don't save invalid data
-                fivr = data->undervoltData.getValue();
-
-            if (features.contains(PWTS::Feature::INTEL_UNDERVOLT_CPU) && !res.cpu)
+            if (features.contains(PWTS::Feature::INTEL_UNDERVOLT_CPU) && !msrUnkFivrControl->setCPU(data->undervoltData))
                 errors.insert(PWTS::DError::W_CPU_UV);
 
-            if (features.contains(PWTS::Feature::INTEL_UNDERVOLT_GPU) && !res.gpu)
+            if (features.contains(PWTS::Feature::INTEL_UNDERVOLT_GPU) && !msrUnkFivrControl->setGPU(data->undervoltData))
                 errors.insert(PWTS::DError::W_GPU_UV);
 
-            if (features.contains(PWTS::Feature::INTEL_UNDERVOLT_CACHE) && !res.cpuCache)
+            if (features.contains(PWTS::Feature::INTEL_UNDERVOLT_CACHE) && !msrUnkFivrControl->setCPUCache(data->undervoltData))
                 errors.insert(PWTS::DError::W_CACHE_UV);
 
-            if (features.contains(PWTS::Feature::INTEL_UNDERVOLT_UNSLICE) && !res.unslice)
+            if (features.contains(PWTS::Feature::INTEL_UNDERVOLT_UNSLICE) && !msrUnkFivrControl->setUnslice(data->undervoltData))
                 errors.insert(PWTS::DError::W_UNSLICE_UV);
 
-            if (features.contains(PWTS::Feature::INTEL_UNDERVOLT_SYSAGENT) && !res.sysAgent)
+            if (features.contains(PWTS::Feature::INTEL_UNDERVOLT_SYSAGENT) && !msrUnkFivrControl->setSysAgent(data->undervoltData))
                 errors.insert(PWTS::DError::W_SA_UV);
         }
 

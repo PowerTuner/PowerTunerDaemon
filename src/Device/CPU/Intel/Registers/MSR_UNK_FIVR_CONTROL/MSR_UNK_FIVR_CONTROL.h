@@ -18,7 +18,6 @@
 #pragma once
 #include "../../../CPURegister.h"
 #include "pwtShared/Include/CPU/Intel/FIVRControlUV.h"
-#include "pwtShared/Include/Types/ROData.h"
 #include "pwtShared/Include/Types/RWData.h"
 
 namespace PWTD::Intel {
@@ -26,97 +25,80 @@ namespace PWTD::Intel {
     private:
         static constexpr unsigned addr = 0x150;
 
-        struct planeIndex final {
-            int cpu;
-            int gpu;
-            int cpuCache;
-            int unslice;
-            int sysAgent;
-        };
-
-        struct uvData final {
-            uint64_t rd = 0;
-            uint64_t wr = 0;
-
-            uvData(const uint64_t r, const uint64_t w): rd(r), wr(w) {}
-        };
-
         // from intel-undervolt: https://github.com/kitsunyan/intel-undervolt, not sure if correct but kinda works
         [[nodiscard]]
-        uvData prepareUVData(const int index, const int value) const {
+        std::pair<uint64_t, uint64_t> prepareUVData(const int index, const int value) const {
             const uint64_t uvint = (static_cast<uint64_t>(0x800 - (value < 0 ? -(value) : value) * 1.024f + 0.5f) << 21) & 0xffffffff;
             const uint64_t rdval = 0x8000001000000000 | (static_cast<uint64_t>(index) << 40);
             const uint64_t wrval = rdval | 0x100000000 | uvint;
 
-            return {rdval, wrval};
+            return std::make_pair(rdval, wrval);
         }
 
         // from intel-undervolt: https://github.com/kitsunyan/intel-undervolt
         [[nodiscard]]
-        bool writeUnderVolt(const uvData &data) const {
-            uint64_t cur = 0;
+        bool writeUnderVolt(const std::pair<uint64_t, uint64_t> &uv) const {
+            const auto [rd, wr] = uv;
+            uint64_t reg = 0;
 
-            if (!msrUtils->writeMSR(data.wr, addr, 0) || !msrUtils->writeMSR(data.rd, addr, 0) || !msrUtils->readMSR(cur, addr, 0))
+            if (!msrUtils->writeMSR(wr, addr, 0) || !msrUtils->writeMSR(rd, addr, 0) || !msrUtils->readMSR(reg, addr, 0))
                 return false;
 
-            return (cur & 0xffffffff) == (data.wr & 0xffffffff);
+            return (reg & 0xffffffff) == (wr & 0xffffffff);
         }
 
     protected:
-        planeIndex indexes {};
+        int cpuIdx = -1;
+        int gpuIdx = -1;
+        int cpuCacheIdx = -1;
+        int unsliceIdx = -1;
+        int sysAgentIdx = -1;
 
     public:
-        struct FIVRWriteResult final {
-            bool cpu = false;
-            bool gpu = false;
-            bool cpuCache = false;
-            bool unslice = false;
-            bool sysAgent = false;
-        };
-
-        struct FIVRCapabilities final {
-            bool cpu = false;
-            bool gpu = false;
-            bool cpuCache = false;
-            bool unslice = false;
-            bool sysAgent = false;
-        };
+        [[nodiscard]] bool hasCPU() const { return cpuIdx != -1; }
+        [[nodiscard]] bool hasGPU() const { return gpuIdx != -1; }
+        [[nodiscard]] bool hasCPUCache() const { return cpuCacheIdx != -1; }
+        [[nodiscard]] bool hasUnslice() const { return unsliceIdx != -1; }
+        [[nodiscard]] bool hasSysAgent() const { return sysAgentIdx != -1; }
 
         [[nodiscard]]
-        PWTS::ROData<FIVRCapabilities> getCapabilities() const {
-            return PWTS::ROData<FIVRCapabilities>({
-                .cpu = indexes.cpu != -1,
-                .gpu = indexes.gpu != -1,
-                .cpuCache = indexes.cpuCache != -1,
-                .unslice = indexes.unslice != -1,
-                .sysAgent = indexes.sysAgent != -1
-            }, true);
+        bool setCPU(const PWTS::RWData<PWTS::Intel::FIVRControlUV> &data) const {
+            if (!data.isValid() || cpuIdx == -1)
+                return false;
+
+            return writeUnderVolt(prepareUVData(cpuIdx, data.getValue().cpu));
         }
 
         [[nodiscard]]
-        FIVRWriteResult set(const PWTS::RWData<PWTS::Intel::FIVRControlUV> &data) const {
-            if (!data.isValid())
-                return {};
+        bool setGPU(const PWTS::RWData<PWTS::Intel::FIVRControlUV> &data) const {
+            if (!data.isValid() || gpuIdx == -1)
+                return false;
 
-            const PWTS::Intel::FIVRControlUV uv = data.getValue();
-            FIVRWriteResult res;
+            return writeUnderVolt(prepareUVData(gpuIdx, data.getValue().gpu));
+        }
 
-            if (indexes.cpu != -1)
-                res.cpu = writeUnderVolt(prepareUVData(indexes.cpu, uv.cpu));
+        [[nodiscard]]
+        bool setCPUCache(const PWTS::RWData<PWTS::Intel::FIVRControlUV> &data) const {
+            if (!data.isValid() || cpuCacheIdx == -1)
+                return false;
 
-            if (indexes.gpu != -1)
-                res.gpu = writeUnderVolt(prepareUVData(indexes.gpu, uv.gpu));
+            return writeUnderVolt(prepareUVData(cpuCacheIdx, data.getValue().cpuCache));
+        }
 
-            if (indexes.cpuCache != -1)
-                res.cpuCache = writeUnderVolt(prepareUVData(indexes.cpuCache, uv.cpuCache));
+        [[nodiscard]]
+        bool setUnslice(const PWTS::RWData<PWTS::Intel::FIVRControlUV> &data) const {
+            if (!data.isValid() || unsliceIdx == -1)
+                return false;
 
-            if (indexes.sysAgent != -1)
-                res.sysAgent = writeUnderVolt(prepareUVData(indexes.sysAgent, uv.sa));
+            return writeUnderVolt(prepareUVData(unsliceIdx, data.getValue().unslice));
+        }
 
-            if (indexes.unslice != -1)
-                res.unslice = writeUnderVolt(prepareUVData(indexes.unslice, uv.unslice));
+        [[nodiscard]]
+        bool setSysAgent(const PWTS::RWData<PWTS::Intel::FIVRControlUV> &data) const {
+            if (!data.isValid() || sysAgentIdx == -1)
+                return false;
 
-            return res;
+            return writeUnderVolt(prepareUVData(sysAgentIdx, data.getValue().sa));
         }
     };
 }

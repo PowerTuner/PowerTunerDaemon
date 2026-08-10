@@ -22,11 +22,11 @@ namespace PWTD::Intel {
     class MSR_UNK_FIVR_CONTROL_ICL final: public MSR_UNK_FIVR_CONTROL {
     public:
         MSR_UNK_FIVR_CONTROL_ICL() {
-            indexes.cpu = 0;
-            indexes.gpu = 1;
-            indexes.cpuCache = 2;
-            indexes.unslice = -1;
-            indexes.sysAgent = 4;
+            cpuIdx = 0;
+            gpuIdx = 1;
+            cpuCacheIdx = 2;
+            unsliceIdx = -1;
+            sysAgentIdx = 4;
         }
     };
 }
