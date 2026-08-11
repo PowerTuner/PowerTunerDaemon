@@ -16,25 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include <QStandardPaths>
 #include <QLockFile>
 
 namespace PWTD {
     class ProcessStatus final {
     private:
-        const QString tmpPath {QStandardPaths::writableLocation(QStandardPaths::TempLocation)};
-        QLockFile flock {QString("%1/pwtd.lock").arg(tmpPath)};
+        QLockFile flock {QString("%1/pwtd.lock").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation))};
 
     public:
         ProcessStatus() { flock.setStaleLockTime(0); }
         ~ProcessStatus() { flock.unlock(); }
 
         [[nodiscard]]
-        QLockFile::LockError isAlreadyRunning() {
-            if (tmpPath.isEmpty())
-                return QLockFile::UnknownError;
-            else if (!flock.tryLock(700))
+        QLockFile::LockError isRunning() {
+            if (!flock.tryLock(700))
                 return flock.error();
 
             return QLockFile::NoError;

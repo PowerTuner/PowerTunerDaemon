@@ -67,18 +67,19 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    const QString dataPath = getAppDataPath();
-    const QScopedPointer<PWTD::ProcessStatus> procStatus(new PWTD::ProcessStatus);
-    const QLockFile::LockError isRunning = procStatus->isAlreadyRunning();
-    PWTD::FileLogger &logger = PWTD::FileLogger::get();
-    QScopedPointer<PWTS::DaemonSettings> settings = QScopedPointer<PWTS::DaemonSettings>(new PWTS::DaemonSettings);
-    QCoreApplication a(argc, argv);
-    int ret;
+    PWTD::ProcessStatus procStatus;
+    const QLockFile::LockError isRunning = procStatus.isRunning();
 
     if (isRunning != QLockFile::NoError) {
         qCritical(isRunning == QLockFile::LockFailedError ? "PowerTunerDaemon is already running! (code %d)" : "presence check failed, aborting! (code %d)", isRunning);
         return 1;
     }
+
+    const QString dataPath = getAppDataPath();
+    PWTD::FileLogger &logger = PWTD::FileLogger::get();
+    QScopedPointer<PWTS::DaemonSettings> settings = QScopedPointer<PWTS::DaemonSettings>(new PWTS::DaemonSettings);
+    QCoreApplication a(argc, argv);
+    int ret;
 
     if (!settings->load(PWTD::DaemonSettingDiskManager::getInstance()->load()))
         qWarning("Failed to load daemon settings, using defaults");
