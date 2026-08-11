@@ -18,9 +18,9 @@
 #include  <QDir>
 
 #ifdef __linux__
-#include "Daemon/Linux/PowerTunerDaemonLinux.h"
+#include "Daemon/Linux/DaemonLinux.h"
 #elif defined(_WIN32)
-#include "Daemon/Windows/PowerTunerDaemonWindows.h"
+#include "Daemon/Windows/DaemonWindows.h"
 #endif
 #include "Device/Device.h"
 #include "Utils/ProcessStatus.h"
@@ -97,13 +97,13 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    QScopedPointer<PWTD::PowerTunerDaemon> daemonSvc;
+    QScopedPointer<PWTD::Daemon> daemonSvc;
 
     settings.reset();
 #ifdef __linux__
-    daemonSvc.reset(new PWTD::PowerTunerDaemonLinux(dataPath));
+    daemonSvc.reset(new PWTD::DaemonLinux(dataPath));
 #elifdef _WIN32
-    daemonSvc.reset(new PWTD::PowerTunerDaemonWindows(dataPath));
+    daemonSvc.reset(new PWTD::DaemonWindows(dataPath));
 #endif
 
     daemonSvc->setupCmdArgs();
@@ -113,5 +113,5 @@ int main(int argc, char *argv[]) {
     if (ret != 2)
         return ret;
 
-    return a.exec();
+    return QCoreApplication::exec();
 }

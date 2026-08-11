@@ -16,13 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include "../PowerTunerDaemon.h"
+#include "../Daemon.h"
 #include "../SignalNotifier.h"
 #include "SVCWorker.h"
 
 namespace PWTD {
-    class PowerTunerDaemonWindows final: public PowerTunerDaemon {
+    class DaemonWindows final: public Daemon {
         Q_OBJECT
 
     private:
@@ -39,8 +38,8 @@ namespace PWTD {
         static void sigterm([[maybe_unused]] int sig) { sigNotifier->signalSigTerm(); }
 
     public:
-        explicit PowerTunerDaemonWindows(const QString &dataPath);
-        ~PowerTunerDaemonWindows() override;
+        explicit DaemonWindows(const QString &dataPath);
+        ~DaemonWindows() override;
 
         void setupCmdArgs() const override;
         void parseCmdArgs(const QCoreApplication &app) override;

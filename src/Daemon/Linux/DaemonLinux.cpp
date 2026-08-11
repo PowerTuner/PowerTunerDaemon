@@ -21,10 +21,10 @@
 #include <chrono>
 #endif
 
-#include "PowerTunerDaemonLinux.h"
+#include "DaemonLinux.h"
 
 namespace PWTD {
-    PowerTunerDaemonLinux::PowerTunerDaemonLinux(const QString &dataPath) {
+    DaemonLinux::DaemonLinux(const QString &dataPath) {
         appDataPath = dataPath;
 
         std::signal(SIGTERM, sigterm);
@@ -32,25 +32,25 @@ namespace PWTD {
         std::signal(SIGABRT, sigterm);
         std::signal(SIGHUP, sigHup);
 
-        QObject::connect(sigNotifier.get(), &SignalNotifier::sigTermReceived, this, &PowerTunerDaemonLinux::onSigTerm);
-        QObject::connect(sigNotifier.get(), &SignalNotifier::sigHupReceived, this, &PowerTunerDaemonLinux::onSigHup);
+        QObject::connect(sigNotifier.get(), &SignalNotifier::sigTermReceived, this, &DaemonLinux::onSigTerm);
+        QObject::connect(sigNotifier.get(), &SignalNotifier::sigHupReceived, this, &DaemonLinux::onSigHup);
     }
 
-    void PowerTunerDaemonLinux::setupCmdArgs() const {
-        PowerTunerDaemon::setupCmdArgs();
+    void DaemonLinux::setupCmdArgs() const {
+        Daemon::setupCmdArgs();
 #ifdef SYSTEMD_NOTIFY
         cmdParser->addOption({"sd", "Run as systemd daemon"});
 #endif
     }
 
-    void PowerTunerDaemonLinux::parseCmdArgs(const QCoreApplication &app) {
-        PowerTunerDaemon::parseCmdArgs(app);
+    void DaemonLinux::parseCmdArgs(const QCoreApplication &app) {
+        Daemon::parseCmdArgs(app);
 #ifdef SYSTEMD_NOTIFY
         cmdSystemdDaemon = cmdParser->isSet("sd");
 #endif
     }
 
-    int PowerTunerDaemonLinux::run() {
+    int DaemonLinux::run() {
         service.reset(new DaemonService(appDataPath));
         service->start(cmdAdr, cmdPort);
 #ifdef SYSTEMD_NOTIFY
@@ -62,7 +62,7 @@ namespace PWTD {
         return 2;
     }
 
-    void PowerTunerDaemonLinux::onSigTerm() {
+    void DaemonLinux::onSigTerm() {
 #ifdef SYSTEMD_NOTIFY
         if (cmdSystemdDaemon && sd_notify(0, "STOPPING=1") < 0)
             qCritical("%s: failed to notify systemd", __func__);
@@ -72,7 +72,7 @@ namespace PWTD {
         QCoreApplication::quit();
     }
 
-    void PowerTunerDaemonLinux::onSigHup() const {
+    void DaemonLinux::onSigHup() const {
 #ifdef SYSTEMD_NOTIFY
         if (cmdSystemdDaemon) {
             const uint64_t usec = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();

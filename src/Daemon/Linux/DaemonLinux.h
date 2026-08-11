@@ -16,25 +16,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <QCommandLineParser>
-
-#include "../Service/DaemonService.h"
+#include "../Daemon.h"
+#include "../SignalNotifier.h"
 
 namespace PWTD {
-    class PowerTunerDaemon: public QObject {
-    protected:
-        QScopedPointer<DaemonService> service;
-        QScopedPointer<QCommandLineParser> cmdParser;
-        QString cmdAdr;
-        quint16 cmdPort;
+    class DaemonLinux final: public Daemon {
+        Q_OBJECT
+
+    private:
+        static inline QScopedPointer<SignalNotifier> sigNotifier {new SignalNotifier};
+#ifdef SYSTEMD_NOTIFY
+        bool cmdSystemdDaemon = false;
+#endif
+        QString appDataPath;
+
+        static void sigterm([[maybe_unused]] int sig) { sigNotifier->signalSigTerm(); }
+        static void sigHup([[maybe_unused]] int sig) { sigNotifier->signalSigHup(); }
 
     public:
-        PowerTunerDaemon();
+        explicit DaemonLinux(const QString &dataPath);
 
-        virtual int run() = 0;
+        void setupCmdArgs() const override;
+        void parseCmdArgs(const QCoreApplication &app) override;
+        [[nodiscard]] int run() override;
 
-        virtual void setupCmdArgs() const;
-        virtual void parseCmdArgs(const QCoreApplication &app);
+    public slots:
+        void onSigTerm();
+        void onSigHup() const;
     };
 }

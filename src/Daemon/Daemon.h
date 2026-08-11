@@ -15,23 +15,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "PowerTunerDaemon.h"
+#pragma once
+#include <QCommandLineParser>
+
+#include "../Service/DaemonService.h"
 
 namespace PWTD {
-    PowerTunerDaemon::PowerTunerDaemon() {
-        cmdParser.reset(new QCommandLineParser);
-    }
+    class Daemon: public QObject {
+    protected:
+        QScopedPointer<DaemonService> service;
+        QScopedPointer<QCommandLineParser> cmdParser;
+        QString cmdAdr;
+        quint16 cmdPort;
 
-    void PowerTunerDaemon::setupCmdArgs() const {
-        cmdParser->addHelpOption();
-        cmdParser->addOption({"a", "listen on address|localhost|any, default any", "address", "any"});
-        cmdParser->addOption({"p", QString("port, default %1").arg(PWTS::DaemonSettings::DefaultTCPPort), "port", QString::number(PWTS::DaemonSettings::DefaultTCPPort)});
-    }
+    public:
+        Daemon();
 
-    void PowerTunerDaemon::parseCmdArgs(const QCoreApplication &app) {
-        cmdParser->process(app);
+        virtual int run() = 0;
 
-        cmdAdr = cmdParser->value("a");
-        cmdPort = cmdParser->value("p").toUInt();
-    }
+        virtual void setupCmdArgs() const;
+        virtual void parseCmdArgs(const QCoreApplication &app);
+    };
 }

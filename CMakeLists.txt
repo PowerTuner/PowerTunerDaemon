@@ -87,8 +87,8 @@ set(PROJECT_SOURCES
 	src/Service/DaemonService.cpp
 	src/Service/DaemonService.h
 
-	src/Daemon/PowerTunerDaemon.h
-	src/Daemon/PowerTunerDaemon.cpp
+    src/Daemon/Daemon.h
+    src/Daemon/Daemon.cpp
 	src/Daemon/SignalNotifier.h
 	src/main.cpp
 )
@@ -105,8 +105,8 @@ if (LINUX)
 	endif ()
 
 	list(APPEND PROJECT_SOURCES
-		src/Daemon/Linux/PowerTunerDaemonLinux.h
-		src/Daemon/Linux/PowerTunerDaemonLinux.cpp
+        src/Daemon/Linux/DaemonLinux.h
+        src/Daemon/Linux/DaemonLinux.cpp
 
 		src/Device/OS/Linux/OSLinux.cpp
 		src/Device/OS/Linux/OSLinux.h
@@ -148,8 +148,8 @@ elseif (WIN32)
 		src/Daemon/Windows/SVCSigHandler.h
 		src/Daemon/Windows/SVCWorker.h
 		src/Daemon/Windows/SVCWorker.cpp
-		src/Daemon/Windows/PowerTunerDaemonWindows.h
-		src/Daemon/Windows/PowerTunerDaemonWindows.cpp
+        src/Daemon/Windows/DaemonWindows.h
+        src/Daemon/Windows/DaemonWindows.cpp
 
 		src/Device/OS/Windows/OSWindows.h
 		src/Device/OS/Windows/OSWindows.cpp

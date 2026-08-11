@@ -18,16 +18,16 @@
 #include "../../external/libPWTWin32/src/win32Svc.h"
 #include <csignal>
 
-#include "PowerTunerDaemonWindows.h"
+#include "DaemonWindows.h"
 
 #define SVCNAME L"PowerTunerDaemon"
 
 namespace PWTD {
-    PowerTunerDaemonWindows::PowerTunerDaemonWindows(const QString &dataPath) {
+    DaemonWindows::DaemonWindows(const QString &dataPath) {
         appDataPath = dataPath;
     }
 
-    PowerTunerDaemonWindows::~PowerTunerDaemonWindows() {
+    DaemonWindows::~DaemonWindows() {
         if (svcThread == nullptr)
             return;
 
@@ -36,7 +36,7 @@ namespace PWTD {
         delete svcThread;
     }
 
-    void PowerTunerDaemonWindows::setupCmdArgs() const {
+    void DaemonWindows::setupCmdArgs() const {
         PowerTunerDaemon::setupCmdArgs();
 
         cmdParser->addOption({"installsvc", "Install PowerTunerDaemon service"});
@@ -46,7 +46,7 @@ namespace PWTD {
         cmdParser->addOption({"nosvc", "Run in portable mode instead of a service"});
     }
 
-    void PowerTunerDaemonWindows::parseCmdArgs(const QCoreApplication &app) {
+    void DaemonWindows::parseCmdArgs(const QCoreApplication &app) {
         PowerTunerDaemon::parseCmdArgs(app);
 
         cmdInstallSvc = cmdParser->isSet("installsvc");
@@ -56,7 +56,7 @@ namespace PWTD {
         cmdNoSvc = cmdParser->isSet("nosvc");
     }
 
-    int PowerTunerDaemonWindows::run() { // ret: 0 success, 1 fail
+    int DaemonWindows::run() { // ret: 0 success, 1 fail
         const std::function<void(const std::wstring &)> logcb = [](const std::wstring &msg) {
             qCritical() << msg;
         };
@@ -124,7 +124,7 @@ namespace PWTD {
             sigNotifier.reset(new SignalNotifier);
             service.reset(new DaemonService(appDataPath));
 
-            QObject::connect(sigNotifier.get(), &SignalNotifier::sigTermReceived, this, &PowerTunerDaemonWindows::onSigTerm);
+            QObject::connect(sigNotifier.get(), &SignalNotifier::sigTermReceived, this, &DaemonWindows::onSigTerm);
 
             service->start(cmdAdr, cmdPort);
 
@@ -136,7 +136,7 @@ namespace PWTD {
 
             QObject::connect(svcThread, &QThread::started, svcWorker, &SVCWorker::start);
             QObject::connect(svcThread, &QThread::finished, svcWorker, &QObject::deleteLater);
-            QObject::connect(svcWorker, &SVCWorker::svcStopped, this, &PowerTunerDaemonWindows::onSvcStop);
+            QObject::connect(svcWorker, &SVCWorker::svcStopped, this, &DaemonWindows::onSvcStop);
 
             svcThread->start();
         }
@@ -144,11 +144,11 @@ namespace PWTD {
         return 2;
     }
 
-    void PowerTunerDaemonWindows::onSvcStop() {
+    void DaemonWindows::onSvcStop() {
         QCoreApplication::quit();
     }
 
-    void PowerTunerDaemonWindows::onSigTerm() {
+    void DaemonWindows::onSigTerm() {
         qInfo("Termination signal received, exiting..");
         service.reset();
         QCoreApplication::quit();
