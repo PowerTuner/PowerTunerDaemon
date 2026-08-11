@@ -72,7 +72,6 @@ int main(int argc, char *argv[]) {
     const QLockFile::LockError isRunning = procStatus->isAlreadyRunning();
     PWTD::FileLogger &logger = PWTD::FileLogger::get();
     QScopedPointer<PWTS::DaemonSettings> settings = QScopedPointer<PWTS::DaemonSettings>(new PWTS::DaemonSettings);
-    QSharedPointer<PWTD::Device> device;
     QCoreApplication a(argc, argv);
     int ret;
 
@@ -88,12 +87,11 @@ int main(int argc, char *argv[]) {
     logger.setLevel(settings->getLogLevel());
     logger.init();
 
-    device = PWTD::Device::getDevice();
-    if (!device->isCPUSupported()) {
+    if (!PWTD::Device::get().isCPUSupported()) {
         qCritical("Unsupported CPU!");
         return 1;
 
-    } else if (!device->isOSSupported()) {
+    } else if (!PWTD::Device::get().isOSSupported()) {
         qCritical("Unsupported OS!");
         return 1;
     }

@@ -24,13 +24,12 @@
 namespace PWTD {
     DaemonService::DaemonService(const QString &dataPath) {
         appDataPath = dataPath;
-        device = Device::getDevice();
 		powerNotifications = PowerNotificationsFactory::getPowerNotifications();
         daemonSettingDiskMan = DaemonSettingDiskManager::getInstance();
 
         logger.setOutput(appDataPath);
         daemonSettingDiskMan->setPath(appDataPath);
-        profileDiskMan.reset(new ProfileDiskManager(dataPath, device->getDeviceHash(), device->getCPUVendor()));
+        profileDiskMan.reset(new ProfileDiskManager(dataPath, device.getDeviceHash(), device.getCPUVendor()));
         daemonSettings.reset(new PWTS::DaemonSettings);
     }
 
@@ -91,7 +90,7 @@ namespace PWTD {
     }
 
     bool DaemonService::isValidClientPacket(const PWTS::ClientPacket &packet) const {
-        return packet.os == getOS() && packet.vendor == device->getCPUVendor();
+        return packet.os == getOS() && packet.vendor == device.getCPUVendor();
     }
 
     void DaemonService::setApplyTimer(const int interval) const {
@@ -143,12 +142,12 @@ namespace PWTD {
         packet.daemonPwtsMinorVersion = PWTS::getLibMinorVersion();
         packet.daemonDataPath = appDataPath;
         packet.daemonSettings = daemonSettings->getData();
-        packet.sysInfo = *(device->getSystemInfo());
-        packet.dynSysInfo = device->getDynamicSystemInfo();
-        packet.cpuInfo = *(device->getCPUInfo());
-        packet.gpusInfo = device->getGPUInfoMap();
-        packet.fanLabels = device->getFanLabelsMap();
-        packet.features = device->getFeatures();
+        packet.sysInfo = *(device.getSystemInfo());
+        packet.dynSysInfo = device.getDynamicSystemInfo();
+        packet.cpuInfo = *(device.getCPUInfo());
+        packet.gpusInfo = device.getGPUInfoMap();
+        packet.fanLabels = device.getFanLabelsMap();
+        packet.features = device.getFeatures();
 
         return packet;
     }
@@ -157,17 +156,17 @@ namespace PWTD {
         PWTS::DaemonPacket packet;
 
         packet.os = getOS();
-        packet.vendor = device->getCPUVendor();
-        packet.dynSysInfo = device->getDynamicSystemInfo();
+        packet.vendor = device.getCPUVendor();
+        packet.dynSysInfo = device.getDynamicSystemInfo();
         packet.profilesList = profileDiskMan->getProfilesList();
         packet.activeProfile = activeProfile;
 
-        device->fillPacketDeviceData(packet);
+        device.fillPacketDeviceData(packet);
         return packet;
     }
 
     void DaemonService::applyClientSettings(const PWTS::ClientPacket &packet) {
-        const QSet<PWTS::DError> errors = device->applySettings(packet);
+        const QSet<PWTS::DError> errors = device.applySettings(packet);
 
         activeProfile.clear();
         lastClientPacket.reset();
@@ -184,7 +183,7 @@ namespace PWTD {
         if (!profileDiskMan->load(name, packet))
             return {PWTS::DError::PROFILE_LOAD_FAILED};
 
-        const QSet<PWTS::DError> errors = device->applySettings(packet);
+        const QSet<PWTS::DError> errors = device.applySettings(packet);
 
         if (errors.isEmpty()) {
             lastClientPacket.reset();
@@ -450,7 +449,7 @@ namespace PWTD {
             return;
         }
 
-        const QSet<PWTS::DError> errors = device->applySettings(lastClientPacket.value());
+        const QSet<PWTS::DError> errors = device.applySettings(lastClientPacket.value());
 
         if (logger.isLevel(PWTS::LogLevel::Info))
             logger.write(QStringLiteral("applying settings.."));
@@ -482,7 +481,7 @@ namespace PWTD {
     }
 
     void DaemonService::onPrepareForSleepEventTriggered() const {
-        device->prepareForSleep();
+        device.prepareForSleep();
     }
 
     void DaemonService::onWakeFromSleepEventTriggered() {
@@ -491,7 +490,7 @@ namespace PWTD {
 		if (daemonSettings->getApplyOnWakeFromSleep() && lastClientPacket.has_value()) {
 		    stopApplyTimer();
 
-		    const QSet<PWTS::DError> errors = device->applySettings(lastClientPacket.value());
+		    const QSet<PWTS::DError> errors = device.applySettings(lastClientPacket.value());
 
 		    if (logger.isLevel(PWTS::LogLevel::Info))
 		        logger.write(QStringLiteral("Wake from sleep: applying settings"));

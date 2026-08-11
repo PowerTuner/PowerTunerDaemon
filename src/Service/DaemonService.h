@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include <QTimer>
 #include <QThread>
 
@@ -32,10 +31,10 @@ namespace PWTD {
         Q_OBJECT
 
     private:
+        FileLogger &logger = FileLogger::get();
+        Device &device = Device::get();
         mutable std::optional<PWTS::ClientPacket> lastClientPacket;
         mutable QString activeProfile;
-        FileLogger &logger = FileLogger::get();
-        QSharedPointer<Device> device;
         QScopedPointer<ProfileDiskManager> profileDiskMan;
         QScopedPointer<PWTS::DaemonSettings> daemonSettings;
         QSharedPointer<DaemonSettingDiskManager> daemonSettingDiskMan;

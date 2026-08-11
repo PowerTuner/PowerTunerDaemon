@@ -69,12 +69,10 @@ namespace PWTD {
         os->unsetOSAccess();
     }
 
-    QSharedPointer<Device> Device::getDevice() {
-        if (!instance.isNull())
-            return instance;
+    Device &Device::get() {
+        static Device dev;
 
-        instance.reset(new Device);
-        return instance;
+        return dev;
     }
 
     bool Device::isCPUSupported() const {

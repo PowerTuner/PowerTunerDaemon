@@ -28,7 +28,6 @@ namespace PWTD {
         Q_OBJECT
 
     private:
-        inline static QSharedPointer<Device> instance;
         FileLogger &logger = FileLogger::get();
         std::unique_ptr<CPUDevice> cpu;
         std::shared_ptr<OS> os;
@@ -46,7 +45,7 @@ namespace PWTD {
         Device(const Device &) = delete;
         Device &operator=(const Device &) = delete;
 
-        [[nodiscard]] static QSharedPointer<Device> getDevice();
+        [[nodiscard]] static Device &get();
         [[nodiscard]] bool isCPUSupported() const;
         [[nodiscard]] bool isOSSupported() const;
         [[nodiscard]] QByteArray getDeviceHash() const;
