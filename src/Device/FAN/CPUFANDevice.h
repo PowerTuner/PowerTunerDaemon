@@ -22,7 +22,7 @@
 namespace PWTD {
     class CPUFANDevice: public FANDevice {
     public:
-        CPUFANDevice(const std::shared_ptr<OS> &os, const QString &id): FANDevice(os, id) {}
+        explicit CPUFANDevice(const std::shared_ptr<OS> &os): FANDevice(os) {}
 
         [[nodiscard]] FanType getFanType() const final { return FanType::CPU; }
 

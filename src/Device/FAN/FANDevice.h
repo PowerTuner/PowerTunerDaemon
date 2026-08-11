@@ -27,21 +27,20 @@ namespace PWTD {
         FileLogger &logger = FileLogger::get();
         std::shared_ptr<OS> os;
         QList<std::pair<int, int>> curve;
-        QString id;
 
     protected:
         QString fanString;
         FanControls control;
 
     public:
-        FANDevice(const std::shared_ptr<OS> &os, const QString &id);
+        explicit FANDevice(const std::shared_ptr<OS> &os);
         virtual ~FANDevice();
 
         [[nodiscard]] virtual QSet<PWTS::Feature> getFeatures(const PWTS::Features &deviceFeatures) const = 0;
         [[nodiscard]] virtual FanType getFanType() const = 0;
 
         [[nodiscard]] QString getFanString() const { return fanString; }
-        [[nodiscard]] QString getID() const { return id; }
+        [[nodiscard]] QString getID() const { return os->getSystemInfo()->product; }
         [[nodiscard]] FanControls getControls() const { return control; }
         [[nodiscard]] bool hasFanCurve() const { return curve.size() > 1; }
 

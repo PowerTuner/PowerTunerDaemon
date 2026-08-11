@@ -22,7 +22,7 @@
 namespace PWTD::GPD {
     class GPDMPC2FanBoard final: public CPUFANDevice {
     public:
-        GPDMPC2FanBoard(const std::shared_ptr<OS> &os, const QString &id): CPUFANDevice(os, id) {
+        explicit GPDMPC2FanBoard(const std::shared_ptr<OS> &os): CPUFANDevice(os) {
             fanString = "GPD Micro PC 2 Fan Board";
             control = {
                 .board = FanBoard::GPD_MPC2,

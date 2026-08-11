@@ -22,7 +22,7 @@
 namespace PWTD::GPD {
     class GPDWin4FanBoard final: public CPUFANDevice {
     public:
-        GPDWin4FanBoard(const std::shared_ptr<OS> &os, const QString &id): CPUFANDevice(os, id) {
+        explicit GPDWin4FanBoard(const std::shared_ptr<OS> &os): CPUFANDevice(os) {
             fanString = "GPD Win 4 Fan Board";
             control = {
                 .board = FanBoard::GPD_WIN4,

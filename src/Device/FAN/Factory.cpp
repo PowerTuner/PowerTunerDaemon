@@ -15,8 +15,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <QCryptographicHash>
-
 #include "Factory.h"
 #ifdef _WIN32
 #include "../OS/Windows/OSWindows.h"
@@ -31,12 +29,12 @@
 
 namespace PWTD::FAN {
 #ifdef WITH_GPD_FAN
-    static std::shared_ptr<FANDevice> GPDFactory(const std::shared_ptr<OS> &os, const int CPUExtModel, const QString &id) {
+    static std::shared_ptr<FANDevice> GPDFactory(const std::shared_ptr<OS> &os, const int CPUExtModel) {
         const QSharedPointer<PWTS::SystemInfo> sysInfo = os->getSystemInfo();
 
         if (sysInfo->product == "G1618-04") { // win 4
             if (CPUExtModel == 0x44) { // 6800u
-                const std::shared_ptr<GPD::GPDWin4FanBoard> fan = std::make_shared<GPD::GPDWin4FanBoard>(os, id);
+                const std::shared_ptr<GPD::GPDWin4FanBoard> fan = std::make_shared<GPD::GPDWin4FanBoard>(os);
 #ifdef _WIN32
                 if (!std::dynamic_pointer_cast<OSWindows>(os)->gpdWin4ECInit(fan->getControls()))
                     return {};
@@ -44,23 +42,23 @@ namespace PWTD::FAN {
                 return fan;
             }
 
-            return std::make_shared<GPD::GPDWinMax2FanBoard>(os, id); // 7xxx/8xxx/hx
+            return std::make_shared<GPD::GPDWinMax2FanBoard>(os); // 7xxx/8xxx/hx
 
         } else if (sysInfo->product == "G1617-01" || sysInfo->product == "G1617-02" || sysInfo->product == "G1617-02-L" || // win mini
                     sysInfo->product == "G1628-04" || sysInfo->product == "G1628-04-L" // pocket 4
         ) {
-            return std::make_shared<GPD::GPDWinMiniFanBoard>(os, id);
+            return std::make_shared<GPD::GPDWinMiniFanBoard>(os);
 
         } else if (sysInfo->product == "G1619-04" || sysInfo->product == "G1619-05") { // max 2
-            return std::make_shared<GPD::GPDWinMax2FanBoard>(os, id);
+            return std::make_shared<GPD::GPDWinMax2FanBoard>(os);
 
         } else if (sysInfo->product == "G1622-01" || sysInfo->product == "G1622-01-L" || // duo
                     sysInfo->product == "G1618-05" // win 5
         ) {
-            return std::make_shared<GPD::GPDDUOFanBoard>(os, id);
+            return std::make_shared<GPD::GPDDUOFanBoard>(os);
 
         } else if (sysInfo->product == "G1688-08") { // micro pc 2
-            return std::make_shared<GPD::GPDMPC2FanBoard>(os, id);
+            return std::make_shared<GPD::GPDMPC2FanBoard>(os);
         }
 
         return {};
@@ -69,16 +67,10 @@ namespace PWTD::FAN {
 
     std::shared_ptr<FANDevice> CPUFANfactory(const std::shared_ptr<OS> &os, const int CPUExtModel) {
         const QSharedPointer<PWTS::SystemInfo> sysInfo = os->getSystemInfo();
-        QCryptographicHash crypto {QCryptographicHash::Sha256};
-        QString id;
-
-        crypto.addData(sysInfo->product.toUtf8());
-
-        id = crypto.result().toHex().left(6);
 
 #ifdef WITH_GPD_FAN
         if (sysInfo->manufacturer == "GPD")
-            return GPDFactory(os, CPUExtModel, id);
+            return GPDFactory(os, CPUExtModel);
 #endif
 
         return {};
