@@ -25,7 +25,7 @@
 #include "../../../external/winring0/OlsApi.h"
 #include "../../../external/winring0/OlsDef.h"
 
-namespace PWTD::WIN {
+namespace PWTD {
     OSWindows::OSWindows() {
 		setDisplayGUID();
     }

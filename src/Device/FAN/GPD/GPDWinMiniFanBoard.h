@@ -22,7 +22,7 @@
 namespace PWTD::GPD {
     class GPDWinMiniFanBoard final: public CPUFANDevice {
     public:
-        GPDWinMiniFanBoard(const QSharedPointer<OS> &os, const QString &id): CPUFANDevice(os, id) {
+        GPDWinMiniFanBoard(const std::shared_ptr<OS> &os, const QString &id): CPUFANDevice(os, id) {
             fanString = "GPD Win Mini Fan Board";
             control = {
                 .board = FanBoard::GPD_WIN_MINI,

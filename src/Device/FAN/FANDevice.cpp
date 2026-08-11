@@ -18,7 +18,7 @@
 #include "FANDevice.h"
 
 namespace PWTD {
-    FANDevice::FANDevice(const QSharedPointer<OS> &os, const QString &id) {
+    FANDevice::FANDevice(const std::shared_ptr<OS> &os, const QString &id) {
         this->os = os;
         this->id = id;
     }

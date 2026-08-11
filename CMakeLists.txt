@@ -45,8 +45,8 @@ set(PROJECT_SOURCES
 	src/Device/FAN/FANDevice.h
 	src/Device/FAN/FANDevice.cpp
 	src/Device/FAN/CPUFANDevice.h
-	src/Device/FAN/FANFactory.h
-	src/Device/FAN/FANFactory.cpp
+    src/Device/FAN/Factory.h
+    src/Device/FAN/Factory.cpp
 
 	src/Device/CPU/CPUDevice.h
 	src/Device/CPU/CPUDevice.cpp
@@ -56,16 +56,16 @@ set(PROJECT_SOURCES
 
 	src/Device/GPU/GPUDevice.cpp
 	src/Device/GPU/GPUDevice.h
-	src/Device/GPU/GPUDeviceFactory.h
-	src/Device/GPU/GPUDeviceFactory.cpp
+    src/Device/GPU/Factory.h
+    src/Device/GPU/Factory.cpp
 	src/Device/GPU/AMD/AMDGPU.h
 	src/Device/GPU/Intel/IntelGPU.h
 	src/Device/GPU/NVIDIA/NVIDIAGPU.h
 
 	src/Device/OS/OS.cpp
 	src/Device/OS/OS.h
-	src/Device/OS/OSFactory.h
-	src/Device/OS/OSFactory.cpp
+    src/Device/OS/Factory.h
+    src/Device/OS/Factory.cpp
 
     src/Utils/Utils.h
     src/Utils/Utils.cpp

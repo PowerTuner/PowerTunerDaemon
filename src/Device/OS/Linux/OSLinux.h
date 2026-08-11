@@ -16,13 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include <QFile>
 #include <QRegularExpression>
 
 #include "../OS.h"
 
-namespace PWTD::LNX {
+namespace PWTD {
     class OSLinux final: public OS {
     private:
         const QFlags<QIODevice::OpenModeFlag> ROTextOpenFlags = QFile::ReadOnly | QFile::Text;

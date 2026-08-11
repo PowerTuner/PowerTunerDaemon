@@ -22,7 +22,7 @@
 namespace PWTD::NVIDIA {
     class NVIDIAGPU final: public GPUDevice {
     public:
-        NVIDIAGPU(const int idx, const QSharedPointer<OS> &os): GPUDevice(idx, os) {}
+        NVIDIAGPU(const int idx, const std::shared_ptr<OS> &os): GPUDevice(idx, os) {}
 
         [[nodiscard]] PWTS::GPUVendor getVendor() const override { return PWTS::GPUVendor::NVIDIA; }
     };

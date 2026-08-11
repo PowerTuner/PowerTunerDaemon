@@ -16,14 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include <QDBusInterface>
 #include <QDBusServiceWatcher>
 #include <QScopedPointer>
 
 #include "../../Utils/FileLogger/FileLogger.h"
 
-namespace PWTD::LNX {
+namespace PWTD {
     class DBusServices final: public QObject {
         Q_OBJECT
 

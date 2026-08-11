@@ -22,7 +22,7 @@
 namespace PWTD::Intel {
     class IntelGPU final: public GPUDevice {
     public:
-        IntelGPU(const int idx, const QSharedPointer<OS> &os): GPUDevice(idx, os) {}
+        IntelGPU(const int idx, const std::shared_ptr<OS> &os): GPUDevice(idx, os) {}
 
         [[nodiscard]] PWTS::GPUVendor getVendor() const override { return PWTS::GPUVendor::Intel; }
     };

@@ -22,7 +22,7 @@
 namespace PWTD::AMD {
     class AMDGPU final: public GPUDevice {
     public:
-        explicit AMDGPU(const int idx, const QSharedPointer<OS> &os): GPUDevice(idx, os) {}
+        explicit AMDGPU(const int idx, const std::shared_ptr<OS> &os): GPUDevice(idx, os) {}
 
         [[nodiscard]] PWTS::GPUVendor getVendor() const override { return PWTS::GPUVendor::AMD; }
     };

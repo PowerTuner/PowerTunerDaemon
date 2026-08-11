@@ -16,14 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "../../../external/libPWTWin32/src/win.h"
 #include <QRegularExpression>
 
 #include "../OS.h"
 #include "pwtShared/Include/OS/Windows/PowerSchemesData.h"
 
-namespace PWTD::WIN {
+namespace PWTD {
 	class OSWindows final: public OS {
 	private:
 		struct SchemeGUID final {

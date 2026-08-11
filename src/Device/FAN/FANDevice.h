@@ -25,7 +25,7 @@ namespace PWTD {
     class FANDevice {
     private:
         FileLogger &logger = FileLogger::get();
-        QSharedPointer<OS> os;
+        std::shared_ptr<OS> os;
         QList<std::pair<int, int>> curve;
         QString id;
 
@@ -34,7 +34,7 @@ namespace PWTD {
         FanControls control;
 
     public:
-        FANDevice(const QSharedPointer<OS> &os, const QString &id);
+        FANDevice(const std::shared_ptr<OS> &os, const QString &id);
         virtual ~FANDevice();
 
         [[nodiscard]] virtual QSet<PWTS::Feature> getFeatures(const PWTS::Features &deviceFeatures) const = 0;

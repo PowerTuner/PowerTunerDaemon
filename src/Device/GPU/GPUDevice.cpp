@@ -18,7 +18,7 @@
 #include "GPUDevice.h"
 
 namespace PWTD {
-    GPUDevice::GPUDevice(const int index, const QSharedPointer<OS> &os) {
+    GPUDevice::GPUDevice(const int index, const std::shared_ptr<OS> &os) {
         gpuInfo = QSharedPointer<PWTS::GpuInfo>::create();
         gpuInfo->vendor = os->getGPUVendor(index);
         gpuInfo->deviceID = os->getGPUDeviceID(index);

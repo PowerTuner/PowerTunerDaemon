@@ -23,7 +23,7 @@ extern "C" {
 
 #include "OSLinux.h"
 
-namespace PWTD::LNX {
+namespace PWTD {
     bool OSLinux::setupOSAccess() const {
         return true;
     }

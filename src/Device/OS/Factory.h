@@ -16,20 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+#include "OS.h"
 
-#include "FANDevice.h"
-
-namespace PWTD {
-    class FANFactory final {
-    private:
-        FANFactory() = default;
-
-        static void addCPUFan(const QSharedPointer<OS> &os, int CPUExtModel, QList<QSharedPointer<FANDevice>> &fanList);
-
-    public:
-        FANFactory(const FANFactory &) = delete;
-        FANFactory &operator=(const FANFactory &) = delete;
-
-        [[nodiscard]] static QList<QSharedPointer<FANDevice>> getFans(const QSharedPointer<OS> &os, int CPUExtModel);
-    };
+namespace PWTD::Sys {
+    [[nodiscard]] std::shared_ptr<OS> factory();
 }

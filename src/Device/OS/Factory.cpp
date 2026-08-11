@@ -15,24 +15,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "GPUDeviceFactory.h"
-#include "AMD/AMDGPU.h"
-#include "Intel/IntelGPU.h"
-#include "NVIDIA/NVIDIAGPU.h"
+#include "Factory.h"
+#ifdef __linux__
+#include "Linux/OSLinux.h"
+#elifdef _WIN32
+#include "Windows/OSWindows.h"
+#endif
 
-namespace PWTD {
-    QSharedPointer<GPUDevice> GPUDeviceFactory::getGPUDevice(const int index, const QSharedPointer<OS> &os) {
-        switch (os->getGPUVendor(index)) {
-            case PWTS::GPUVendor::AMD:
-                return QSharedPointer<AMD::AMDGPU>::create(index, os);
-            case PWTS::GPUVendor::Intel:
-                return QSharedPointer<Intel::IntelGPU>::create(index, os);
-            case PWTS::GPUVendor::NVIDIA:
-                return QSharedPointer<NVIDIA::NVIDIAGPU>::create(index, os);
-            default:
-                break;
-        }
-
+namespace PWTD::Sys {
+    std::shared_ptr<OS> factory() {
+#ifdef __linux__
+        return std::make_shared<OSLinux>();
+#elifdef _WIN32
+        return std::make_shared<OSWindows>();
+#else
         return {};
+#endif
     }
 }

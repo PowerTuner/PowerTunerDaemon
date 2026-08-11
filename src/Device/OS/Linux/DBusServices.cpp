@@ -17,7 +17,7 @@
  */
 #include "DBusServices.h"
 
-namespace PWTD::LNX {
+namespace PWTD {
     DBusServices::DBusServices() {
         upowerDBus.reset(new QDBusInterface("org.freedesktop.UPower", "/org/freedesktop/UPower", "org.freedesktop.UPower", QDBusConnection::systemBus()));
         login1Dbus.reset(new QDBusInterface("org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager", QDBusConnection::systemBus()));

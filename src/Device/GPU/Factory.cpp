@@ -15,19 +15,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once
+#include "Factory.h"
+#include "AMD/AMDGPU.h"
+#include "Intel/IntelGPU.h"
+#include "NVIDIA/NVIDIAGPU.h"
 
-#include "GPUDevice.h"
-
-namespace PWTD {
-    class GPUDeviceFactory final {
-    private:
-        GPUDeviceFactory() = default;
-
-    public:
-        GPUDeviceFactory(const GPUDeviceFactory &) = delete;
-        GPUDeviceFactory &operator=(const GPUDeviceFactory &) = delete;
-
-        [[nodiscard]] static QSharedPointer<GPUDevice> getGPUDevice(int index, const QSharedPointer<OS> &os);
-    };
+namespace PWTD::GPU {
+    std::shared_ptr<GPUDevice> factory(const int index, const std::shared_ptr<OS> &os) {
+        switch (os->getGPUVendor(index)) {
+            case PWTS::GPUVendor::AMD:
+                return std::make_shared<AMD::AMDGPU>(index, os);
+            case PWTS::GPUVendor::Intel:
+                return std::make_shared<Intel::IntelGPU>(index, os);
+            case PWTS::GPUVendor::NVIDIA:
+                return std::make_shared<NVIDIA::NVIDIAGPU>(index, os);
+            default:
+                return {};
+        }
+    }
 }

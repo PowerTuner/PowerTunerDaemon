@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "../OS/OS.h"
 #include "pwtShared/Include/GPU/GpuInfo.h"
 
@@ -26,7 +25,7 @@ namespace PWTD {
         QSharedPointer<PWTS::GpuInfo> gpuInfo;
 
     public:
-        GPUDevice(int index, const QSharedPointer<OS> &os);
+        GPUDevice(int index, const std::shared_ptr<OS> &os);
         virtual ~GPUDevice() = default;
 
         [[nodiscard]] virtual PWTS::GPUVendor getVendor() const = 0;

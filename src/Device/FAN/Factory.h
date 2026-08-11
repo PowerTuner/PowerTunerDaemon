@@ -15,21 +15,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "OSFactory.h"
-#ifdef __linux__
-#include "Linux/OSLinux.h"
-#elif defined(_WIN32)
-#include "Windows/OSWindows.h"
-#endif
+#pragma once
+#include "FANDevice.h"
 
-namespace PWTD {
-    QSharedPointer<OS> OSFactory::getOS() {
-#ifdef __linux__
-        return QSharedPointer<LNX::OSLinux>::create();
-#elif defined(_WIN32)
-        return QSharedPointer<WIN::OSWindows>::create();
-#else
-        return {};
-#endif
-    }
+namespace PWTD::FAN {
+    [[nodiscard]] std::shared_ptr<FANDevice> CPUFANfactory(const std::shared_ptr<OS> &os, int CPUExtModel);
 }

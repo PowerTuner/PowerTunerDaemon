@@ -16,18 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+#include "GPUDevice.h"
 
-#include "OS.h"
-
-namespace PWTD {
-    class OSFactory final {
-    private:
-        OSFactory() = default;
-
-    public:
-        OSFactory(const OSFactory &) = delete;
-        OSFactory &operator=(const OSFactory &) = delete;
-
-        [[nodiscard]] static QSharedPointer<OS> getOS();
-    };
+namespace PWTD::GPU {
+    [[nodiscard]] std::shared_ptr<GPUDevice> factory(int index, const std::shared_ptr<OS> &os);
 }

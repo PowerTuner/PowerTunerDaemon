@@ -19,15 +19,15 @@
 
 #include "Device.h"
 #include "CPU/Factory.h"
-#include "GPU/GPUDeviceFactory.h"
-#include "FAN/FANFactory.h"
-#include "OS/OSFactory.h"
+#include "GPU/Factory.h"
+#include "FAN/Factory.h"
+#include "OS/Factory.h"
 
 namespace PWTD {
     Device::Device() {
         QSharedPointer<PWTS::CpuInfo> cpuInfo;
 
-        os = OSFactory::getOS();
+        os = Sys::factory();
         if (!os)
             return;
 
@@ -47,19 +47,22 @@ namespace PWTD {
         deviceFeatures.cpu.unite(os->getCPUFeatures(cpuInfo->numLogicalCpus, cpuInfo->vendor));
 
         for (const int index: os->getGPUIndexList()) {
-            const QSharedPointer<GPUDevice> gpu = GPUDeviceFactory::getGPUDevice(index, os);
+            const std::shared_ptr<GPUDevice> gpu = GPU::factory(index, os);
 
-            if (gpu.isNull())
+            if (!gpu)
                 continue;
 
-            gpus.append(gpu);
+            gpus.push_back(gpu);
             deviceFeatures.gpus.insert(index, os->getGPUFeatures(index, gpu->getVendor()));
         }
 
         if (os->hasFanControls()) {
-            fans = FANFactory::getFans(os, cpuInfo->extModel);
+            const std::shared_ptr<FANDevice> cpuFan = FAN::CPUFANfactory(os, cpuInfo->extModel);
 
-            for (const QSharedPointer<FANDevice> &fan: fans)
+            if (cpuFan)
+                fans.push_back(cpuFan);
+
+            for (const std::shared_ptr<FANDevice> &fan: fans)
                 deviceFeatures.fans.insert(fan->getID(), fan->getFeatures(deviceFeatures));
         }
 
@@ -79,7 +82,7 @@ namespace PWTD {
     }
 
     bool Device::isOSSupported() const {
-        return !os.isNull();
+        return os != nullptr;
     }
 
     QByteArray Device::getDeviceHash() const {
@@ -115,7 +118,7 @@ namespace PWTD {
     QMap<int, PWTS::GpuInfo> Device::getGPUInfoMap() const {
         QMap<int, PWTS::GpuInfo> ginfo;
 
-        for (const QSharedPointer<GPUDevice> &gpu: gpus)
+        for (const std::shared_ptr<GPUDevice> &gpu: gpus)
             ginfo.insert(gpu->getGpuInfo()->index, *(gpu->getGpuInfo()));
 
         return ginfo;
@@ -124,7 +127,7 @@ namespace PWTD {
     QMap<QString, QString> Device::getFanLabelsMap() const {
         QMap<QString, QString> labelMap;
 
-        for (const QSharedPointer<FANDevice> &fan: fans)
+        for (const std::shared_ptr<FANDevice> &fan: fans)
             labelMap.insert(fan->getID(), fan->getFanString());
 
         return labelMap;
@@ -144,7 +147,7 @@ namespace PWTD {
 
     void Device::prepareForSleep() const {
         if (os->setupOSAccess()) {
-            for (const QSharedPointer<FANDevice> &fan: fans)
+            for (const std::shared_ptr<FANDevice> &fan: fans)
                 fan->prepareForSleep();
 
             os->unsetOSAccess();
@@ -164,7 +167,7 @@ namespace PWTD {
         cpu->fillDaemonPacket(deviceFeatures.cpu, coreIdxList, packet);
         os->fillDaemonPacket(deviceFeatures, cpu->getCpuInfo()->vendor, cpu->getCpuInfo()->numLogicalCpus, packet);
 
-        for (const QSharedPointer<FANDevice> &fan: fans)
+        for (const std::shared_ptr<FANDevice> &fan: fans)
             packet.fanData.insert(fan->getID(), fan->getFanData());
 
         os->unsetOSAccess();
@@ -186,7 +189,7 @@ namespace PWTD {
         errors.unite(cpu->applySettings(deviceFeatures.cpu, coreIdxList, packet));
         errors.unite(os->applySettings(deviceFeatures, cpu->getCpuInfo()->vendor, cpu->getCpuInfo()->numLogicalCpus, coreIdxList, packet));
 
-        for (const QSharedPointer<FANDevice> &fan: fans) {
+        for (const std::shared_ptr<FANDevice> &fan: fans) {
             const QString fanId = fan->getID();
 
             if (!packet.fanData.contains(fanId))
@@ -213,7 +216,7 @@ namespace PWTD {
         const bool logErrorLev = logger.isLevel(PWTS::LogLevel::Error);
 
         if (os->setupOSAccess()) {
-            for (const QSharedPointer<FANDevice> &fan: fans) {
+            for (const std::shared_ptr<FANDevice> &fan: fans) {
                 if (!fan->hasFanCurve())
                     continue;
 

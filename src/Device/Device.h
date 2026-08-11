@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include <QTimer>
 
 #include "CPU/CPUDevice.h"
@@ -32,9 +31,9 @@ namespace PWTD {
         inline static QSharedPointer<Device> instance;
         FileLogger &logger = FileLogger::get();
         std::unique_ptr<CPUDevice> cpu;
-        QList<QSharedPointer<GPUDevice>> gpus;
-        QList<QSharedPointer<FANDevice>> fans;
-        QSharedPointer<OS> os;
+        std::shared_ptr<OS> os;
+        std::vector<std::shared_ptr<GPUDevice>> gpus;
+        std::vector<std::shared_ptr<FANDevice>> fans;
         PWTS::Features deviceFeatures;
         QList<int> coreIdxList;
         mutable QScopedPointer<QTimer> fanCurveTimer;
