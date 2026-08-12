@@ -24,6 +24,8 @@
 #include "DaemonLinux.h"
 
 namespace PWTD {
+    using namespace Qt::StringLiterals;
+
     DaemonLinux::DaemonLinux(const QString &dataPath) {
         appDataPath = dataPath;
 
