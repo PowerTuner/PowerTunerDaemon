@@ -18,7 +18,6 @@
 #pragma once
 #include <QDBusInterface>
 #include <QDBusServiceWatcher>
-#include <QScopedPointer>
 
 #include "../../Utils/FileLogger/FileLogger.h"
 
@@ -27,17 +26,23 @@ namespace PWTD {
         Q_OBJECT
 
     private:
-        QScopedPointer<QDBusServiceWatcher> dbusWatcher;
-        QScopedPointer<QDBusInterface> upowerDBus;
-        QScopedPointer<QDBusInterface> login1Dbus;
+        static constexpr char upowerSrvName[] = "org.freedesktop.UPower";
+        static constexpr char upowerPath[] = "/org/freedesktop/UPower";
+        static constexpr char login1SrvName[] = "org.freedesktop.login1";
+        static constexpr char login1Path[] = "org.freedesktop.login1";
+        static constexpr char login1IFace[] = "org.freedesktop.login1.Manager";
         FileLogger &logger = FileLogger::get();
+        QDBusInterface upowerDBus {upowerSrvName, upowerPath, upowerSrvName, QDBusConnection::systemBus()};
+        QDBusInterface login1Dbus {login1SrvName, login1Path, login1IFace, QDBusConnection::systemBus()};
+        QDBusServiceWatcher dbusWatcher {};
         bool prevIsOnBattery = false;
 
         void initDBusServicesConnections();
-        void initDBusWatcher() const;
+        void initDBusWatcher();
 
     public:
         DBusServices();
+        ~DBusServices() override = default;
 
     private slots:
         void onDBusServiceRegistered(const QString &name);

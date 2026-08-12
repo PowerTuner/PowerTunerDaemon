@@ -18,70 +18,62 @@
 #include "DBusServices.h"
 
 namespace PWTD {
-    DBusServices::DBusServices() {
-        upowerDBus.reset(new QDBusInterface("org.freedesktop.UPower", "/org/freedesktop/UPower", "org.freedesktop.UPower", QDBusConnection::systemBus()));
-        login1Dbus.reset(new QDBusInterface("org.freedesktop.login1", "/org/freedesktop/login1", "org.freedesktop.login1.Manager", QDBusConnection::systemBus()));
-        dbusWatcher.reset(new QDBusServiceWatcher);
+    using namespace Qt::StringLiterals;
 
+    DBusServices::DBusServices() {
         initDBusServicesConnections();
         initDBusWatcher();
     }
 
-    void DBusServices::initDBusWatcher() const {
-        const QList<QString> services {
-            "org.freedesktop.UPower",
-            "org.freedesktop.login1"
-        };
+    void DBusServices::initDBusWatcher() {
+        dbusWatcher.setWatchMode(QDBusServiceWatcher::WatchForRegistration | QDBusServiceWatcher::WatchForUnregistration);
+        dbusWatcher.addWatchedService(upowerSrvName);
+        dbusWatcher.addWatchedService(login1SrvName);
 
-        dbusWatcher->setWatchMode(QDBusServiceWatcher::WatchForRegistration | QDBusServiceWatcher::WatchForUnregistration);
-
-        for (const QString &service: services)
-            dbusWatcher->addWatchedService(service);
-
-        QObject::connect(dbusWatcher.get(), &QDBusServiceWatcher::serviceRegistered, this, &DBusServices::onDBusServiceRegistered);
-        QObject::connect(dbusWatcher.get(), &QDBusServiceWatcher::serviceUnregistered, this, &DBusServices::onDBusServiceUnregistered);
+        QObject::connect(&dbusWatcher, &QDBusServiceWatcher::serviceRegistered, this, &DBusServices::onDBusServiceRegistered);
+        QObject::connect(&dbusWatcher, &QDBusServiceWatcher::serviceUnregistered, this, &DBusServices::onDBusServiceUnregistered);
     }
 
     void DBusServices::initDBusServicesConnections() {
-        if (upowerDBus->isValid())
-            onDBusServiceRegistered("org.freedesktop.UPower");
+        if (upowerDBus.isValid())
+            onDBusServiceRegistered(upowerSrvName);
         else if (logger.isLevel(PWTS::LogLevel::Error))
-            logger.write(QStringLiteral("UPower DBus service not available, OnBattery event disabled"));
+            logger.write(u"UPower DBus service not available, OnBattery event disabled"_s);
 
-        if (login1Dbus->isValid())
-            onDBusServiceRegistered("org.freedesktop.login1");
+        if (login1Dbus.isValid())
+            onDBusServiceRegistered(login1SrvName);
         else if (logger.isLevel(PWTS::LogLevel::Error))
-            logger.write(QStringLiteral("login1 DBus service not available, OnSystemWake event disabled"));
+            logger.write(u"login1 DBus service not available, OnSystemWake event disabled"_s);
     }
 
     void DBusServices::onDBusServiceRegistered(const QString &name) {
         bool res;
 
-        if (name == "org.freedesktop.UPower") {
-            res = upowerDBus->connection().connect(name, "/org/freedesktop/UPower", "org.freedesktop.DBus.Properties", "PropertiesChanged", this, SLOT(onDBusUPowerPropsChanged()));
+        if (name == upowerSrvName) {
+            res = upowerDBus.connection().connect(name, upowerPath, u"org.freedesktop.DBus.Properties"_s, u"PropertiesChanged"_s, this, SLOT(onDBusUPowerPropsChanged()));
 
             if (res)
-                prevIsOnBattery = upowerDBus->property("OnBattery").toBool();
+                prevIsOnBattery = upowerDBus.property("OnBattery").toBool();
             else if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QStringLiteral("Failed to connect to UPower PropertiesChanged signal"));
+                logger.write(u"Failed to connect to UPower PropertiesChanged signal"_s);
 
-        } else if (name == "org.freedesktop.login1") {
-            res = login1Dbus->connection().connect(name, "/org/freedesktop/login1", "org.freedesktop.login1.Manager", "PrepareForSleep", this, SLOT(onDBusLogin1PrepareForSleep(bool)));
+        } else if (name == login1SrvName) {
+            res = login1Dbus.connection().connect(name, login1Path, login1IFace, u"PrepareForSleep"_s, this, SLOT(onDBusLogin1PrepareForSleep(bool)));
 
             if (!res && logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QStringLiteral("Failed to connect to login1 PrepareForSleep signal"));
+                logger.write(u"Failed to connect to login1 PrepareForSleep signal"_s);
         }
     }
 
     void DBusServices::onDBusServiceUnregistered(const QString &name) {
-        if (name == "org.freedesktop.UPower")
-            upowerDBus->connection().disconnect(name, "/org/freedesktop/UPower", "org.freedesktop.DBus.Properties", "PropertiesChanged", this, SLOT(onDBusUPowerPropsChanged()));
-        else if (name == "org.freedesktop.login1")
-            login1Dbus->connection().disconnect(name, "/org/freedesktop/login1", "org.freedesktop.login1.Manager", "PrepareForSleep", this, SLOT(onDBusLogin1PrepareForSleep(bool)));
+        if (name == upowerSrvName)
+            upowerDBus.connection().disconnect(name, upowerPath, u"org.freedesktop.DBus.Properties"_s, u"PropertiesChanged"_s, this, SLOT(onDBusUPowerPropsChanged()));
+        else if (name == login1SrvName)
+            login1Dbus.connection().disconnect(name, login1Path, u"org.freedesktop.login1.Manager"_s, u"PrepareForSleep"_s, this, SLOT(onDBusLogin1PrepareForSleep(bool)));
     }
 
     void DBusServices::onDBusUPowerPropsChanged() {
-        const bool isOnBattery = upowerDBus->property("OnBattery").toBool();
+        const bool isOnBattery = upowerDBus.property("OnBattery").toBool();
 
         if (isOnBattery == prevIsOnBattery)
             return;

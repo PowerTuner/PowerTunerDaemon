@@ -19,7 +19,7 @@
 
 namespace PWTD {
 	void PowerNotificationsLinux::initNotifications() {
-		dbusServices.reset(new DBusServices());
+		dbusServices.reset(new DBusServices);
 
 		QObject::connect(dbusServices.get(), &DBusServices::batteryStatusChanged, this, &PowerNotificationsLinux::onDBusServiceBatteryStatusChange);
 		QObject::connect(dbusServices.get(), &DBusServices::prepareForSleep, this, &PowerNotificationsLinux::onDBusServicePrepareForSleep);
