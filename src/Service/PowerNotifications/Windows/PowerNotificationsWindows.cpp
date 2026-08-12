@@ -16,11 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include "PowerNotificationsWindows.h"
-
 #include <powrprof.h>
 #include <powerbase.h>
 
-namespace PWTD::WIN {
+namespace PWTD {
 	PowerNotificationsWindows::PowerNotificationsWindows() {
 		logger = FileLogger::getInstance();
 	}

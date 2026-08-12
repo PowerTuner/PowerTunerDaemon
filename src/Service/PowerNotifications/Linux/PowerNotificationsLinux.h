@@ -16,29 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "../PowerNotifications.h"
-#ifdef WITH_DBUS_SERVICES
 #include "../../../Device/OS/Linux/DBusServices.h"
-#endif
 
-namespace PWTD::LNX {
+namespace PWTD {
 	class PowerNotificationsLinux final: public PowerNotifications {
 		Q_OBJECT
 
 	private:
-#ifdef WITH_DBUS_SERVICES
 		QScopedPointer<DBusServices> dbusServices;
-#endif
 
 	public:
 		void initNotifications() override;
 
 	private slots:
-#ifdef WITH_DBUS_SERVICES
 		void onDBusServiceBatteryStatusChange(bool onBattery);
 		void onDBusServicePrepareForSleep();
         void onDBusServiceWakeFromSleep();
-#endif
 	};
 }

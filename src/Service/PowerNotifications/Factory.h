@@ -16,33 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <QSharedPointer>
-
 #include "PowerNotifications.h"
-#ifdef WITH_DBUS_SERVICES
+#if defined(__linux__) && defined(WITH_DBUS_SERVICES)
 #include "Linux/PowerNotificationsLinux.h"
-#elif defined(_WIN32)
+#elifdef _WIN32
 #include "Windows/PowerNotificationsWindows.h"
 #endif
 
-namespace PWTD {
-	class PowerNotificationsFactory final {
-	private:
-		PowerNotificationsFactory() = default;
-
-	public:
-		PowerNotificationsFactory(const PowerNotificationsFactory &) = delete;
-		PowerNotificationsFactory &operator=(const PowerNotificationsFactory &) = delete;
-
-		static QSharedPointer<PowerNotifications> getPowerNotifications() {
-#ifdef WITH_DBUS_SERVICES
-			return QSharedPointer<LNX::PowerNotificationsLinux>::create();
-#elif defined(_WIN32)
-			return QSharedPointer<WIN::PowerNotificationsWindows>::create();
+namespace PWTD::PwrNotf {
+    [[nodiscard]]
+	inline QSharedPointer<PowerNotifications> factory() {
+#if defined(__linux__) && defined(WITH_DBUS_SERVICES)
+		return QSharedPointer<PowerNotificationsLinux>::create();
+#elifdef _WIN32
+		return QSharedPointer<PowerNotificationsWindows>::create();
 #else
-			return nullptr;
+		return nullptr;
 #endif
-		}
-	};
+	}
 }

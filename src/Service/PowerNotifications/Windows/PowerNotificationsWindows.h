@@ -16,12 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
 #include "../../../external/libPWTWin32/src/win.h"
 #include "../PowerNotifications.h"
 #include "../../../Utils/FileLogger/FileLogger.h"
 
-namespace PWTD::WIN {
+namespace PWTD {
 	class PowerNotificationsWindows final: public PowerNotifications {
 		Q_OBJECT
 

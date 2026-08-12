@@ -18,13 +18,13 @@
 #include "../../version.h"
 #include "DaemonService.h"
 #include "../Utils/Utils.h"
-#include "PowerNotifications/PowerNotificationsFactory.h"
+#include "PowerNotifications/Factory.h"
 #include "pwtShared/Utils.h"
 
 namespace PWTD {
     DaemonService::DaemonService(const QString &dataPath) {
         appDataPath = dataPath;
-		powerNotifications = PowerNotificationsFactory::getPowerNotifications();
+		powerNotifications = PwrNotf::factory();
         daemonSettingDiskMan = DaemonSettingDiskManager::getInstance();
 
         logger.setOutput(appDataPath);

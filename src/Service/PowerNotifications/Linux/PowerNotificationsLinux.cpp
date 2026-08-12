@@ -17,18 +17,15 @@
  */
 #include "PowerNotificationsLinux.h"
 
-namespace PWTD::LNX {
+namespace PWTD {
 	void PowerNotificationsLinux::initNotifications() {
-#ifdef WITH_DBUS_SERVICES
 		dbusServices.reset(new DBusServices());
 
 		QObject::connect(dbusServices.get(), &DBusServices::batteryStatusChanged, this, &PowerNotificationsLinux::onDBusServiceBatteryStatusChange);
 		QObject::connect(dbusServices.get(), &DBusServices::prepareForSleep, this, &PowerNotificationsLinux::onDBusServicePrepareForSleep);
 		QObject::connect(dbusServices.get(), &DBusServices::wakeFromSleep, this, &PowerNotificationsLinux::onDBusServiceWakeFromSleep);
-#endif
 	}
 
-#ifdef WITH_DBUS_SERVICES
 	void PowerNotificationsLinux::onDBusServiceBatteryStatusChange(const bool onBattery) {
 		emit batteryStatusChanged(onBattery);
 	}
@@ -40,5 +37,4 @@ namespace PWTD::LNX {
 	void PowerNotificationsLinux::onDBusServiceWakeFromSleep() {
 		emit wakeFromSleepEventTriggered();
 	}
-#endif
 }

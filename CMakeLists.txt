@@ -81,7 +81,7 @@ set(PROJECT_SOURCES
 	src/DiskManagers/DaemonSettingDiskManager.h
 
 	src/Service/PowerNotifications/PowerNotifications.h
-	src/Service/PowerNotifications/PowerNotificationsFactory.h
+    src/Service/PowerNotifications/Factory.h
 	src/Service/Workers/ServiceWorker.h
 	src/Service/Workers/ServiceWorker.cpp
 	src/Service/DaemonService.cpp
@@ -116,9 +116,6 @@ if (LINUX)
 		src/Device/CPU/Utils/MSR/OS/Linux/MSRLinux.cpp
 		src/Device/CPU/Utils/MSR/OS/Linux/MSRLinux.h
 
-		src/Service/PowerNotifications/Linux/PowerNotificationsLinux.h
-		src/Service/PowerNotifications/Linux/PowerNotificationsLinux.cpp
-
 		src/DiskManagers/ProfileUtils/OS/ProfileLinuxUtils.h
 		src/DiskManagers/ProfileUtils/OS/ProfileLinuxUtils.cpp
 	)
@@ -126,8 +123,7 @@ if (LINUX)
 	if (WITH_DBUS_SERVICES)
 		message(STATUS "${PROJECT_NAME}: DBus services support is enabled")
 
-		find_package(QT NAMES Qt6 COMPONENTS DBus REQUIRED)
-		find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus REQUIRED)
+        find_package(Qt6 6.10 REQUIRED COMPONENTS DBus)
 
 		list(APPEND PRIV_DEFS WITH_DBUS_SERVICES)
 		list(APPEND LINK_LIBS Qt${QT_VERSION_MAJOR}::DBus)
@@ -135,6 +131,9 @@ if (LINUX)
 		list(APPEND PROJECT_SOURCES
 			src/Device/OS/Linux/DBusServices.cpp
 			src/Device/OS/Linux/DBusServices.h
+
+            src/Service/PowerNotifications/Linux/PowerNotificationsLinux.h
+            src/Service/PowerNotifications/Linux/PowerNotificationsLinux.cpp
 		)
 	endif ()
 elseif (WIN32)
