@@ -22,6 +22,8 @@
 #include "pwtShared/Utils.h"
 
 namespace PWTD {
+    using namespace Qt::StringLiterals;
+
     DaemonService::DaemonService(const QString &dataPath) {
         appDataPath = dataPath;
 		powerNotifications = PwrNotf::factory();
@@ -221,7 +223,7 @@ namespace PWTD {
 
         if (!PWTS::unpackData<QHash<QString, QByteArray>>(profilesData, profiles)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QStringLiteral("Failed to unpack profiles data for import"));
+                logger.write(u"Failed to unpack profiles data for import"_s);
 
             return;
         }
@@ -246,7 +248,7 @@ namespace PWTD {
 
         if (!daemonSettings->load(data)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QStringLiteral("Unable to load daemon settings from data, cannot apply settings!"));
+                logger.write(u"Unable to load daemon settings from data, cannot apply settings!"_s);
 
             emit sendCmdResult(PWTS::DCMD::APPLY_DAEMON_SETT, false);
             return;
@@ -260,7 +262,7 @@ namespace PWTD {
         setApplyTimer(daemonSettings->getApplyInterval());
 
         if (logger.isLevel(PWTS::LogLevel::Info))
-            logger.write(QStringLiteral("Daemon settings received and applied from client, saving.."));
+            logger.write(u"Daemon settings received and applied from client, saving.."_s);
 
         emit sendCmdResult(PWTS::DCMD::APPLY_DAEMON_SETT, daemonSettingDiskMan->save(data));
     }
@@ -444,7 +446,7 @@ namespace PWTD {
 
         if (!lastClientPacket.has_value()) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QStringLiteral("no data, stopping.."));
+                logger.write(u"no data, stopping.."_s);
 
             return;
         }
@@ -452,7 +454,7 @@ namespace PWTD {
         const QSet<PWTS::DError> errors = device.applySettings(lastClientPacket.value());
 
         if (logger.isLevel(PWTS::LogLevel::Info))
-            logger.write(QStringLiteral("applying settings.."));
+            logger.write(u"applying settings.."_s);
 
         writeErrorsToLog(errors);
         emit sendSettingsApplyResult(PWTS::DCMD::APPLY_TIMER, errors);
@@ -493,7 +495,7 @@ namespace PWTD {
 		    const QSet<PWTS::DError> errors = device.applySettings(lastClientPacket.value());
 
 		    if (logger.isLevel(PWTS::LogLevel::Info))
-		        logger.write(QStringLiteral("Wake from sleep: applying settings"));
+		        logger.write(u"Wake from sleep: applying settings"_s);
 
 		    writeErrorsToLog(errors);
 		    emit sendSettingsApplyResult(PWTS::DCMD::SYS_WAKE_FROM_SLEEP, errors);

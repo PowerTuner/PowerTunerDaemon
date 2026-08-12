@@ -24,6 +24,8 @@
 #include "OS/Factory.h"
 
 namespace PWTD {
+    using namespace Qt::StringLiterals;
+
     Device::Device() {
         QSharedPointer<PWTS::CpuInfo> cpuInfo;
 
@@ -32,7 +34,7 @@ namespace PWTD {
             return;
 
         if (!os->setupOSAccess() && logger.isLevel(PWTS::LogLevel::Error))
-            logger.write(QStringLiteral("failed to setup os access, some features may be disabled"));
+            logger.write(u"failed to setup os access, some features may be disabled"_s);
 
         cpu = CPU::factory();
         if (!cpu)
@@ -151,7 +153,7 @@ namespace PWTD {
             os->unsetOSAccess();
 
         } else if (logger.isLevel(PWTS::LogLevel::Error)) {
-            logger.write(QStringLiteral("failed to setup os access"));
+            logger.write(u"failed to setup os access"_s);
         }
     }
 
@@ -235,7 +237,7 @@ namespace PWTD {
             os->unsetOSAccess();
 
         } else if (logErrorLev) {
-            logger.write(QStringLiteral("failed to setup os access"));
+            logger.write(u"failed to setup os access"_s);
         }
 
         fanCurveTimer->start();

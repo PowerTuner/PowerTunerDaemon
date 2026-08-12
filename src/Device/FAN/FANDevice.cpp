@@ -18,6 +18,8 @@
 #include "FANDevice.h"
 
 namespace PWTD {
+    using namespace Qt::StringLiterals;
+
     FANDevice::FANDevice(const std::shared_ptr<OS> &os) {
         this->os = os;
     }
@@ -30,7 +32,7 @@ namespace PWTD {
             os->unsetOSAccess();
 
         } else if (logger.isLevel(PWTS::LogLevel::Error)) {
-            logger.write("failed to setup os access");
+            logger.write(u"failed to setup os access"_s);
         }
     }
 

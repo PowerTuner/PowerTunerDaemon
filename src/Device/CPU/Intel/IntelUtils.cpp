@@ -28,6 +28,8 @@ extern "C" {
 #include "../../Utils/FileLogger/FileLogger.h"
 
 namespace PWTD::Intel {
+    using namespace Qt::StringLiterals;
+
     // from https://patchwork.kernel.org/project/xen-devel/patch/20210308210210.116278-13-jandryuk@gmail.com
     std::pair<int, int> USecToRawHWPActivityWindow(int us) {
         int exponent = 0;
@@ -74,7 +76,7 @@ namespace PWTD::Intel {
 
         if (pacc == nullptr) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QStringLiteral("pci alloc fail"));
+                logger.write(u"pci alloc fail"_s);
 
             return 0;
         }
@@ -97,7 +99,7 @@ namespace PWTD::Intel {
 
         if (!foundDev) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QStringLiteral("no pci device found"));
+                logger.write(u"no pci device found"_s);
 
             pci_cleanup(pacc);
             return 0;
@@ -110,13 +112,13 @@ namespace PWTD::Intel {
 
         if (hi == 0) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QStringLiteral("failed to read MCHBAR base address"));
+                logger.write(u"failed to read MCHBAR base address"_s);
 
             return 0;
 
         } else if (!(lo & 0x0001)) {
             if (logger.isLevel(PWTS::LogLevel::Info))
-                logger.write(QStringLiteral("MCHBAR is disabled"));
+                logger.write(u"MCHBAR is disabled"_s);
 
             return 0;
         }

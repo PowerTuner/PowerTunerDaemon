@@ -21,6 +21,8 @@
 #include "Include/CPUModel.h"
 
 namespace PWTD::Intel {
+    using namespace Qt::StringLiterals;
+
     IntelCPU::IntelCPU(const std::shared_ptr<cpu_id_t> &cpuid, const std::shared_ptr<cpu_raw_data_t> &cpuRawData): CPUDevice(cpuid, cpuRawData) {
         cpuInfo->vendor = PWTS::CPUVendor::Intel;
         mchbar = std::make_unique<MCHBAR>(cpuid->x86.ext_model);
@@ -149,7 +151,7 @@ namespace PWTD::Intel {
             msrDev->closeFd(0);
 
         } else if (logger.isLevel(PWTS::LogLevel::Error)) {
-            logger.write("failed to create registers cache");
+            logger.write(u"failed to create registers cache"_s);
         }
     }
 
@@ -219,7 +221,7 @@ namespace PWTD::Intel {
     QSet<PWTS::Feature> IntelCPU::getFeatures() const {
         if (!msrDev->openFd(0)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QStringLiteral("failed to open msr fd"));
+                logger.write(u"failed to open msr fd"_s);
 
             return {};
         }
@@ -359,7 +361,7 @@ namespace PWTD::Intel {
 
         if (!msrDev->openFd(0)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QStringLiteral("failed to open msr fd"));
+                logger.write(u"failed to open msr fd"_s);
 
             packet.errors.insert(PWTS::DError::NO_MSR_FD);
             return;
@@ -493,7 +495,7 @@ namespace PWTD::Intel {
 
         if (!msrDev->openFd(0)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QStringLiteral("failed to open msr fd"));
+                logger.write(u"failed to open msr fd"_s);
 
             errors.insert(PWTS::DError::NO_MSR_FD);
             return;
@@ -615,7 +617,7 @@ namespace PWTD::Intel {
 
         if (idata.isNull()) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write("empty data");
+                logger.write(u"empty data"_s);
 
             return errors;
 
@@ -661,7 +663,7 @@ namespace PWTD::Intel {
 
         if (!msrDev->openFd(0)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("failed to open msr fd"));
+                logger.write(u"failed to open msr fd"_s);
 
             return {};
         }

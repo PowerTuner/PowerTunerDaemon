@@ -18,6 +18,8 @@
 #include "AMDCPU.h"
 
 namespace PWTD::AMD {
+    using namespace Qt::StringLiterals;
+
     AMDCPU::AMDCPU(const std::shared_ptr<cpu_id_t> &cpuid, const std::shared_ptr<cpu_raw_data_t> &cpuRawData): CPUDevice(cpuid, cpuRawData) {
         cpuInfo->vendor = PWTS::CPUVendor::AMD;
         ryzenAdj = std::make_unique<RyzenAdj>();
@@ -61,7 +63,7 @@ namespace PWTD::AMD {
     QSet<PWTS::Feature> AMDCPU::getFeatures() const {
         if (!msrDev->openFd(0)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QStringLiteral("failed to open msr fd"));
+                logger.write(u"failed to open msr fd"_s);
 
             return {};
         }
@@ -91,7 +93,7 @@ namespace PWTD::AMD {
 
         if (!msrDev->openFd(0)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QStringLiteral("failed to open msr fd"));
+                logger.write(u"failed to open msr fd"_s);
 
             packet.errors.insert(PWTS::DError::NO_MSR_FD);
             return;
@@ -173,7 +175,7 @@ namespace PWTD::AMD {
 
         if (!msrDev->openFd(0)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QStringLiteral("failed to open msr fd"));
+                logger.write(u"failed to open msr fd"_s);
 
             errors.insert(PWTS::DError::NO_MSR_FD);
             return;
@@ -220,7 +222,7 @@ namespace PWTD::AMD {
 
         if (adata.isNull()) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write("empty data");
+                logger.write(u"empty data"_s);
 
             return {};
 

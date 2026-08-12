@@ -46,7 +46,7 @@ namespace PWTD {
     void DaemonLinux::parseCmdArgs(const QCoreApplication &app) {
         Daemon::parseCmdArgs(app);
 #ifdef SYSTEMD_NOTIFY
-        cmdSystemdDaemon = cmdParser->isSet("sd");
+        cmdSystemdDaemon = cmdParser->isSet(u"sd"_s);
 #endif
     }
 

@@ -23,6 +23,8 @@
 #define SVCNAME L"PowerTunerDaemon"
 
 namespace PWTD {
+    using namespace Qt::StringLiterals;
+
     DaemonWindows::DaemonWindows(const QString &dataPath) {
         appDataPath = dataPath;
     }
@@ -49,11 +51,11 @@ namespace PWTD {
     void DaemonWindows::parseCmdArgs(const QCoreApplication &app) {
         PowerTunerDaemon::parseCmdArgs(app);
 
-        cmdInstallSvc = cmdParser->isSet("installsvc");
-        cmdUninstallSvc = cmdParser->isSet("uninstallsvc");
-        cmdStartSvc = cmdParser->isSet("startsvc");
-        cmdStopSvc = cmdParser->isSet("stopsvc");
-        cmdNoSvc = cmdParser->isSet("nosvc");
+        cmdInstallSvc = cmdParser->isSet(u"installsvc"_s);
+        cmdUninstallSvc = cmdParser->isSet(u"uninstallsvc"_s);
+        cmdStartSvc = cmdParser->isSet(u"startsvc"_s);
+        cmdStopSvc = cmdParser->isSet(u"stopsvc"_s);
+        cmdNoSvc = cmdParser->isSet(u"nosvc"_s);
     }
 
     int DaemonWindows::run() { // ret: 0 success, 1 fail

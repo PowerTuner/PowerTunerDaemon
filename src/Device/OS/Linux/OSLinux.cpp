@@ -24,6 +24,8 @@ extern "C" {
 #include "OSLinux.h"
 
 namespace PWTD {
+    using namespace Qt::StringLiterals;
+
     bool OSLinux::setupOSAccess() const {
         return true;
     }
@@ -275,7 +277,7 @@ namespace PWTD {
 
         if (ldata.isNull()) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write("empty data");
+                logger.write(u"empty data"_s);
 
             return errors;
 
@@ -596,7 +598,7 @@ namespace PWTD {
 
             if (!idRes || !cpuRes) {
                 if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(QStringLiteral("failed to parse core id or cpu number"));
+                    logger.write(u"failed to parse core id or cpu number"_s);
 
                 return {};
             }
@@ -1071,7 +1073,7 @@ namespace PWTD {
 
         if (ldata.isNull()) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write("empty data");
+                logger.write(u"empty data"_s);
 
             return;
 
@@ -1228,7 +1230,7 @@ namespace PWTD {
             if (tsLine.isEmpty())
                 break;
 
-            if (tsLine.startsWith("SCLK:")) {
+            if (tsLine.startsWith(u"SCLK:"_s)) {
                 const QList<QString> data = tsLine.split(u' ', Qt::SkipEmptyParts);
                 bool minRes, maxRes;
 

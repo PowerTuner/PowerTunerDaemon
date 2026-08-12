@@ -19,6 +19,8 @@
 #include "pwtShared/Utils.h"
 
 namespace PWTD {
+    using namespace Qt::StringLiterals;
+
     ServiceWorker::~ServiceWorker() {
         if (!sock.isNull())
             sock->abort();
@@ -35,7 +37,7 @@ namespace PWTD {
         QByteArray data;
 
         if (!PWTS::packData<QSet<PWTS::DError>>(errors, data)) {
-            emit logMessageSent(QStringLiteral("Failed to pack error list"), PWTS::LogLevel::Error);
+            emit logMessageSent(u"Failed to pack error list"_s, PWTS::LogLevel::Error);
             return {};
         }
 
@@ -112,7 +114,7 @@ namespace PWTD {
 
     void ServiceWorker::sendError(const PWTS::DError error) {
         if (!isSockOpen()) {
-            emit logMessageSent(QStringLiteral("ServiceWorker::sendError: socket not available"), PWTS::LogLevel::Error);
+            emit logMessageSent(u"ServiceWorker::sendError: socket not available"_s, PWTS::LogLevel::Error);
             return;
         }
 
@@ -123,7 +125,7 @@ namespace PWTD {
 
     void ServiceWorker::sendCMDFail(const PWTS::DCMD failedCMD) {
         if (!isSockOpen()) {
-            emit logMessageSent(QStringLiteral("ServiceWorker::sendCMDFail: socket not available"), PWTS::LogLevel::Error);
+            emit logMessageSent(u"ServiceWorker::sendCMDFail: socket not available"_s, PWTS::LogLevel::Error);
             return;
         }
 
@@ -134,7 +136,7 @@ namespace PWTD {
 
     void ServiceWorker::sendDeviceInfoPacket(const PWTS::DeviceInfoPacket &packet) {
         if (!isSockOpen()) {
-            emit logMessageSent(QStringLiteral("ServiceWorker::sendDeviceInfoPacket: socket not available"), PWTS::LogLevel::Error);
+            emit logMessageSent(u"ServiceWorker::sendDeviceInfoPacket: socket not available"_s, PWTS::LogLevel::Error);
             return;
         }
 
@@ -145,7 +147,7 @@ namespace PWTD {
 
     void ServiceWorker::sendDaemonPacket(const PWTS::DaemonPacket &packet) {
         if (!isSockOpen()) {
-            emit logMessageSent(QStringLiteral("ServiceWorker::sendDaemonPacket: socket not available"), PWTS::LogLevel::Error);
+            emit logMessageSent(u"ServiceWorker::sendDaemonPacket: socket not available"_s, PWTS::LogLevel::Error);
             return;
         }
 
@@ -156,7 +158,7 @@ namespace PWTD {
 
     void ServiceWorker::sendSettingsApplyResult(const PWTS::DCMD cmd, const QSet<PWTS::DError> &errors, const QString &profileName) {
         if (!isSockOpen()) {
-            emit logMessageSent(QStringLiteral("ServiceWorker::sendSettingsApplyResult: socket not available"), PWTS::LogLevel::Error);
+            emit logMessageSent(u"ServiceWorker::sendSettingsApplyResult: socket not available"_s, PWTS::LogLevel::Error);
             return;
         }
 
@@ -177,7 +179,7 @@ namespace PWTD {
 
     void ServiceWorker::sendLoadedProfile(const PWTS::DaemonPacket &packet, const QString &name) {
         if (!isSockOpen()) {
-            emit logMessageSent(QStringLiteral("ServiceWorker::sendLoadedProfile: socket not available"), PWTS::LogLevel::Error);
+            emit logMessageSent(u"ServiceWorker::sendLoadedProfile: socket not available"_s, PWTS::LogLevel::Error);
             return;
         }
 
@@ -188,14 +190,14 @@ namespace PWTD {
 
     void ServiceWorker::sendExportedProfiles(const QHash<QString, QByteArray> &profiles) {
         if (!isSockOpen()) {
-            emit logMessageSent(QStringLiteral("ServiceWorker::sendExportedProfiles: socket not available"), PWTS::LogLevel::Error);
+            emit logMessageSent(u"ServiceWorker::sendExportedProfiles: socket not available"_s, PWTS::LogLevel::Error);
             return;
         }
 
         QByteArray exportedData;
 
         if (!PWTS::packData<QHash<QString, QByteArray>>(profiles, exportedData)) {
-            emit logMessageSent(QStringLiteral("Failed to pack exported profiles"), PWTS::LogLevel::Error);
+            emit logMessageSent(u"Failed to pack exported profiles"_s, PWTS::LogLevel::Error);
             return;
         }
 
@@ -206,7 +208,7 @@ namespace PWTD {
 
     void ServiceWorker::sendProfileList(const QList<QString> &list) {
         if (!isSockOpen()) {
-            emit logMessageSent(QStringLiteral("ServiceWorker::sendProfileList: socket not available"), PWTS::LogLevel::Error);
+            emit logMessageSent(u"ServiceWorker::sendProfileList: socket not available"_s, PWTS::LogLevel::Error);
             return;
         }
 
@@ -217,7 +219,7 @@ namespace PWTD {
 
     void ServiceWorker::sendCmdResult(PWTS::DCMD cmd, const bool result) {
         if (!isSockOpen()) {
-            emit logMessageSent(QStringLiteral("ServiceWorker::sendCmdResult: socket not available"), PWTS::LogLevel::Error);
+            emit logMessageSent(u"ServiceWorker::sendCmdResult: socket not available"_s, PWTS::LogLevel::Error);
             return;
         }
 
@@ -239,7 +241,7 @@ namespace PWTD {
 
     void ServiceWorker::onNewConnection() {
         if (isSockOpen()) {
-            emit logMessageSent(QStringLiteral("New client connection request, previous connection will be closed"), PWTS::LogLevel::Info);
+            emit logMessageSent(u"New client connection request, previous connection will be closed"_s, PWTS::LogLevel::Info);
             sock->abort();
 
         } else {
@@ -249,7 +251,7 @@ namespace PWTD {
 
     void ServiceWorker::onDisconnected() {
         sock->deleteLater();
-        emit logMessageSent(QStringLiteral("disconnected from client"), PWTS::LogLevel::Info);
+        emit logMessageSent(u"disconnected from client"_s, PWTS::LogLevel::Info);
         getNextPendingConnection();
     }
 
@@ -258,7 +260,7 @@ namespace PWTD {
 
         while (true) {
             if (!isSockOpen()) {
-                emit logMessageSent(QStringLiteral("ServiceWorker::onReadyRead: socket is not available"), PWTS::LogLevel::Error);
+                emit logMessageSent(u"ServiceWorker::onReadyRead: socket is not available"_s, PWTS::LogLevel::Error);
                 break;
             }
 

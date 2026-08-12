@@ -18,20 +18,22 @@
 #include "Daemon.h"
 
 namespace PWTD {
+    using namespace Qt::StringLiterals;
+
     Daemon::Daemon() {
         cmdParser.reset(new QCommandLineParser);
     }
 
     void Daemon::setupCmdArgs() const {
         cmdParser->addHelpOption();
-        cmdParser->addOption({"a", "listen on address|localhost|any, default any", "address", "any"});
-        cmdParser->addOption({"p", QString("port, default %1").arg(PWTS::DaemonSettings::DefaultTCPPort), "port", QString::number(PWTS::DaemonSettings::DefaultTCPPort)});
+        cmdParser->addOption({u"a"_s, u"listen on address|localhost|any, default any"_s, u"address"_s, u"any"_s});
+        cmdParser->addOption({u"p"_s, QString("port, default %1").arg(PWTS::DaemonSettings::DefaultTCPPort), u"port"_s, QString::number(PWTS::DaemonSettings::DefaultTCPPort)});
     }
 
     void Daemon::parseCmdArgs(const QCoreApplication &app) {
         cmdParser->process(app);
 
-        cmdAdr = cmdParser->value("a");
-        cmdPort = cmdParser->value("p").toUInt();
+        cmdAdr = cmdParser->value(u"a"_s);
+        cmdPort = cmdParser->value(u"p"_s).toUInt();
     }
 }

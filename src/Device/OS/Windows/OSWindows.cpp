@@ -26,6 +26,8 @@
 #include "../../../external/winring0/OlsDef.h"
 
 namespace PWTD {
+    using namespace Qt::StringLiterals;
+
     OSWindows::OSWindows() {
 		setDisplayGUID();
     }
@@ -38,7 +40,7 @@ namespace PWTD {
 
 		if (InitializeOls() == FALSE) {
 			if (logger.isLevel(PWTS::LogLevel::Error))
-				logger.write(QStringLiteral("failed to load winring"));
+				logger.write(u"failed to load winring"_s);
 
 			return false;
 		}
@@ -125,7 +127,7 @@ namespace PWTD {
 	QSet<PWTS::DError> OSWindows::applySettings(const PWTS::Features &features, PWTS::CPUVendor cpuVendor, const int numLogicalCPUs, const QList<int> &coreIdxList, const PWTS::ClientPacket &packet) const {
     	if (packet.windowsData.isNull()) {
     		if (logger.isLevel(PWTS::LogLevel::Error))
-    			logger.write("empty data");
+    			logger.write(u"empty data"_s);
 
     		return {};
     	}
@@ -625,7 +627,7 @@ namespace PWTD {
 
     	if (activeGuid == nullptr) {
     		if (logger.isLevel(PWTS::LogLevel::Error))
-    			logger.write(QStringLiteral("active guid is null"));
+    			logger.write(u"active guid is null"_s);
 
     		return 0;
 
@@ -718,7 +720,7 @@ namespace PWTD {
     		ba.append(data[i]);
     	}
 
-        return QString(ba.toHex()).toUpper().prepend("0x");
+        return QString(ba.toHex()).toUpper().prepend(u"0x"_s);
     }
 
     quint64 OSWindows::getAvailableRam() const {
@@ -815,7 +817,7 @@ namespace PWTD {
 
     	if (activeGuid == nullptr) {
     		if (logger.isLevel(PWTS::LogLevel::Error))
-    			logger.write(QStringLiteral("active guid is null"));
+    			logger.write(u"active guid is null"_s);
 
     		return "";
     	}
@@ -1161,7 +1163,7 @@ namespace PWTD {
 
     	if (!gpdECRamRead(controls.addrPort, controls.dataPort, 0x2000, &chip_id)) {
     		if (logger.isLevel(PWTS::LogLevel::Error))
-    			logger.write("failed to read chip_id");
+    			logger.write(u"failed to read chip_id"_s);
 
     		return false;
     	}
@@ -1173,14 +1175,14 @@ namespace PWTD {
     			!gpdECRamWrite(controls.addrPort, controls.dataPort, 0x1060, chip_ver | 0x80))
     		{
     			if (logger.isLevel(PWTS::LogLevel::Error))
-    				logger.write("failed to init ec");
+    				logger.write(u"failed to init ec"_s);
 
     			return false;
     		}
     	}
 
     	if (logger.isLevel(PWTS::LogLevel::Info))
-    		logger.write("GPD win 4 EC initialized");
+    		logger.write(u"GPD win 4 EC initialized"_s);
 
     	return true;
 	}
