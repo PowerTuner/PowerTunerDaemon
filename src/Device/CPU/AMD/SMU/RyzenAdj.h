@@ -16,9 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-
-#include <QVariant>
-
 #include "libryzenadj/ryzenadj.h"
 #include "../../Utils/FileLogger/FileLogger.h"
 #include "pwtShared/Include/Feature.h"
@@ -30,16 +27,16 @@ namespace PWTD::AMD {
     private:
         static constexpr uint32_t curveOptimizerBase = 0x100000;
         FileLogger &logger = FileLogger::get();
-        mutable QHash<int, QVariant> ryTable; // cache for values that may not have a read cmd
+        mutable std::unordered_map<ADJ_OPT, std::variant<int, uint32_t, std::vector<int>>> tableCache; // cache for values that may not have a read cmd
         int cpuCoreCount = 0;
 
-        void fillRyTableCache() const;
-        [[nodiscard]] bool ryzenAdjSet(ADJ_OPT opt, uint32_t value) const;
-        [[nodiscard]] bool ryzenAdjSet(ADJ_OPT opt, const PWTS::RWData<int> &data) const;
-        [[nodiscard]] bool ryzenAdjSet(ADJ_OPT opt, const PWTS::RWData<uint32_t> &data) const;
-        PWTS::RWData<int> ryzenAdjGet(ADJ_OPT opt, int valueMult) const;
-        PWTS::ROData<int> ryzenAdjRead(ADJ_OPT opt, int valueMult) const;
-        [[nodiscard]] bool refreshRyzenAdjTable() const;
+        void buildTableCache() const;
+        [[nodiscard]] bool set(ADJ_OPT opt, uint32_t value) const;
+        [[nodiscard]] bool set(ADJ_OPT opt, const PWTS::RWData<int> &data) const;
+        [[nodiscard]] bool set(ADJ_OPT opt, const PWTS::RWData<uint32_t> &data) const;
+        PWTS::RWData<int> get(ADJ_OPT opt, float valueMult) const;
+        PWTS::ROData<int> read(ADJ_OPT opt, float valueMult) const;
+        [[nodiscard]] bool refreshTable() const;
         void fillPackageData(const QSet<PWTS::Feature> &features, const PWTS::DaemonPacket &packet) const;
         void fillCoreData(int cpu, const QSet<PWTS::Feature> &features, const PWTS::DaemonPacket &packet) const;
         void applyPackageSettings(const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) const;
