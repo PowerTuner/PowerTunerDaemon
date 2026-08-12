@@ -32,7 +32,7 @@ namespace PWTD {
 		};
 
 		static inline BYTE oldACLineStatus = static_cast<BYTE>(ACLine::Unknown);
-		static inline std::shared_ptr<FileLogger> logger;
+		static inline FileLogger &logger = FileLogger::get();
 		HPOWERNOTIFY powerSuspendResumeNotificationHandle;
 		HPOWERNOTIFY powerACDCNotificationHandle;
 
@@ -40,7 +40,6 @@ namespace PWTD {
 		static ULONG powerACDCNotificationCB(PVOID context, ULONG type, PVOID setting);
 
 	public:
-		PowerNotificationsWindows();
 		~PowerNotificationsWindows() override;
 
 		void initNotifications() override;

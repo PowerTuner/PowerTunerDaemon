@@ -20,7 +20,7 @@ extern "C" {
 #include <pci/pci.h>
 }
 #elifdef _WIN32
-#include "../Include/CPUModel.h"
+#include "Include/CPUModel.h"
 #endif
 #include <cmath>
 

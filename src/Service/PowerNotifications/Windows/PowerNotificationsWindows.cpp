@@ -20,10 +20,6 @@
 #include <powerbase.h>
 
 namespace PWTD {
-	PowerNotificationsWindows::PowerNotificationsWindows() {
-		logger = FileLogger::getInstance();
-	}
-
 	PowerNotificationsWindows::~PowerNotificationsWindows() {
 		PowerUnregisterSuspendResumeNotification(powerSuspendResumeNotificationHandle);
 		PowerSettingUnregisterNotification(powerACDCNotificationHandle);

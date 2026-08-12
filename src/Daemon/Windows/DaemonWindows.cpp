@@ -39,17 +39,17 @@ namespace PWTD {
     }
 
     void DaemonWindows::setupCmdArgs() const {
-        PowerTunerDaemon::setupCmdArgs();
+        Daemon::setupCmdArgs();
 
-        cmdParser->addOption({"installsvc", "Install PowerTunerDaemon service"});
-        cmdParser->addOption({"uninstallsvc", "Uninstall PowerTunerDaemon service"});
-        cmdParser->addOption({"startsvc", "Start PowerTunerDaemon service"});
-        cmdParser->addOption({"stopsvc", "Stop PowerTunerDaemon service"});
-        cmdParser->addOption({"nosvc", "Run in portable mode instead of a service"});
+        cmdParser->addOption({u"installsvc"_s, u"Install PowerTunerDaemon service"_s});
+        cmdParser->addOption({u"uninstallsvc"_s, u"Uninstall PowerTunerDaemon service"_s});
+        cmdParser->addOption({u"startsvc"_s, u"Start PowerTunerDaemon service"_s});
+        cmdParser->addOption({u"stopsvc"_s, u"Stop PowerTunerDaemon service"_s});
+        cmdParser->addOption({u"nosvc"_s, u"Run in portable mode instead of a service"_s});
     }
 
     void DaemonWindows::parseCmdArgs(const QCoreApplication &app) {
-        PowerTunerDaemon::parseCmdArgs(app);
+        Daemon::parseCmdArgs(app);
 
         cmdInstallSvc = cmdParser->isSet(u"installsvc"_s);
         cmdUninstallSvc = cmdParser->isSet(u"uninstallsvc"_s);
