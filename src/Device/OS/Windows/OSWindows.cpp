@@ -619,37 +619,6 @@ namespace PWTD {
         return QString::fromStdWString(ret.value_or(L""));
     }
 
-    int OSWindows::getOnlineCPUCount(const int numLogicalCPUs) const {
-    	GUID *activeGuid = getActiveSchemeGUID();
-    	PWTS::WIN::PowerSettingValue val;
-        SYSTEM_POWER_STATUS pstatus;
-    	int onlineCount;
-
-    	if (activeGuid == nullptr) {
-    		if (logger.isLevel(PWTS::LogLevel::Error))
-    			logger.write(u"active guid is null"_s);
-
-    		return 0;
-
-    	} else if (GetSystemPowerStatus(&pstatus) == FALSE) {
-    		if (logger.isLevel(PWTS::LogLevel::Error))
-    			logger.write(QString("failed to get power status, code: %1").arg(GetLastError()));
-
-    		LocalFree(activeGuid);
-    		return 0;
-    	}
-
-    	val = getPowerValue(*activeGuid, GUID_PROCESSOR_SETTINGS_SUBGROUP, GUID_PROCESSOR_CORE_PARKING_MAX_CORES);
-
-    	if (pstatus.ACLineStatus == 1)
-    		onlineCount = val.ac == -1 ? 0 : val.ac;
-    	else
-    		onlineCount = val.dc == -1 ? 0 : val.dc;
-
-    	LocalFree(activeGuid);
-    	return qFloor(onlineCount / 100.f * numLogicalCPUs);
-    }
-
 	QList<int> OSWindows::getCPUCoreIndexList() const {
     	QMap<int, int> coreMap;
     	std::unique_ptr<UCHAR[]> buff;

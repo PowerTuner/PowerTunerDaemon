@@ -103,7 +103,6 @@ namespace PWTD {
 		[[nodiscard]] QString getProductName() const override;
 		[[nodiscard]] QString getManufacturer() const override;
         [[nodiscard]] QString getMicrocodeRevision(int cpu) const override;
-		[[nodiscard]] int getOnlineCPUCount(int numLogicalCPUs) const override;
 		[[nodiscard]] quint64 getAvailableRam() const override;
 		[[nodiscard]] quint64 getSwapSize() const override;
 

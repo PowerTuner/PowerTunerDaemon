@@ -376,10 +376,6 @@ namespace PWTD {
         return (res && runtimeV > 0);
     }
 
-    int OSLinux::getOnlineCPUCount(const int numLogicalCPUs) const {
-        return get_nprocs();
-    }
-
     QString OSLinux::getBiosVendor() const {
         return readSysfs(QString("%1bios_vendor").arg(sysfsDMI));
     }

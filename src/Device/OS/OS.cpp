@@ -46,7 +46,6 @@ namespace PWTD {
         PWTS::DynamicSystemInfo info;
 
         info.swapMemory = getMemorySizeStr(getSwapSize());
-        info.onlineCPUCount = getOnlineCPUCount(numLogicalCPUs);
 
         for (int i=0; i<numLogicalCPUs; ++i)
             info.cpuMicrocode.append(getMicrocodeRevision(i));

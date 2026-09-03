@@ -37,7 +37,6 @@ namespace PWTD {
         [[nodiscard]] virtual QString getProductName() const = 0;
         [[nodiscard]] virtual QString getManufacturer() const = 0;
         [[nodiscard]] virtual QString getMicrocodeRevision(int cpu) const = 0;
-        [[nodiscard]] virtual int getOnlineCPUCount(int numLogicalCPUs) const = 0;
         [[nodiscard]] virtual quint64 getAvailableRam() const = 0;
         [[nodiscard]] virtual quint64 getSwapSize() const = 0;
 
