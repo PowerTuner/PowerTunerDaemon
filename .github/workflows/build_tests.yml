@@ -15,14 +15,14 @@ jobs:
       with:
         submodules: true
 
-    - uses: jurplel/install-qt-action@v4
+    - uses: jurplel/install-qt-action@v4.3.1
       with:
-        version: '6.10.1'
+        version: '6.10.3'
 
     - name: windows build
       shell: cmd
       run: |
-         call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        call "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
          cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release -G Ninja
          ninja -C ${{github.workspace}}/build
 
@@ -32,7 +32,7 @@ jobs:
     - name: windows build - no options
       shell: cmd
       run: |
-        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        call "C:\Program Files\Microsoft Visual Studio\18\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release -DWITH_INTEL=OFF -DWITH_AMD=OFF -DWITH_GPD_FAN=OFF -G Ninja
         ninja -C ${{github.workspace}}/build
 
@@ -49,9 +49,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install libpci-dev libsystemd-dev libkmod-dev
 
-      - uses: jurplel/install-qt-action@v4
+      - uses: jurplel/install-qt-action@v4.3.1
         with:
-          version: '6.10.1'
+          version: '6.11.2'
 
       - name: linux build
         run: |
