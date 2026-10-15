@@ -15,9 +15,10 @@ jobs:
       with:
         submodules: true
 
-    - uses: jurplel/install-qt-action@v4.3.1
+    - uses: jurplel/install-qt-action@v4
       with:
-        version: '6.10.3'
+        aqtsource: git+https://github.com/miurahr/aqtinstall.git@076e1659807d0b362a3ed684d54c2e9c775eb9c7
+        version: '6.11.2'
 
     - name: windows build
       shell: cmd
@@ -49,7 +50,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install libpci-dev libsystemd-dev libkmod-dev
 
-      - uses: jurplel/install-qt-action@v4.3.1
+      - uses: jurplel/install-qt-action@v4
         with:
           version: '6.11.2'
 
