@@ -1,7 +1,5 @@
 # PowerTunerDaemon
 
-![](src/Resources/Windows/icon.ico)
-
 PowerTuner Windows service / Linux daemon.
 
 **Requires admin/root privileges**.

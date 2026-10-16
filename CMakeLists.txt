@@ -15,12 +15,9 @@ set(CMAKE_AUTOMOC ON)
 set(PRIV_DEFS "")
 set(LINK_LIBS "")
 set(LINK_DIRS "")
-set(DCOMPILE_OPTS "")
-set(DLINK_OPTS "")
 
-find_package(Qt6 6.10 REQUIRED COMPONENTS Core Network)
-
-configure_file(src/Resources/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/version.h)
+find_package(Qt6 6 REQUIRED COMPONENTS Core Network)
+configure_file(resources/cmake/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/version.h)
 
 add_subdirectory(src/external/libPWTShared)
 
@@ -123,7 +120,7 @@ if (LINUX)
 	if (WITH_DBUS_SERVICES)
 		message(STATUS "${PROJECT_NAME}: DBus services support is enabled")
 
-        find_package(Qt6 6.10 REQUIRED COMPONENTS DBus)
+        find_package(Qt6 6 REQUIRED COMPONENTS DBus)
 
 		list(APPEND PRIV_DEFS WITH_DBUS_SERVICES)
 		list(APPEND LINK_LIBS Qt${QT_VERSION_MAJOR}::DBus)
@@ -141,7 +138,7 @@ elseif (WIN32)
 	add_subdirectory(src/external/libPWTWin32)
     unset(BUILD_SHARED_LIBS)
 
-    configure_file(src/Resources/Windows/win.rc.in ${CMAKE_CURRENT_SOURCE_DIR}/win.rc)
+    configure_file(resources/cmake/windows/win.rc.in ${CMAKE_CURRENT_SOURCE_DIR}/win.rc)
 
 	list(APPEND PROJECT_SOURCES
 		src/Daemon/Windows/SVCSigHandler.h
@@ -292,42 +289,23 @@ endif ()
 
 qt_add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
 
-include(CheckIPOSupported)
-check_ipo_supported(RESULT has_ipo OUTPUT ipo_error)
-if (has_ipo)
-	message(STATUS "${PROJECT_NAME}: IPO/LTO enabled")
-	set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
-endif ()
-
 list(LENGTH LINK_DIRS link_dirs_len)
 if (${link_dirs_len} GREATER 0)
 	target_link_directories(${PROJECT_NAME} PRIVATE ${LINK_DIRS})
 endif ()
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-	list(APPEND DCOMPILE_OPTS /W3 /wo4061)
-
-else (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-	list(APPEND DCOMPILE_OPTS -Wall -fsanitize=address,undefined -Wno-padded)
-	list(APPEND DLINK_OPTS -fsanitize=address,undefined)
-endif ()
-
-target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:DEBUG>:${DCOMPILE_OPTS}>)
-target_link_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:DEBUG>:${DLINK_OPTS}>)
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${PRIV_DEFS})
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt::Core Qt::Network PWT::Shared cpuid ${LINK_LIBS})
+
+include(CheckIPOSupported)
+check_ipo_supported(RESULT has_ipo OUTPUT ipo_error)
+if (has_ipo)
+    message(STATUS "${PROJECT_NAME}: IPO/LTO enabled")
+    set_property(TARGET ${PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif ()
 
 include(GNUInstallDirs)
 install(TARGETS ${PROJECT_NAME}
 	BUNDLE  DESTINATION .
 	RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
-
-qt_generate_deploy_app_script(
-	TARGET ${PROJECT_NAME}
-	OUTPUT_SCRIPT deploy_script
-	NO_TRANSLATIONS
-	NO_COMPILER_RUNTIME
-	NO_UNSUPPORTED_PLATFORM_ERROR
-)
-install(SCRIPT ${deploy_script})
