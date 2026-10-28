@@ -7,6 +7,6 @@
 [submodule "src/external/libPWTWin32"]
 	path = src/external/libPWTWin32
 	url = https://github.com/PowerTuner/libPWTWin32
-[submodule "src/external/libPWTShared"]
-	path = src/external/libPWTShared
-	url = https://github.com/PowerTuner/libPWTShared
+[submodule "src/external/libPowerTuner"]
+	path = src/external/libPowerTuner
+	url = https://github.com/PowerTuner/libPowerTuner

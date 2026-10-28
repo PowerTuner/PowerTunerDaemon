@@ -19,7 +19,7 @@ set(LINK_DIRS "")
 find_package(Qt6 6 REQUIRED COMPONENTS Core Network)
 configure_file(resources/cmake/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/version.h)
 
-add_subdirectory(src/external/libPWTShared)
+add_subdirectory(src/external/libPowerTuner EXCLUDE_FROM_ALL)
 
 set(ENABLE_DOCS OFF)
 set(LIBCPUID_DISABLE_DEPRECATED ON)
@@ -295,7 +295,7 @@ if (${link_dirs_len} GREATER 0)
 endif ()
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE ${PRIV_DEFS})
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt::Core Qt::Network PWT::Shared cpuid ${LINK_LIBS})
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt::Core Qt::Network PWT::Lib cpuid ${LINK_LIBS})
 
 include(CheckIPOSupported)
 check_ipo_supported(RESULT has_ipo OUTPUT ipo_error)
