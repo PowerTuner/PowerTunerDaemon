@@ -18,7 +18,6 @@
 #pragma once
 #include "../../CPURegister.h"
 #include "../../../Utils/Utils.h"
-#include "pwtShared/Include/Types/RWData.h"
 
 namespace PWTD::AMD {
     class MSR_PSTATE_CONTROL final : public CPURegister {
@@ -27,31 +26,27 @@ namespace PWTD::AMD {
 
     public:
         [[nodiscard]]
-        PWTS::RWData<int> get(const int cpu) const {
+        std::optional<int> get(const int cpu) const {
             uint64_t reg;
 
             if (!msrDev->read(addr, cpu, reg))
                 return {};
 
-            return PWTS::RWData<int>(static_cast<int>(getBitfield(3, 0, reg)), true);
+            return static_cast<int>(getBitfield(3, 0, reg));
         }
 
         [[nodiscard]]
-        bool set(const int cpu, const PWTS::RWData<int> &data) const {
-            if (!data.isValid())
-                return true;
-
+        bool set(const int cpu, const int pstate) const {
             uint64_t reg;
 
             if (!msrDev->read(addr, cpu, reg))
                 return false;
 
-            reg = setBitfield(3, 0, data.getValue(), reg);
+            reg = setBitfield(3, 0, pstate, reg);
 
-            if (!msrDev->write(reg, addr, cpu) || !msrDev->read(addr, cpu, reg))
-                return false;
-
-            return getBitfield(3, 0, reg) == data.getValue();
+            return msrDev->write(reg, addr, cpu) &&
+                msrDev->read(addr, cpu, reg) &&
+                getBitfield(3, 0, reg) == pstate;
         }
     };
 }

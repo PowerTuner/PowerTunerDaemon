@@ -17,8 +17,7 @@
  */
 #pragma once
 #include "../../../CPURegister.h"
-#include "pwtShared/Include/CPU/Intel/PkgCstConfigControl.h"
-#include "pwtShared/Include/Types/RWData.h"
+#include "../../../../../external/libPowerTuner/src/Vendor/Intel/Include/PkgCstConfigControl.h"
 
 namespace PWTD::Intel {
     class MSR_PKG_CST_CONFIG_CONTROL: public CPURegister {
@@ -26,7 +25,7 @@ namespace PWTD::Intel {
         static constexpr unsigned addr = 0xe2;
 
     public:
-        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::PkgCstConfigControl> get(int cpu) const = 0;
-        [[nodiscard]] virtual bool set(int cpu, const PWTS::RWData<PWTS::Intel::PkgCstConfigControl> &data) const = 0;
+        [[nodiscard]] virtual std::optional<LIBPWT::Intel::PkgCstConfigControl> get(int cpu) const = 0;
+        [[nodiscard]] virtual bool set(int cpu, const LIBPWT::Intel::PkgCstConfigControl &data) const = 0;
     };
 }

@@ -17,8 +17,7 @@
  */
 #pragma once
 #include "../../../CPURegister.h"
-#include "pwtShared/Include/CPU/Intel/PowerCtl.h"
-#include "pwtShared/Include/Types/RWData.h"
+#include "../../../../../external/libPowerTuner/src/Vendor/Intel/Include/PowerCtl.h"
 
 namespace PWTD::Intel {
     class MSR_POWER_CTL: public CPURegister {
@@ -26,7 +25,7 @@ namespace PWTD::Intel {
         static constexpr unsigned addr = 0x1fc;
 
     public:
-        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::PowerCtl> get() const = 0;
-        [[nodiscard]] virtual bool set(const PWTS::RWData<PWTS::Intel::PowerCtl> &data) const = 0;
+        [[nodiscard]] virtual std::optional<LIBPWT::Intel::PowerCtl> get() const = 0;
+        [[nodiscard]] virtual bool set(const LIBPWT::Intel::PowerCtl &data) const = 0;
     };
 }

@@ -18,8 +18,7 @@
 #pragma once
 #include "../../CPURegister.h"
 #include "../../../Utils/Utils.h"
-#include "pwtShared/Include/CPU/Intel/HWPCapabilities.h"
-#include "pwtShared/Include/Types/ROData.h"
+#include "../../../../external/libPowerTuner/src/Vendor/Intel/Include/HWPCapabilities.h"
 
 namespace PWTD::Intel {
     class IA32_HWP_CAPABILITIES final: public CPURegister {
@@ -28,16 +27,16 @@ namespace PWTD::Intel {
 
     public:
         [[nodiscard]]
-        PWTS::ROData<PWTS::Intel::HWPCapabilities> get(const int cpu) const {
+        std::optional<LIBPWT::Intel::HWPCapabilities> get(const int cpu) const {
             uint64_t reg;
 
             if (!msrDev->read(addr, cpu, reg))
                 return {};
 
-            return PWTS::ROData<PWTS::Intel::HWPCapabilities>({
+            return LIBPWT::Intel::HWPCapabilities {
                 .lowestPerf = static_cast<int>(getBitfield(31, 24, reg)),
                 .highestPerf = static_cast<int>(getBitfield(7, 0, reg))
-            }, true);
+            };
         }
     };
 }

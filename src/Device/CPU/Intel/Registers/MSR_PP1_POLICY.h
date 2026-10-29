@@ -18,7 +18,6 @@
 #pragma once
 #include "../../CPURegister.h"
 #include "../../../Utils/Utils.h"
-#include "pwtShared/Include/Types/RWData.h"
 
 namespace PWTD::Intel {
     class MSR_PP1_POLICY final: public CPURegister {
@@ -27,21 +26,17 @@ namespace PWTD::Intel {
 
     public:
         [[nodiscard]]
-        PWTS::RWData<int> get() const {
+        std::optional<int> get() const {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return {};
 
-            return PWTS::RWData<int>(static_cast<int>(getBitfield(4, 0, reg)), true);
+            return static_cast<int>(getBitfield(4, 0, reg));
         }
 
         [[nodiscard]]
-        bool set(const PWTS::RWData<int> &data) const {
-            if (!data.isValid())
-                return true;
-
-            const int priority = data.getValue();
+        bool set(const int priority) const {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
@@ -49,10 +44,9 @@ namespace PWTD::Intel {
 
             reg = setBitfield(4, 0, priority, reg);
 
-            if (!msrDev->write(reg, addr, 0) || !msrDev->read(addr, 0, reg))
-                return false;
-
-            return getBitfield(4, 0, reg) == priority;
+            return msrDev->write(reg, addr, 0) &&
+                msrDev->read(addr, 0, reg) &&
+                getBitfield(4, 0, reg) == priority;
         }
     };
 }

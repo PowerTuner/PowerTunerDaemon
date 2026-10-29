@@ -18,8 +18,7 @@
 #pragma once
 #include "../../CPURegister.h"
 #include "../../../Utils/Utils.h"
-#include "pwtShared/Include/CPU/AMD/CPPCRequest.h"
-#include "pwtShared/Include/Types/RWData.h"
+#include "../../../../external/libPowerTuner/src/Vendor/AMD/Include/CPPCRequest.h"
 
 namespace PWTD::AMD {
     class MSR_CPPC_REQUEST final: public CPURegister {
@@ -28,43 +27,38 @@ namespace PWTD::AMD {
 
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::AMD::CPPCRequest> get(const int cpu) const {
+        std::optional<LIBPWT::AMD::CPPCRequest> get(const int cpu) const {
             uint64_t reg;
 
             if (!msrDev->read(addr, cpu, reg))
                 return {};
 
-            return PWTS::RWData<PWTS::AMD::CPPCRequest>({
+            return LIBPWT::AMD::CPPCRequest {
                 .maxPerf = static_cast<int>(getBitfield(7, 0, reg)),
                 .minPerf = static_cast<int>(getBitfield(15, 8, reg)),
-                .desPerf = static_cast<int>(getBitfield(23, 16, reg)),
+                .desiredPerf = static_cast<int>(getBitfield(23, 16, reg)),
                 .epp = static_cast<int>(getBitfield(31, 24, reg))
-            }, true);
+            };
         }
 
         [[nodiscard]]
-        bool set(const int cpu, const PWTS::RWData<PWTS::AMD::CPPCRequest> &data) const {
-            if (!data.isValid() || data.isIgnored())
-                return true;
-
-            const PWTS::AMD::CPPCRequest cppcReq = data.getValue();
+        bool set(const int cpu, const LIBPWT::AMD::CPPCRequest &data) const {
             uint64_t reg;
 
             if (!msrDev->read(addr, cpu, reg))
                 return false;
 
-            reg = setBitfield(7, 0, cppcReq.maxPerf, reg);
-            reg = setBitfield(15, 8, cppcReq.minPerf, reg);
-            reg = setBitfield(23, 16, cppcReq.desPerf, reg);
-            reg = setBitfield(31, 24, cppcReq.epp, reg);
+            reg = setBitfield(7, 0, data.maxPerf, reg);
+            reg = setBitfield(15, 8, data.minPerf, reg);
+            reg = setBitfield(23, 16, data.desiredPerf, reg);
+            reg = setBitfield(31, 24, data.epp, reg);
 
-            if (!msrDev->write(reg, addr, cpu) || !msrDev->read(addr, cpu, reg))
-                return false;
-
-            return getBitfield(7, 0, reg) == cppcReq.maxPerf &&
-                getBitfield(15, 8, reg) == cppcReq.minPerf &&
-                getBitfield(23, 16, reg) && cppcReq.desPerf &&
-                getBitfield(31, 24, reg) && cppcReq.epp;
+            return msrDev->write(reg, addr, cpu) &&
+                msrDev->read(addr, cpu, reg) &&
+                getBitfield(7, 0, reg) == data.maxPerf &&
+                getBitfield(15, 8, reg) == data.minPerf &&
+                getBitfield(23, 16, reg) && data.desiredPerf &&
+                getBitfield(31, 24, reg) && data.epp;
         }
     };
 }

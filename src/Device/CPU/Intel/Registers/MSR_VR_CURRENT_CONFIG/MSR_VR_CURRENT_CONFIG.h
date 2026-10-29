@@ -17,8 +17,7 @@
  */
 #pragma once
 #include "../../../CPURegister.h"
-#include "pwtShared/Include/CPU/Intel/VRCurrentConfig.h"
-#include "pwtShared/Include/Types/RWData.h"
+#include "../../../../../external/libPowerTuner/src/Vendor/Intel/Include/VRCurrentConfig.h"
 
 namespace PWTD::Intel {
     class MSR_VR_CURRENT_CONFIG: public CPURegister {
@@ -26,7 +25,7 @@ namespace PWTD::Intel {
         static constexpr unsigned addr = 0x601;
 
     public:
-        virtual PWTS::RWData<PWTS::Intel::VRCurrentConfig> get() const = 0;
-        [[nodiscard]] virtual bool set(const PWTS::RWData<PWTS::Intel::VRCurrentConfig> &data) const = 0;
+        virtual std::optional<LIBPWT::Intel::VRCurrentConfig> get() const = 0;
+        [[nodiscard]] virtual bool set(const LIBPWT::Intel::VRCurrentConfig &data) const = 0;
     };
 }

@@ -19,8 +19,7 @@
 #include "../../CPURegister.h"
 #include "../../../Utils/Utils.h"
 #include "../IntelUtils.h"
-#include "pwtShared/Include/CPU/Intel/HWPRequest.h"
-#include "pwtShared/Include/Types/RWData.h"
+#include "../../../../external/libPowerTuner/src/Vendor/Intel/Include/HWPRequest.h"
 
 namespace PWTD::Intel {
     class IA32_HWP_REQUEST final: public CPURegister {
@@ -29,13 +28,13 @@ namespace PWTD::Intel {
 
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::HWPRequest> get(const int cpu) const {
+        std::optional<LIBPWT::Intel::HWPRequest> get(const int cpu) const {
             uint64_t reg;
 
             if (!msrDev->read(addr, cpu, reg))
                 return {};
 
-            return PWTS::RWData<PWTS::Intel::HWPRequest>({
+            return LIBPWT::Intel::HWPRequest {
                 .requestPkg = {
                     .min = static_cast<int>(getBitfield(7, 0, reg)),
                     .max = static_cast<int>(getBitfield(15, 8, reg)),
@@ -49,49 +48,44 @@ namespace PWTD::Intel {
                 .desiredValid = getBitfield(61, 61, reg) == 1,
                 .maxValid = getBitfield(62, 62, reg) == 1,
                 .minValid = getBitfield(63, 63, reg) == 1
-            }, true);
+            };
         }
 
         [[nodiscard]]
-        bool set(const int cpu, const PWTS::RWData<PWTS::Intel::HWPRequest> &data) const {
-            if (!data.isValid() || data.isIgnored())
-                return true;
-
-            const PWTS::Intel::HWPRequest hwpReq = data.getValue();
-            const auto [exponent, mantissa] = USecToRawHWPActivityWindow(hwpReq.requestPkg.acw);
+        bool set(const int cpu, const LIBPWT::Intel::HWPRequest &data) const {
+            const auto [exponent, mantissa] = USecToRawHWPActivityWindow(data.requestPkg.acw);
             uint64_t reg;
 
             if (!msrDev->read(addr, cpu, reg))
                 return false;
 
-            reg = setBitfield(7, 0, hwpReq.requestPkg.min, reg);
-            reg = setBitfield(15, 8, hwpReq.requestPkg.max, reg);
-            reg = setBitfield(23, 16, hwpReq.requestPkg.desired, reg);
-            reg = setBitfield(31, 24, hwpReq.requestPkg.epp, reg);
+            reg = setBitfield(7, 0, data.requestPkg.min, reg);
+            reg = setBitfield(15, 8, data.requestPkg.max, reg);
+            reg = setBitfield(23, 16, data.requestPkg.desired, reg);
+            reg = setBitfield(31, 24, data.requestPkg.epp, reg);
             reg = setBitfield(38, 32, mantissa, reg);
             reg = setBitfield(41, 39, exponent, reg);
-            reg = setBitfield(42, 42, hwpReq.packageControl, reg);
-            reg = setBitfield(59, 59, hwpReq.acwValid, reg);
-            reg = setBitfield(60, 60, hwpReq.eppValid, reg);
-            reg = setBitfield(61, 61, hwpReq.desiredValid, reg);
-            reg = setBitfield(62, 62, hwpReq.maxValid, reg);
-            reg = setBitfield(63, 63, hwpReq.minValid, reg);
+            reg = setBitfield(42, 42, data.packageControl, reg);
+            reg = setBitfield(59, 59, data.acwValid, reg);
+            reg = setBitfield(60, 60, data.eppValid, reg);
+            reg = setBitfield(61, 61, data.desiredValid, reg);
+            reg = setBitfield(62, 62, data.maxValid, reg);
+            reg = setBitfield(63, 63, data.minValid, reg);
 
-            if (!msrDev->write(reg, addr, cpu) || !msrDev->read(addr, cpu, reg))
-                return false;
-
-            return getBitfield(7, 0, reg) == hwpReq.requestPkg.min &&
-                getBitfield(15, 8, reg) == hwpReq.requestPkg.max &&
-                getBitfield(23, 16, reg) == hwpReq.requestPkg.desired &&
-                getBitfield(31, 24, reg) == hwpReq.requestPkg.epp &&
+            return msrDev->write(reg, addr, cpu) &&
+                msrDev->read(addr, cpu, reg) &&
+                getBitfield(7, 0, reg) == data.requestPkg.min &&
+                getBitfield(15, 8, reg) == data.requestPkg.max &&
+                getBitfield(23, 16, reg) == data.requestPkg.desired &&
+                getBitfield(31, 24, reg) == data.requestPkg.epp &&
                 getBitfield(38, 32, reg) == mantissa &&
                 getBitfield(41, 39, reg) == exponent &&
-                (getBitfield(42, 42, reg) == 1) == hwpReq.packageControl &&
-                (getBitfield(59, 59, reg) == 1) == hwpReq.acwValid &&
-                (getBitfield(60, 60, reg) == 1) == hwpReq.eppValid &&
-                (getBitfield(61, 61, reg) == 1) == hwpReq.desiredValid &&
-                (getBitfield(62, 62, reg) == 1) == hwpReq.maxValid &&
-                (getBitfield(63, 63, reg) == 1) == hwpReq.minValid;
+                getBitfield(42, 42, reg) == data.packageControl &&
+                getBitfield(59, 59, reg) == data.acwValid &&
+                getBitfield(60, 60, reg) == data.eppValid &&
+                getBitfield(61, 61, reg) == data.desiredValid &&
+                getBitfield(62, 62, reg) == data.maxValid &&
+                getBitfield(63, 63, reg) == data.minValid;
         }
     };
 }

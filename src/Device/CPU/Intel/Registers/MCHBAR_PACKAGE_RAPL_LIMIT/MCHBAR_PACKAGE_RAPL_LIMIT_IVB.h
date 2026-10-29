@@ -25,42 +25,38 @@ namespace PWTD::Intel {
         explicit MCHBAR_PACKAGE_RAPL_LIMIT_IVB(const uint32_t base): MCHBAR_PACKAGE_RAPL_LIMIT(base) {}
 
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit> get(const std::optional<MCHBAR_PACKAGE_POWER_SKU_UNIT::Units> &pu) const override {
+        std::optional<LIBPWT::Intel::MCHBARPkgRaplLimit> get(const MCHBAR_PACKAGE_POWER_SKU_UNIT::Units &pu) const override {
             uint64_t reg;
 
-            if (!pu || !memory->read64(addr, reg))
+            if (!memory->read64(addr, reg))
                 return {};
 
-            return PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit>({
-                .pl1 = static_cast<int>(static_cast<double>(getBitfield(14, 0, reg)) * pu->power * 1000),
-                .pl2 = static_cast<int>(static_cast<double>(getBitfield(46, 32, reg)) * pu->power * 1000),
-                .pl1Time = static_cast<int>(std::pow(2, getBitfield(21, 17, reg)) * (1 + static_cast<double>(getBitfield(23, 22, reg)) / 4.0) * pu->time * 1000),
+            return LIBPWT::Intel::MCHBARPkgRaplLimit {
+                .pl1 = static_cast<int>(static_cast<double>(getBitfield(14, 0, reg)) * pu.power * 1000),
+                .pl2 = static_cast<int>(static_cast<double>(getBitfield(46, 32, reg)) * pu.power * 1000),
+                .pl1Time = static_cast<int>(std::pow(2, getBitfield(21, 17, reg)) * (1 + static_cast<double>(getBitfield(23, 22, reg)) / 4.0) * pu.time * 1000),
                 .pl1Enable = getBitfield(15, 15, reg) == 1,
                 .pl2Enable = getBitfield(47, 47, reg) == 1,
                 .lock = getBitfield(63, 63, reg) == 1
-            }, true);
+            };
         }
 
         [[nodiscard]]
-        bool set(const PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit> &data, const std::optional<MCHBAR_PACKAGE_POWER_SKU_UNIT::Units> &pu) const override {
+        bool set(const LIBPWT::Intel::MCHBARPkgRaplLimit &data, const MCHBAR_PACKAGE_POWER_SKU_UNIT::Units &pu) const override {
             uint64_t reg;
 
-            if (!data.isValid())
-                return true;
-
-            if (!pu || !memory->read64(addr, reg))
+            if (!memory->read64(addr, reg))
                 return false;
 
-            const PWTS::Intel::MCHBARPkgRaplLimit pkgPowerLim = data.getValue();
-            const int pl1 = static_cast<int>(pkgPowerLim.pl1 / pu->power / 1000);
-            const int pl2 = static_cast<int>(pkgPowerLim.pl2 / pu->power / 1000);
-            const std::optional<std::pair<int, int>> pl1Window = getRawTimeWindow(static_cast<double>(pkgPowerLim.pl1Time) / 1000, pu->time);
+            const int pl1 = static_cast<int>(data.pl1 / pu.power / 1000);
+            const int pl2 = static_cast<int>(data.pl2 / pu.power / 1000);
+            const std::optional<std::pair<int, int>> pl1Window = getRawTimeWindow(static_cast<double>(data.pl1Time) / 1000, pu.time);
 
             reg = setBitfield(14, 0, pl1, reg);
-            reg = setBitfield(15, 15, pkgPowerLim.pl1Enable, reg);
+            reg = setBitfield(15, 15, data.pl1Enable, reg);
             reg = setBitfield(46, 32, pl2, reg);
-            reg = setBitfield(47, 47, pkgPowerLim.pl2Enable, reg);
-            reg = setBitfield(63, 63, pkgPowerLim.lock, reg);
+            reg = setBitfield(47, 47, data.pl2Enable, reg);
+            reg = setBitfield(63, 63, data.lock, reg);
 
             if (pl1Window) {
                 const auto [y, z] = pl1Window.value();
@@ -69,14 +65,13 @@ namespace PWTD::Intel {
                 reg = setBitfield(23, 22, z, reg);
             }
 
-            if (!memory->write64(reg, addr) || !memory->read64(addr, reg))
-                return false;
-
-            return getBitfield(14, 0, reg) == pl1 &&
-                getBitfield(15, 15, reg) == pkgPowerLim.pl1Enable &&
+            return memory->write64(reg, addr) &&
+                memory->read64(addr, reg) &&
+                getBitfield(14, 0, reg) == pl1 &&
+                getBitfield(15, 15, reg) == data.pl1Enable &&
                 getBitfield(46, 32, reg) == pl2 &&
-                getBitfield(47, 47, reg) == pkgPowerLim.pl2Enable &&
-                getBitfield(63, 63, reg) == pkgPowerLim.lock;
+                getBitfield(47, 47, reg) == data.pl2Enable &&
+                getBitfield(63, 63, reg) == data.lock;
         }
     };
 }

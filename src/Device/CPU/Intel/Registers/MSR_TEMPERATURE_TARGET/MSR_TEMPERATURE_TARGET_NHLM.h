@@ -23,15 +23,15 @@ namespace PWTD::Intel {
     class MSR_TEMPERATURE_TARGET_NHLM final: public MSR_TEMPERATURE_TARGET {
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::TemperatureTarget> get() const override {
+        std::optional<LIBPWT::Intel::TemperatureTarget> get() const override {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return {};
 
-            return PWTS::RWData<PWTS::Intel::TemperatureTarget>({
+            return LIBPWT::Intel::TemperatureTarget {
                 .temperatureTarget = static_cast<int>(getBitfield(23, 16, reg))
-            }, true);
+            };
         }
     };
 }

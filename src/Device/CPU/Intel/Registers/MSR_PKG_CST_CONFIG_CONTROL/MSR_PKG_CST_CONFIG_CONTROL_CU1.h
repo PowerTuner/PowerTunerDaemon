@@ -23,13 +23,13 @@ namespace PWTD::Intel {
 class MSR_PKG_CST_CONFIG_CONTROL_CU1 final: public MSR_PKG_CST_CONFIG_CONTROL {
 public:
     [[nodiscard]]
-    PWTS::RWData<PWTS::Intel::PkgCstConfigControl> get(const int cpu) const override {
+    std::optional<LIBPWT::Intel::PkgCstConfigControl> get(const int cpu) const override {
         uint64_t reg;
 
         if (!msrDev->read(addr, cpu, reg))
             return {};
 
-        return PWTS::RWData<PWTS::Intel::PkgCstConfigControl>({
+        return LIBPWT::Intel::PkgCstConfigControl {
             .packageCStateLimit = static_cast<short>(getBitfield(3, 0, reg)),
             .maxCoreCState = static_cast<short>(getBitfield(7, 4, reg)),
             .ioMwaitRedirectionEnable = getBitfield(10, 10, reg) == 1,
@@ -41,46 +41,41 @@ public:
             .pkgcAutodemotionEnable = getBitfield(29, 29, reg) == 1,
             .pkgcUndemotionEnable = getBitfield(30, 30, reg) == 1,
             .timedMwaitEnable = getBitfield(31, 31, reg) == 1
-        }, true);
+        };
     }
 
     [[nodiscard]]
-    bool set(const int cpu, const PWTS::RWData<PWTS::Intel::PkgCstConfigControl> &data) const override {
-        if (!data.isValid())
-            return true;
-
-        const PWTS::Intel::PkgCstConfigControl pkgCstCfgCtrl = data.getValue();
+    bool set(const int cpu, const LIBPWT::Intel::PkgCstConfigControl &data) const override {
         uint64_t reg;
 
         if (!msrDev->read(addr, cpu, reg))
             return false;
 
-        reg = setBitfield(3, 0, pkgCstCfgCtrl.packageCStateLimit, reg);
-        reg = setBitfield(7, 4, pkgCstCfgCtrl.maxCoreCState, reg);
-        reg = setBitfield(10, 10, pkgCstCfgCtrl.ioMwaitRedirectionEnable, reg);
-        reg = setBitfield(15, 15, pkgCstCfgCtrl.cfgLock, reg);
-        reg = setBitfield(25, 25, pkgCstCfgCtrl.c3StateAutodemotionEnable, reg);
-        reg = setBitfield(26, 26, pkgCstCfgCtrl.c1StateAutodemotionEnable, reg);
-        reg = setBitfield(27, 27, pkgCstCfgCtrl.c3UndemotionEnable, reg);
-        reg = setBitfield(28, 28, pkgCstCfgCtrl.c1UndemotionEnable, reg);
-        reg = setBitfield(29, 29, pkgCstCfgCtrl.pkgcAutodemotionEnable, reg);
-        reg = setBitfield(30, 30, pkgCstCfgCtrl.pkgcUndemotionEnable, reg);
-        reg = setBitfield(31, 31, pkgCstCfgCtrl.timedMwaitEnable, reg);
+        reg = setBitfield(3, 0, data.packageCStateLimit, reg);
+        reg = setBitfield(7, 4, data.maxCoreCState, reg);
+        reg = setBitfield(10, 10, data.ioMwaitRedirectionEnable, reg);
+        reg = setBitfield(15, 15, data.cfgLock, reg);
+        reg = setBitfield(25, 25, data.c3StateAutodemotionEnable, reg);
+        reg = setBitfield(26, 26, data.c1StateAutodemotionEnable, reg);
+        reg = setBitfield(27, 27, data.c3UndemotionEnable, reg);
+        reg = setBitfield(28, 28, data.c1UndemotionEnable, reg);
+        reg = setBitfield(29, 29, data.pkgcAutodemotionEnable, reg);
+        reg = setBitfield(30, 30, data.pkgcUndemotionEnable, reg);
+        reg = setBitfield(31, 31, data.timedMwaitEnable, reg);
 
-        if (!msrDev->write(reg, addr, cpu) || !msrDev->read(addr, cpu, reg))
-            return false;
-
-        return getBitfield(3, 0, reg) == pkgCstCfgCtrl.packageCStateLimit &&
-            getBitfield(7, 4, reg) == pkgCstCfgCtrl.maxCoreCState &&
-            getBitfield(10, 10, reg) == pkgCstCfgCtrl.ioMwaitRedirectionEnable &&
-            getBitfield(15, 15, reg) == pkgCstCfgCtrl.cfgLock &&
-            getBitfield(25, 25, reg) == pkgCstCfgCtrl.c3StateAutodemotionEnable &&
-            getBitfield(26, 26, reg) == pkgCstCfgCtrl.c1StateAutodemotionEnable &&
-            getBitfield(27, 27, reg) == pkgCstCfgCtrl.c3UndemotionEnable &&
-            getBitfield(28, 28, reg) == pkgCstCfgCtrl.c1UndemotionEnable &&
-            getBitfield(29, 29, reg) == pkgCstCfgCtrl.pkgcAutodemotionEnable &&
-            getBitfield(30, 30, reg) == pkgCstCfgCtrl.pkgcUndemotionEnable &&
-            getBitfield(31, 31, reg) == pkgCstCfgCtrl.timedMwaitEnable;
+        return msrDev->write(reg, addr, cpu) &&
+            msrDev->read(addr, cpu, reg) &&
+            getBitfield(3, 0, reg) == data.packageCStateLimit &&
+            getBitfield(7, 4, reg) == data.maxCoreCState &&
+            getBitfield(10, 10, reg) == data.ioMwaitRedirectionEnable &&
+            getBitfield(15, 15, reg) == data.cfgLock &&
+            getBitfield(25, 25, reg) == data.c3StateAutodemotionEnable &&
+            getBitfield(26, 26, reg) == data.c1StateAutodemotionEnable &&
+            getBitfield(27, 27, reg) == data.c3UndemotionEnable &&
+            getBitfield(28, 28, reg) == data.c1UndemotionEnable &&
+            getBitfield(29, 29, reg) == data.pkgcAutodemotionEnable &&
+            getBitfield(30, 30, reg) == data.pkgcUndemotionEnable &&
+            getBitfield(31, 31, reg) == data.timedMwaitEnable;
     }
 };
 }

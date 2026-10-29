@@ -23,34 +23,29 @@ namespace PWTD::Intel {
     class MSR_POWER_CTL_NHLM final: public MSR_POWER_CTL {
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::PowerCtl> get() const override {
+        std::optional<LIBPWT::Intel::PowerCtl> get() const override {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return {};
 
-            return PWTS::RWData<PWTS::Intel::PowerCtl>({
+            return LIBPWT::Intel::PowerCtl {
                 .c1eEnable = getBitfield(1, 1, reg) == 1
-            }, true);
+            };
         }
 
         [[nodiscard]]
-        bool set(const PWTS::RWData<PWTS::Intel::PowerCtl> &data) const override {
-            if (!data.isValid())
-                return true;
-
-            const PWTS::Intel::PowerCtl powCtl = data.getValue();
+        bool set(const LIBPWT::Intel::PowerCtl &data) const override {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return false;
 
-            reg = setBitfield(1, 1, powCtl.c1eEnable, reg);
+            reg = setBitfield(1, 1, data.c1eEnable, reg);
 
-            if (!msrDev->write(reg, addr, 0) || !msrDev->read(addr, 0, reg))
-                return false;
-
-            return getBitfield(1, 1, reg) == powCtl.c1eEnable;
+            return msrDev->write(reg, addr, 0) &&
+                msrDev->read(addr, 0, reg) &&
+                getBitfield(1, 1, reg) == data.c1eEnable;
         }
     };
 }

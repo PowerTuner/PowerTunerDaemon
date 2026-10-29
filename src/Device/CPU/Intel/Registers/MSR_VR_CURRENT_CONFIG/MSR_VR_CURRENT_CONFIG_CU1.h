@@ -23,38 +23,33 @@ namespace PWTD::Intel {
     class MSR_VR_CURRENT_CONFIG_CU1 final: public MSR_VR_CURRENT_CONFIG {
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::VRCurrentConfig> get() const override {
+        std::optional<LIBPWT::Intel::VRCurrentConfig> get() const override {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return {};
 
-            return PWTS::RWData<PWTS::Intel::VRCurrentConfig>({
+            return LIBPWT::Intel::VRCurrentConfig {
                 .pl4 = static_cast<int>(static_cast<double>(getBitfield(15, 0, reg)) * 0.125 * 1000),
                 .lock = getBitfield(31, 31, reg) == 1
-            }, true);
+            };
         }
 
         [[nodiscard]]
-        bool set(const PWTS::RWData<PWTS::Intel::VRCurrentConfig> &data) const override {
-            if (!data.isValid())
-                return true;
-
-            const PWTS::Intel::VRCurrentConfig vrCfg = data.getValue();
-            const int pl4 = static_cast<int>(vrCfg.pl4 / 0.125 / 1000);
+        bool set(const LIBPWT::Intel::VRCurrentConfig &data) const override {
+            const int pl4 = static_cast<int>(data.pl4 / 0.125 / 1000);
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return false;
 
             reg = setBitfield(15, 0, pl4, reg);
-            reg = setBitfield(31, 31, vrCfg.lock, reg);
+            reg = setBitfield(31, 31, data.lock, reg);
 
-            if (!msrDev->write(reg, addr, 0) || !msrDev->read(addr, 0, reg))
-                return false;
-
-            return getBitfield(15, 0, reg) == pl4 &&
-                getBitfield(31, 31, reg) == vrCfg.lock;
+            return msrDev->write(reg, addr, 0) &&
+                msrDev->read(addr, 0, reg) &&
+                getBitfield(15, 0, reg) == pl4 &&
+                getBitfield(31, 31, reg) == data.lock;
         }
     };
 }

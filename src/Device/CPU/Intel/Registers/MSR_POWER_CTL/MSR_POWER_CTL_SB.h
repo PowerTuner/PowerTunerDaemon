@@ -23,43 +23,38 @@ namespace PWTD::Intel {
     class MSR_POWER_CTL_SB final: public MSR_POWER_CTL {
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::PowerCtl> get() const override {
+        std::optional<LIBPWT::Intel::PowerCtl> get() const override {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return {};
 
-            return PWTS::RWData<PWTS::Intel::PowerCtl>({
+            return LIBPWT::Intel::PowerCtl {
                 .bdProcHot = getBitfield(0, 0, reg) == 1,
                 .c1eEnable = getBitfield(1, 1, reg) == 1,
                 .disableEnergyEfficiencyOpt = getBitfield(19, 19, reg) == 1,
                 .disableRaceToHaltOpt = getBitfield(20, 20, reg) == 1
-            }, true);
+            };
         }
 
         [[nodiscard]]
-        bool set(const PWTS::RWData<PWTS::Intel::PowerCtl> &data) const override {
-            if (!data.isValid())
-                return true;
-
-            const PWTS::Intel::PowerCtl powCtl = data.getValue();
+        bool set(const LIBPWT::Intel::PowerCtl &data) const override {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return false;
 
-            reg = setBitfield(0, 0, powCtl.bdProcHot, reg);
-            reg = setBitfield(1, 1, powCtl.c1eEnable, reg);
-            reg = setBitfield(19, 19, powCtl.disableEnergyEfficiencyOpt, reg);
-            reg = setBitfield(20, 20, powCtl.disableRaceToHaltOpt, reg);
+            reg = setBitfield(0, 0, data.bdProcHot, reg);
+            reg = setBitfield(1, 1, data.c1eEnable, reg);
+            reg = setBitfield(19, 19, data.disableEnergyEfficiencyOpt, reg);
+            reg = setBitfield(20, 20, data.disableRaceToHaltOpt, reg);
 
-            if (!msrDev->write(reg, addr, 0) || !msrDev->read(addr, 0, reg))
-                return false;
-
-            return getBitfield(0, 0, reg) == powCtl.bdProcHot &&
-                getBitfield(1, 1, reg) == powCtl.c1eEnable &&
-                getBitfield(19, 19, reg) == powCtl.disableEnergyEfficiencyOpt &&
-                getBitfield(20, 20, reg) == powCtl.disableRaceToHaltOpt;
+            return msrDev->write(reg, addr, 0) &&
+                msrDev->read(addr, 0, reg) &&
+                getBitfield(0, 0, reg) == data.bdProcHot &&
+                getBitfield(1, 1, reg) == data.c1eEnable &&
+                getBitfield(19, 19, reg) == data.disableEnergyEfficiencyOpt &&
+                getBitfield(20, 20, reg) == data.disableRaceToHaltOpt;
         }
     };
 }

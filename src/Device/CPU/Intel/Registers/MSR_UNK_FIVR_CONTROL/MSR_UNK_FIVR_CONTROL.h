@@ -17,8 +17,7 @@
  */
 #pragma once
 #include "../../../CPURegister.h"
-#include "pwtShared/Include/CPU/Intel/FIVRControlUV.h"
-#include "pwtShared/Include/Types/RWData.h"
+#include "../../../../../external/libPowerTuner/src/Vendor/Intel/Include/FIVRControl.h"
 
 namespace PWTD::Intel {
     class MSR_UNK_FIVR_CONTROL: public CPURegister {
@@ -41,10 +40,10 @@ namespace PWTD::Intel {
             const auto [rd, wr] = uv;
             uint64_t reg = 0;
 
-            if (!msrDev->write(wr, addr, 0) || !msrDev->write(rd, addr, 0) || !msrDev->read(addr, 0, reg))
-                return false;
-
-            return (reg & 0xffffffff) == (wr & 0xffffffff);
+            return msrDev->write(wr, addr, 0) &&
+                msrDev->write(rd, addr, 0) &&
+                msrDev->read(addr, 0, reg) &&
+                (reg & 0xffffffff) == (wr & 0xffffffff);
         }
 
     protected:
@@ -62,43 +61,28 @@ namespace PWTD::Intel {
         [[nodiscard]] bool hasSysAgent() const { return sysAgentIdx != -1; }
 
         [[nodiscard]]
-        bool setCPU(const PWTS::RWData<PWTS::Intel::FIVRControlUV> &data) const {
-            if (!data.isValid() || cpuIdx == -1)
-                return false;
-
-            return writeUnderVolt(prepareUVData(cpuIdx, data.getValue().cpu));
+        bool setCPU(const LIBPWT::Intel::FIVRControl &data) const {
+            return cpuIdx != -1 && writeUnderVolt(prepareUVData(cpuIdx, data.cpu));
         }
 
         [[nodiscard]]
-        bool setGPU(const PWTS::RWData<PWTS::Intel::FIVRControlUV> &data) const {
-            if (!data.isValid() || gpuIdx == -1)
-                return false;
-
-            return writeUnderVolt(prepareUVData(gpuIdx, data.getValue().gpu));
+        bool setGPU(const LIBPWT::Intel::FIVRControl &data) const {
+            return gpuIdx != -1 && writeUnderVolt(prepareUVData(gpuIdx, data.gpu));
         }
 
         [[nodiscard]]
-        bool setCPUCache(const PWTS::RWData<PWTS::Intel::FIVRControlUV> &data) const {
-            if (!data.isValid() || cpuCacheIdx == -1)
-                return false;
-
-            return writeUnderVolt(prepareUVData(cpuCacheIdx, data.getValue().cpuCache));
+        bool setCPUCache(const LIBPWT::Intel::FIVRControl &data) const {
+            return cpuCacheIdx != -1 && writeUnderVolt(prepareUVData(cpuCacheIdx, data.cpuCache));
         }
 
         [[nodiscard]]
-        bool setUnslice(const PWTS::RWData<PWTS::Intel::FIVRControlUV> &data) const {
-            if (!data.isValid() || unsliceIdx == -1)
-                return false;
-
-            return writeUnderVolt(prepareUVData(unsliceIdx, data.getValue().unslice));
+        bool setUnslice(const LIBPWT::Intel::FIVRControl &data) const {
+            return unsliceIdx != -1 && writeUnderVolt(prepareUVData(unsliceIdx, data.unslice));
         }
 
         [[nodiscard]]
-        bool setSysAgent(const PWTS::RWData<PWTS::Intel::FIVRControlUV> &data) const {
-            if (!data.isValid() || sysAgentIdx == -1)
-                return false;
-
-            return writeUnderVolt(prepareUVData(sysAgentIdx, data.getValue().sa));
+        bool setSysAgent(const LIBPWT::Intel::FIVRControl &data) const {
+            return sysAgentIdx != -1 && writeUnderVolt(prepareUVData(sysAgentIdx, data.sysAgent));
         }
     };
 }

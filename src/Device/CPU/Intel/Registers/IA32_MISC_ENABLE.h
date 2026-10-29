@@ -18,8 +18,7 @@
 #pragma once
 #include "../../CPURegister.h"
 #include "../../../Utils/Utils.h"
-#include "pwtShared/Include/CPU/Intel/MiscProcFeatures.h"
-#include "pwtShared/Include/Types/RWData.h"
+#include "../../../../external/libPowerTuner/src/Vendor/Intel/Include/MiscProcFeatures.h"
 
 namespace PWTD::Intel {
     class IA32_MISC_ENABLE final: public CPURegister {
@@ -28,37 +27,32 @@ namespace PWTD::Intel {
 
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::MiscProcFeatures> get() const {
+        std::optional<LIBPWT::Intel::MiscProcFeatures> get() const {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return {};
 
-            return PWTS::RWData<PWTS::Intel::MiscProcFeatures>({
+            return LIBPWT::Intel::MiscProcFeatures {
                 .enhancedSpeedStep = getBitfield(16, 16, reg) == 1,
                 .disableTurboMode = getBitfield(38, 38, reg) == 1
-            }, true);
+            };
         }
 
         [[nodiscard]]
-        bool set(const PWTS::RWData<PWTS::Intel::MiscProcFeatures> &data) const {
-            if (!data.isValid())
-                return true;
-
-            const PWTS::Intel::MiscProcFeatures miscFeat = data.getValue();
+        bool set(const LIBPWT::Intel::MiscProcFeatures &data) const {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return false;
 
-            reg = setBitfield(16, 16, miscFeat.enhancedSpeedStep, reg);
-            reg = setBitfield(38, 38, miscFeat.disableTurboMode, reg);
+            reg = setBitfield(16, 16, data.enhancedSpeedStep, reg);
+            reg = setBitfield(38, 38, data.disableTurboMode, reg);
 
-            if (!msrDev->write(reg, addr, 0) || !msrDev->read(addr, 0, reg))
-                return false;
-
-            return getBitfield(16, 16, reg) == miscFeat.enhancedSpeedStep &&
-                getBitfield(38, 38, reg) == miscFeat.disableTurboMode;
+            return msrDev->write(reg, addr, 0) &&
+                msrDev->read(addr, 0, reg) &&
+                getBitfield(16, 16, reg) == data.enhancedSpeedStep &&
+                getBitfield(38, 38, reg) == data.disableTurboMode;
         }
     };
 }

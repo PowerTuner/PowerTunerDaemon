@@ -18,7 +18,6 @@
 #pragma once
 #include "../../CPURegister.h"
 #include "../../../Utils/Utils.h"
-#include "pwtShared/Include/Types/RWData.h"
 
 namespace PWTD::Intel {
     class IA32_HWP_CTL final: public CPURegister {
@@ -27,21 +26,17 @@ namespace PWTD::Intel {
 
     public:
         [[nodiscard]]
-        PWTS::RWData<int> get() const {
+        std::optional<int> get() const {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return {};
 
-            return PWTS::RWData<int>(static_cast<int>(getBitfield(0, 0, reg)), true);
+            return static_cast<int>(getBitfield(0, 0, reg);
         }
 
         [[nodiscard]]
-        bool set(const PWTS::RWData<int> &data) const {
-            if (!data.isValid() || data.isIgnored())
-                return true;
-
-            const int polarity = data.getValue();
+        bool set(const int polarity) const {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
@@ -49,10 +44,9 @@ namespace PWTD::Intel {
 
             reg = setBitfield(0, 0, polarity, reg);
 
-            if (!msrDev->write(reg, addr, 0) || !msrDev->read(addr, 0, reg))
-                return false;
-
-            return getBitfield(0, 0, reg) == polarity;
+            return msrDev->write(reg, addr, 0) &&
+                msrDev->read(addr, 0, reg) &&
+                getBitfield(0, 0, reg) == polarity;
         }
     };
 }

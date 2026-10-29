@@ -18,8 +18,7 @@
 #pragma once
 #include "../../CPURegister.h"
 #include "../../../Utils/Utils.h"
-#include "pwtShared/Include/CPU/AMD/PStateCurrentLimit.h"
-#include "pwtShared/Include/Types/ROData.h"
+#include "../../../../external/libPowerTuner/src/Vendor/AMD/Include/PStateCurrentLimit.h"
 
 namespace PWTD::AMD {
     class MSR_PSTATE_CURRENT_LIMIT final: public CPURegister {
@@ -28,16 +27,16 @@ namespace PWTD::AMD {
 
     public:
         [[nodiscard]]
-        PWTS::ROData<PWTS::AMD::PStateCurrentLimit> get() const {
+        std::optional<LIBPWT::AMD::PStateCurrentLimit> get() const {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return {};
 
-            return PWTS::ROData<PWTS::AMD::PStateCurrentLimit>({
+            return LIBPWT::AMD::PStateCurrentLimit {
                 .curPStateLimit = static_cast<int>(getBitfield(3, 0, reg)),
                 .pstateMaxValue = static_cast<int>(getBitfield(7, 4, reg))
-            }, true);
+            };
         }
     };
 }

@@ -18,8 +18,7 @@
 #pragma once
 #include "../../CPURegister.h"
 #include "../../../Utils/Utils.h"
-#include "pwtShared/Include/CPU/AMD/CPPCCapability1.h"
-#include "pwtShared/Include/Types/ROData.h"
+#include "../../../../external/libPowerTuner/src/Vendor/AMD/Include/CPPCCapability1.h"
 
 namespace PWTD::AMD {
     class MSR_CPPC_CAPABILITY_1 final: public CPURegister {
@@ -28,18 +27,18 @@ namespace PWTD::AMD {
 
     public:
         [[nodiscard]]
-        PWTS::ROData<PWTS::AMD::CPPCCapability1> get(const int cpu) const {
+        std::optional<LIBPWT::AMD::CPPCCapability1> get(const int cpu) const {
             uint64_t reg;
 
             if (!msrDev->read(addr, cpu, reg))
                 return {};
 
-            return PWTS::ROData<PWTS::AMD::CPPCCapability1>({
+            return LIBPWT::AMD::CPPCCapability1 {
                 .lowestPerf = static_cast<int>(getBitfield(7, 0, reg)),
-                .lowNonLinPerf = static_cast<int>(getBitfield(15, 8, reg)),
+                .lowNonLinearPerf = static_cast<int>(getBitfield(15, 8, reg)),
                 .nominalPerf = static_cast<int>(getBitfield(23, 16, reg)),
                 .highestPerf = static_cast<int>(getBitfield(31, 24, reg))
-            }, true);
+            };
         }
     };
 }

@@ -18,8 +18,7 @@
 #pragma once
 #include "../../CPURegister.h"
 #include "../../../Utils/Utils.h"
-#include "pwtShared/Include/CPU/Intel/PP1CurrentConfig.h"
-#include "pwtShared/Include/Types/RWData.h"
+#include "../../../../external/libPowerTuner/src/Vendor/Intel/Include/PP1CurrentConfig.h"
 
 namespace PWTD::Intel {
     class MSR_PP1_CURRENT_CONFIG final: public CPURegister {
@@ -28,38 +27,33 @@ namespace PWTD::Intel {
 
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::PP1CurrentConfig> get() const {
+        std::optional<LIBPWT::Intel::PP1CurrentConfig> get() const {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return {};
 
-            return PWTS::RWData<PWTS::Intel::PP1CurrentConfig>({
+            return LIBPWT::Intel::PP1CurrentConfig {
                 .limit = static_cast<int>(getBitfield(12, 0, reg) * 0.125 * 1000),
                 .lock = getBitfield(31, 31, reg) == 1
-            }, true);
+            };
         }
 
         [[nodiscard]]
-        bool set(const PWTS::RWData<PWTS::Intel::PP1CurrentConfig> &data) const {
-            if (!data.isValid())
-                return true;
-
-            const PWTS::Intel::PP1CurrentConfig cfg = data.getValue();
-            const uint64_t limit = static_cast<uint64_t>(cfg.limit / 0.125 / 1000);
+        bool set(const LIBPWT::Intel::PP1CurrentConfig &data) const {
+            const uint64_t limit = static_cast<uint64_t>(data.limit / 0.125 / 1000);
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return false;
 
             reg = setBitfield(12, 0, limit, reg);
-            reg = setBitfield(31, 31, cfg.lock, reg);
+            reg = setBitfield(31, 31, data.lock, reg);
 
-            if (!msrDev->write(reg, addr, 0) || !msrDev->read(addr, 0, reg))
-                return false;
-
-            return getBitfield(12, 0, reg) == limit &&
-                (getBitfield(31, 31, reg) == 1) == cfg.lock;
+            return msrDev->write(reg, addr, 0) &&
+                msrDev->read(addr, 0, reg) &&
+                getBitfield(12, 0, reg) == limit &&
+                getBitfield(31, 31, reg) == data.lock;
         }
     };
 }

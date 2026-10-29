@@ -18,7 +18,7 @@
 #pragma once
 #include "../../CPURegister.h"
 #include "../../../Utils/Utils.h"
-#include "pwtShared/Include/CPU/Intel/PkgThermalStatusInfo.h"
+#include "../../../../external/libPowerTuner/src/Vendor/Intel/Include/PkgThermalStatusInfo.h"
 
 namespace PWTD::Intel {
     class IA32_PACKAGE_THERM_STATUS final: public CPURegister {
@@ -27,13 +27,13 @@ namespace PWTD::Intel {
 
     public:
         [[nodiscard]]
-        std::optional<PWTS::Intel::PkgThermalStatusInfo> get() const {
+        std::optional<LIBPWT::Intel::PkgThermalStatusInfo> get() const {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return {};
 
-            return PWTS::Intel::PkgThermalStatusInfo {
+            return LIBPWT::Intel::PkgThermalStatusInfo {
                 .digitalReadout = static_cast<int>(getBitfield(22, 16, reg))
             };
         }

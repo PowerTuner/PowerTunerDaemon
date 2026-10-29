@@ -17,8 +17,7 @@
  */
 #pragma once
 #include "../MCHBAR_PACKAGE_POWER_SKU_UNIT.h"
-#include "pwtShared/Include/CPU/Intel/MCHBARPkgRaplLimit.h"
-#include "pwtShared/Include/Types/RWData.h"
+#include "../../../../../external/libPowerTuner/src/Vendor/Intel/Include/MCHBARPkgRaplLimit.h"
 
 namespace PWTD::Intel {
     class MCHBAR_PACKAGE_RAPL_LIMIT: public MCHBARRegister {
@@ -26,7 +25,7 @@ namespace PWTD::Intel {
         explicit MCHBAR_PACKAGE_RAPL_LIMIT(const uint32_t base): MCHBARRegister(base, 0x59a0) {}
         virtual ~MCHBAR_PACKAGE_RAPL_LIMIT() = default;
 
-        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit> get(const std::optional<MCHBAR_PACKAGE_POWER_SKU_UNIT::Units> &pu) const = 0;
-        [[nodiscard]] virtual bool set(const PWTS::RWData<PWTS::Intel::MCHBARPkgRaplLimit> &data, const std::optional<MCHBAR_PACKAGE_POWER_SKU_UNIT::Units> &pu) const = 0;
+        [[nodiscard]] virtual std::optional<LIBPWT::Intel::MCHBARPkgRaplLimit> get(const MCHBAR_PACKAGE_POWER_SKU_UNIT::Units &pu) const = 0;
+        [[nodiscard]] virtual bool set(const LIBPWT::Intel::MCHBARPkgRaplLimit &data, const MCHBAR_PACKAGE_POWER_SKU_UNIT::Units &pu) const = 0;
     };
 }

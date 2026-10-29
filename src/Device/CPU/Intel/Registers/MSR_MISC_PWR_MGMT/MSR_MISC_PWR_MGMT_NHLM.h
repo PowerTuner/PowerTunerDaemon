@@ -23,34 +23,29 @@ namespace PWTD::Intel {
     class MSR_MISC_PWR_MGMT_NHLM final: public MSR_MISC_PWR_MGMT {
     public:
         [[nodiscard]]
-        PWTS::RWData<PWTS::Intel::MiscPwrMgmt> get() const override {
+        std::optional<LIBPWT::Intel::MiscPwrMgmt> get() const override {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return {};
 
-            return PWTS::RWData<PWTS::Intel::MiscPwrMgmt>({
+            return LIBPWT::Intel::MiscPwrMgmt {
                 .eistHWCoordinationDisable = getBitfield(0, 0, reg) == 1
-            }, true);
+            };
         }
 
         [[nodiscard]]
-        bool set(const PWTS::RWData<PWTS::Intel::MiscPwrMgmt> &data) const override {
-            if (!data.isValid())
-                return true;
-
-            const PWTS::Intel::MiscPwrMgmt miscPwrMgmt = data.getValue();
+        bool set(const LIBPWT::Intel::MiscPwrMgmt &data) const override {
             uint64_t reg;
 
             if (!msrDev->read(addr, 0, reg))
                 return false;
 
-            reg = setBitfield(0, 0, miscPwrMgmt.eistHWCoordinationDisable, reg);
+            reg = setBitfield(0, 0, data.eistHWCoordinationDisable, reg);
 
-            if (!msrDev->write(reg, addr, 0) || !msrDev->read(addr, 0, reg))
-                return false;
-
-            return getBitfield(0, 0, reg) == miscPwrMgmt.eistHWCoordinationDisable;
+            return msrDev->write(reg, addr, 0) &&
+                msrDev->read(addr, 0, reg) &&
+                getBitfield(0, 0, reg) == data.eistHWCoordinationDisable;
         }
     };
 }

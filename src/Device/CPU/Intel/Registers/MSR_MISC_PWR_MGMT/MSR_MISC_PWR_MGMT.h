@@ -17,8 +17,7 @@
  */
 #pragma once
 #include "../../../CPURegister.h"
-#include "pwtShared/Include/CPU/Intel/MiscPwrMgmt.h"
-#include "pwtShared/Include/Types/RWData.h"
+#include "../../../../../external/libPowerTuner/src/Vendor/Intel/Include/MiscPwrMgmt.h"
 
 namespace PWTD::Intel {
     class MSR_MISC_PWR_MGMT: public CPURegister {
@@ -26,7 +25,7 @@ namespace PWTD::Intel {
         static constexpr unsigned addr = 0x1aa;
 
     public:
-        [[nodiscard]] virtual PWTS::RWData<PWTS::Intel::MiscPwrMgmt> get() const = 0;
-        [[nodiscard]] virtual bool set(const PWTS::RWData<PWTS::Intel::MiscPwrMgmt> &data) const = 0;
+        [[nodiscard]] virtual std::optional<LIBPWT::Intel::MiscPwrMgmt> get() const = 0;
+        [[nodiscard]] virtual bool set(const LIBPWT::Intel::MiscPwrMgmt &data) const = 0;
     };
 }
