@@ -33,13 +33,13 @@
 static QString getAppDataPath() {
     const QList<QString> locations = {
 #ifdef _WIN32
-        QString("C:/ProgramData/%1").arg(QCoreApplication::applicationName()),
+        u"C:/ProgramData/%1"_s.arg(QCoreApplication::applicationName()),
 #elifdef __linux__
-        QString("%1/%2").arg("/var/lib", QCoreApplication::applicationName()),
+        u"%1/%2"_s.arg("/var/lib", QCoreApplication::applicationName()),
 #endif
         QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation),
         QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation),
-        QString("%1/%2").arg(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), QCoreApplication::applicationName())
+        u"%1/%2"_s.arg(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation), QCoreApplication::applicationName())
     };
     const QDir qdir;
 
@@ -49,7 +49,7 @@ static QString getAppDataPath() {
             return loc;
         }
 
-        qWarning() << QString("%1: %2 is not writable").arg(__func__, loc);
+        qWarning() << u"%1: %2 is not writable"_s.arg(__func__, loc);
     }
 
     qWarning("No writable location found, unable to write files to disk");

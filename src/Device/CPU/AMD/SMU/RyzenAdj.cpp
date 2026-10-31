@@ -32,7 +32,7 @@ namespace PWTD::AMD {
 
         if (res != ADJ_OK) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("failed to init: %1").arg(res));
+                logger.write(u"failed to init: %1"_s.arg(res));
 
             return false;
         }
@@ -97,7 +97,7 @@ namespace PWTD::AMD {
 
         if (err != ADJ_OK) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("failed to set option %1: code %2").arg(opt).arg(err));
+                logger.write(u"failed to set option %1: code %2"_s.arg(opt).arg(err));
 
             return false;
         }
@@ -134,13 +134,13 @@ namespace PWTD::AMD {
                 const int val = std::get<int>(tableCache.at(opt));
 
                 if (logger.isLevel(PWTS::LogLevel::Warning))
-                    logger.write(QString("read cmd not implemented for option %1, using internal cache").arg(opt));
+                    logger.write(u"read cmd not implemented for option %1, using internal cache"_s.arg(opt));
 
                 return PWTS::RWData<int>(val, true);
             }
 
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("failed to get option %1: code %2").arg(opt).arg(err));
+                logger.write(u"failed to get option %1: code %2"_s.arg(opt).arg(err));
 
             return PWTS::RWData<int>(0, false);
         }
@@ -154,7 +154,7 @@ namespace PWTD::AMD {
 
         if (err != ADJ_OK) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("failed to read value %1: code %2").arg(opt).arg(err));
+                logger.write(u"failed to read value %1: code %2"_s.arg(opt).arg(err));
 
             return {};
         }
@@ -169,7 +169,7 @@ namespace PWTD::AMD {
 
         if (ret != ADJ_OK) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("failed to refresh table: code %1").arg(ret));
+                logger.write(u"failed to refresh table: code %1"_s.arg(ret));
 
             return false;
         }

@@ -49,16 +49,16 @@ namespace PWTD {
         cpuInfo->numCores = cpuid->num_cores;
         cpuInfo->numLogicalCpus = cpuid->num_logical_cpus;
         cpuInfo->stepping = cpuid->x86.stepping;
-        cpuInfo->l1DCache = QString("%1 %2x%3  %4-way").arg(l1DTotSize).arg(cpuid->num_cores).arg(l1DSize).arg(cpuid->l1_data_assoc);
-        cpuInfo->l1ICache = QString("%1 %2x%3  %4-way").arg(l1ITotSize).arg(cpuid->num_cores).arg(l1ISize).arg(cpuid->l1_instruction_assoc);
-        cpuInfo->l2Cache = QString("%1 %2x%3  %4-way").arg(l2TotSize).arg(cpuid->num_cores).arg(l2Size).arg(cpuid->l2_assoc);
-        cpuInfo->l3Cache = QString("%1  %2-way").arg(l3Size).arg(cpuid->l3_assoc);
+        cpuInfo->l1DCache = u"%1 %2x%3  %4-way"_s.arg(l1DTotSize).arg(cpuid->num_cores).arg(l1DSize).arg(cpuid->l1_data_assoc);
+        cpuInfo->l1ICache = u"%1 %2x%3  %4-way"_s.arg(l1ITotSize).arg(cpuid->num_cores).arg(l1ISize).arg(cpuid->l1_instruction_assoc);
+        cpuInfo->l2Cache = u"%1 %2x%3  %4-way"_s.arg(l2TotSize).arg(cpuid->num_cores).arg(l2Size).arg(cpuid->l2_assoc);
+        cpuInfo->l3Cache = u"%1  %2-way"_s.arg(l3Size).arg(cpuid->l3_assoc);
 
         if (cpuid->l4_cache > 0) {
             const int l4 = cpuid->l4_cache > 0 ? (cpuid->l4_cache * 1024) : 0;
             const QString l4Size = l4 > 0 ? getMemorySizeStr(l4) : "0";
 
-            cpuInfo->l4Cache = QString("%1  %2-way").arg(l4Size).arg(cpuid->l4_assoc);
+            cpuInfo->l4Cache = u"%1  %2-way"_s.arg(l4Size).arg(cpuid->l4_assoc);
         }
     }
 }

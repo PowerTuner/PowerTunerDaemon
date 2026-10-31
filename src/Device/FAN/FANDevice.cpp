@@ -27,7 +27,7 @@ namespace PWTD {
     FANDevice::~FANDevice() {
         if (os->setupOSAccess()) {
             if (!os->setFanMode(control, PWTS::RWData<int>(0, true)) && logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("%1: failed to reset to auto").arg(fanString));
+                logger.write(u"%1: failed to reset to auto"_s.arg(fanString));
 
             os->unsetOSAccess();
 
@@ -45,7 +45,7 @@ namespace PWTD {
 
     void FANDevice::prepareForSleep() const {
         if (!os->setFanMode(control, PWTS::RWData<int>(0, true)) && logger.isLevel(PWTS::LogLevel::Error))
-            logger.write(QString("%1: failed to reset to auto").arg(fanString));
+            logger.write(u"%1: failed to reset to auto"_s.arg(fanString));
     }
 
     QSet<PWTS::DError> FANDevice::applySettings(const PWTS::FanData &data) {

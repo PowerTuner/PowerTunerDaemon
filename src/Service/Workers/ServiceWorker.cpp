@@ -48,7 +48,7 @@ namespace PWTD {
         QByteArray data;
 
         if (!PWTS::packData<QList<QVariant>>(args, data)) {
-            emit logMessageSent(QString("sendData: failed to pack data for cmd %1").arg(args[0].toInt()), PWTS::LogLevel::Error);
+            emit logMessageSent(u"sendData: failed to pack data for cmd %1"_s.arg(args[0].toInt()), PWTS::LogLevel::Error);
             return;
         }
 
@@ -63,10 +63,10 @@ namespace PWTD {
         if (res) {
             QObject::connect(server.get(), &QTcpServer::newConnection, this, &ServiceWorker::onNewConnection);
 
-            emit logMessageSent(QString("Listening on %1:%2").arg(sadr).arg(port), PWTS::LogLevel::Service);
+            emit logMessageSent(u"Listening on %1:%2"_s.arg(sadr).arg(port), PWTS::LogLevel::Service);
 
         } else {
-            emit logMessageSent(QString("Failed to listen on %1:%2").arg(sadr).arg(port), PWTS::LogLevel::Error);
+            emit logMessageSent(u"Failed to listen on %1:%2"_s.arg(sadr).arg(port), PWTS::LogLevel::Error);
         }
     }
 
@@ -106,7 +106,7 @@ namespace PWTD {
 
         sockStreamIn.setDevice(sock);
 
-        emit logMessageSent(QString("Connected to %1").arg(sock->peerAddress().toString()), PWTS::LogLevel::Info);
+        emit logMessageSent(u"Connected to %1"_s.arg(sock->peerAddress().toString()), PWTS::LogLevel::Info);
 
         QObject::connect(sock, &QTcpSocket::disconnected, this, &ServiceWorker::onDisconnected);
         QObject::connect(sock, &QTcpSocket::readyRead, this, &ServiceWorker::onReadyRead);
@@ -230,7 +230,7 @@ namespace PWTD {
 
     void ServiceWorker::sendByteArray(const PWTS::DCMD cmd, const QByteArray &data) {
         if (!isSockOpen()) {
-            emit logMessageSent(QString("ServiceWorker::sendByteArray: cmd %1: socket not available").arg(static_cast<int>(cmd)), PWTS::LogLevel::Error);
+            emit logMessageSent(u"ServiceWorker::sendByteArray: cmd %1: socket not available"_s.arg(static_cast<int>(cmd)), PWTS::LogLevel::Error);
             return;
         }
 

@@ -204,7 +204,7 @@ namespace PWTD {
 
         if (!profileDiskMan->load(name, packet)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("Failed to load profile %1").arg(name));
+                logger.write(u"Failed to load profile %1"_s.arg(name));
 
             emit sendError(PWTS::DError::PROFILE_LOAD_FAILED);
             emit sendCMDFail(PWTS::DCMD::LOAD_PROFILE);
@@ -212,7 +212,7 @@ namespace PWTD {
         }
 
         if (logger.isLevel(PWTS::LogLevel::Info))
-            logger.write(QString("Loaded profile: %1").arg(name));
+            logger.write(u"Loaded profile: %1"_s.arg(name));
 
         emit sendLoadedProfile(packet, name);
     }
@@ -236,7 +236,7 @@ namespace PWTD {
             if (!profileDiskMan->importProfile(it.key(), it.value()))
                 res = false;
             else if (logger.isLevel(PWTS::LogLevel::Info))
-                logger.write(QString("imported profile: %1").arg(it.key()));
+                logger.write(u"imported profile: %1"_s.arg(it.key()));
         }
 
         emit sendCmdResult(PWTS::DCMD::IMPORT_PROFILES, res);
@@ -278,7 +278,7 @@ namespace PWTD {
 
         if (logger.isLevel(PWTS::LogLevel::Service)) {
             logger.write(QJsonDocument(PWTS::getDeviceInfoJson(createDeviceInfoPacket())).toJson().toStdString().c_str());
-            logger.write(QString("Profiles directory: %1").arg(profileDiskMan->getPath()));
+            logger.write(u"Profiles directory: %1"_s.arg(profileDiskMan->getPath()));
         }
 
         QObject::connect(serviceThread, &QThread::started, serviceWorker, &ServiceWorker::init);
@@ -327,7 +327,7 @@ namespace PWTD {
         logger.init();
 
         if (logger.isLevel(PWTS::LogLevel::Service))
-            logger.write(QString("Profiles directory: %1").arg(profileDiskMan->getPath()));
+            logger.write(u"Profiles directory: %1"_s.arg(profileDiskMan->getPath()));
 
         emit connectService(getListenAddress(adr), getServerPort(port));
 
@@ -375,7 +375,7 @@ namespace PWTD {
 
                 } else if (packet.error != PWTS::PacketError::NoError) {
                     if (logger.isLevel(PWTS::LogLevel::Error))
-                        logger.write(QString("client packet error: %1").arg(PWTS::getPacketErrorStr(packet.error)));
+                        logger.write(u"client packet error: %1"_s.arg(PWTS::getPacketErrorStr(packet.error)));
 
                     emit sendError(PWTS::DError::INVALID_PACKET);
                     emit sendCMDFail(cmd);
@@ -475,7 +475,7 @@ namespace PWTD {
         const QSet<PWTS::DError> errors = applyProfileSettings(profile);
 
         if (logger.isLevel(PWTS::LogLevel::Info))
-            logger.write(QString("Battery status change: on battery: %1, profile: %2").arg(onBattery).arg(profile));
+            logger.write(u"Battery status change: on battery: %1, profile: %2"_s.arg(onBattery).arg(profile));
 
         writeErrorsToLog(errors);
         emit sendSettingsApplyResult(PWTS::DCMD::BATTERY_STATUS_CHANGED, errors, profile);

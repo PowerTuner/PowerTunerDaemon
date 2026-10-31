@@ -58,7 +58,7 @@ namespace PWTD {
         QByteArray deviceHash;
         QString path;
 
-        [[nodiscard]] QString getFilePath(const QString &name) const { return QString("%1/%2.%3").arg(path, name, ext); }
+        [[nodiscard]] QString getFilePath(const QString &name) const { return u"%1/%2.%3"_s.arg(path, name, ext); }
 
         [[nodiscard]] QByteArray getProfileData(const QString &profile) const;
         [[nodiscard]] DiskData getDiskData(QByteArray &data) const;

@@ -124,7 +124,7 @@ namespace PWTD::AMD {
 
         if (!msrDev->openFd(cpu)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("failed to open msr fd for cpu %1").arg(cpu));
+                logger.write(u"failed to open msr fd for cpu %1"_s.arg(cpu));
 
             packet.errors.insert(PWTS::DError::NO_MSR_FD);
             packet.amdData->threadData.append(thdData);
@@ -151,7 +151,7 @@ namespace PWTD::AMD {
 
         if (cpuInfo->numCores != coreIdxList.size()) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("core index count mismatch: %1 / %2").arg(coreIdxList.size()).arg(cpuInfo->numCores));
+                logger.write(u"core index count mismatch: %1 / %2"_s.arg(coreIdxList.size()).arg(cpuInfo->numCores));
 
             packet.errors.insert(PWTS::DError::CORE_IDX_MISMATCH);
             return;
@@ -197,7 +197,7 @@ namespace PWTD::AMD {
 
         if (!msrDev->openFd(cpu)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("failed to open msr fd for cpu %1").arg(cpu));
+                logger.write(u"failed to open msr fd for cpu %1"_s.arg(cpu));
 
             return;
         }
@@ -228,21 +228,21 @@ namespace PWTD::AMD {
 
         } else if (cpuInfo->numCores != adata->coreData.size()) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("core count mismatch: %1 / %2").arg(cpuInfo->numCores).arg(adata->coreData.size()));
+                logger.write(u"core count mismatch: %1 / %2"_s.arg(cpuInfo->numCores).arg(adata->coreData.size()));
 
             errors.insert(PWTS::DError::CORE_DATA_MISMATCH);
             return errors;
 
         } else if (cpuInfo->numLogicalCpus != adata->threadData.size()) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("thread count mismatch: %1 / %2").arg(cpuInfo->numLogicalCpus).arg(adata->threadData.size()));
+                logger.write(u"thread count mismatch: %1 / %2"_s.arg(cpuInfo->numLogicalCpus).arg(adata->threadData.size()));
 
             errors.insert(PWTS::DError::THREAD_DATA_MISMATCH);
             return errors;
 
         } else if (cpuInfo->numCores != coreIdxList.size()) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("core index count mismatch: %1 / %2").arg(coreIdxList.size()).arg(cpuInfo->numCores));
+                logger.write(u"core index count mismatch: %1 / %2"_s.arg(coreIdxList.size()).arg(cpuInfo->numCores));
 
             errors.insert(PWTS::DError::CORE_IDX_MISMATCH);
             return errors;

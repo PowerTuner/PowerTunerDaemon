@@ -231,7 +231,7 @@ namespace PWTD {
                 }
 
                 if (!res && logErrorLev)
-                    logger.write(QString("failed to apply fan curve to: %1").arg(fan->getID()));
+                    logger.write(u"failed to apply fan curve to: %1"_s.arg(fan->getID()));
             }
 
             os->unsetOSAccess();

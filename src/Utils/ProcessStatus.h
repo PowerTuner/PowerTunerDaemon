@@ -22,7 +22,7 @@
 namespace PWTD {
     class ProcessStatus final {
     private:
-        QLockFile flock {QString("%1/pwtd.lock").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation))};
+        QLockFile flock {u"%1/pwtd.lock"_s.arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation))};
 
     public:
         ProcessStatus() { flock.setStaleLockTime(0); }

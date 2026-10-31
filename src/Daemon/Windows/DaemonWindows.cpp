@@ -64,7 +64,7 @@ namespace PWTD {
         };
 
         if (cmdInstallSvc) {
-            const std::wstring exePath = QString("\"%1\"").arg(QCoreApplication::applicationFilePath()).toStdWString();
+            const std::wstring exePath = u"\"%1\""_s.arg(QCoreApplication::applicationFilePath()).toStdWString();
 
             if (!PWTSVC::installService(SVCNAME, exePath, logcb)) {
                 qCritical("failed to install service");

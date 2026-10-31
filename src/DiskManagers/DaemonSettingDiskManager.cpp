@@ -25,7 +25,7 @@ namespace PWTD {
         if (dataPath.isEmpty())
             return;
 
-        path = QString("%1/powertuner.pwtd").arg(dataPath);
+        path = u"%1/powertuner.pwtd"_s.arg(dataPath);
     }
 
     QSharedPointer<DaemonSettingDiskManager> DaemonSettingDiskManager::getInstance() {

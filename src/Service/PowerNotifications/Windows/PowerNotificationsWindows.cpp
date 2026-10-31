@@ -39,7 +39,7 @@ namespace PWTD {
 
 		if (GetSystemPowerStatus(&powerStatus) == 0) {
 			if (logger.isLevel(PWTS::LogLevel::Error))
-				logger.write(QString("Battery status change: failed to get power status: %1").arg(GetLastError()));
+				logger.write(u"Battery status change: failed to get power status: %1"_s.arg(GetLastError()));
 
 			return ERROR_INVALID_DATA;
 		}
@@ -64,10 +64,10 @@ namespace PWTD {
 
 		ret = PowerRegisterSuspendResumeNotification(DEVICE_NOTIFY_CALLBACK, &notifySuspendResumeParams, &powerSuspendResumeNotificationHandle);
 		if (ret != ERROR_SUCCESS && logger.isLevel(PWTS::LogLevel::Error))
-			logger.write(QString("Failed to register sleep events: %1").arg(ret));
+			logger.write(u"Failed to register sleep events: %1"_s.arg(ret));
 
 		ret = PowerSettingRegisterNotification(&GUID_ACDC_POWER_SOURCE, DEVICE_NOTIFY_CALLBACK, &notifyACDCParams, &powerACDCNotificationHandle);
 		if (ret != ERROR_SUCCESS && logger.isLevel(PWTS::LogLevel::Error))
-			logger.write(QString("Failed to register battery status change event: %1").arg(ret));
+			logger.write(u"Failed to register battery status change event: %1"_s.arg(ret));
 	}
 }

@@ -27,7 +27,7 @@ namespace PWTD {
     void Daemon::setupCmdArgs() const {
         cmdParser->addHelpOption();
         cmdParser->addOption({u"a"_s, u"listen on address|localhost|any, default any"_s, u"address"_s, u"any"_s});
-        cmdParser->addOption({u"p"_s, QString("port, default %1").arg(PWTS::DaemonSettings::DefaultTCPPort), u"port"_s, QString::number(PWTS::DaemonSettings::DefaultTCPPort)});
+        cmdParser->addOption({u"p"_s, u"port, default %1"_s.arg(PWTS::DaemonSettings::DefaultTCPPort), u"port"_s, QString::number(PWTS::DaemonSettings::DefaultTCPPort)});
     }
 
     void Daemon::parseCmdArgs(const QCoreApplication &app) {

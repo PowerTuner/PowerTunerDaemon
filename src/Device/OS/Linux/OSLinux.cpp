@@ -42,10 +42,10 @@ namespace PWTD {
                 features.insert(PWTS::Feature::CPU_SMT_SYSFS);
         }
 
-        if (QDir(QString("%1cpufreq").arg(sysfsCPU)).exists())
+        if (QDir(u"%1cpufreq"_s.arg(sysfsCPU)).exists())
             features.unite({PWTS::Feature::CPUFREQ_SYSFS, PWTS::Feature::SYSFS_GROUP});
 
-        if (QFile::exists(QString("%1current_governor").arg(sysfsCPUIdle)))
+        if (QFile::exists(u"%1current_governor"_s.arg(sysfsCPUIdle)))
             features.unite({PWTS::Feature::CPUIDLE_GOV_SYSFS, PWTS::Feature::SYSFS_GROUP});
 
 #ifdef WITH_AMD
@@ -283,7 +283,7 @@ namespace PWTD {
 
         } else if (numLogicalCPUs != ldata->threadData.size()) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("thread count mismatch: %1 / %2").arg(numLogicalCPUs).arg(ldata->threadData.size()));
+                logger.write(u"thread count mismatch: %1 / %2"_s.arg(numLogicalCPUs).arg(ldata->threadData.size()));
 
             errors.insert(PWTS::DError::THREAD_DATA_MISMATCH);
             return errors;
@@ -307,13 +307,13 @@ namespace PWTD {
 
         if (!sysfsF.exists()) {
             if (existsErrorLog && logger.isLevel(PWTS::LogLevel::Warning))
-                logger.write(QString("'%1' does not exist").arg(path));
+                logger.write(u"'%1' does not exist"_s.arg(path));
 
             return "";
 
         } else if (!sysfsF.open(ROTextOpenFlags)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("failed to open '%1': %2").arg(path, sysfsF.errorString()));
+                logger.write(u"failed to open '%1': %2"_s.arg(path, sysfsF.errorString()));
 
             return "";
         }
@@ -328,7 +328,7 @@ namespace PWTD {
 
         if (!sysfsF.open(WOTextOpenFlags)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("failed to open '%1': %2").arg(path, sysfsF.errorString()));
+                logger.write(u"failed to open '%1': %2"_s.arg(path, sysfsF.errorString()));
 
             return false;
         }
@@ -339,7 +339,7 @@ namespace PWTD {
         success = ts.status() == QTextStream::Ok;
 
         if (!success && logger.isLevel(PWTS::LogLevel::Error))
-            logger.write(QString("failed to write '%1', status: %2").arg(path).arg(ts.status()));
+            logger.write(u"failed to write '%1', status: %2"_s.arg(path).arg(ts.status()));
 
         return success;
     }
@@ -351,11 +351,11 @@ namespace PWTD {
     }
 
     PWTS::ROData<bool> OSLinux::hasCPULogicalOffFeature(const int cpu) const {
-        return PWTS::ROData<bool>(QFile::exists(QString("%1cpu%2/online").arg(sysfsCPU).arg(cpu)), true);
+        return PWTS::ROData<bool>(QFile::exists(u"%1cpu%2/online"_s.arg(sysfsCPU).arg(cpu)), true);
     }
 
     bool OSLinux::deviceHasRuntimePM(const QString &path) const {
-        const QString runtimeSuspendedTime = readSysfs(QString("%1/power/runtime_suspended_time").arg(path), false);
+        const QString runtimeSuspendedTime = readSysfs(u"%1/power/runtime_suspended_time"_s.arg(path), false);
         QString runtimeActiveTime;
         ulong runtimeV;
         bool res;
@@ -367,7 +367,7 @@ namespace PWTD {
         if (res && runtimeV > 0)
             return true;
 
-        runtimeActiveTime = readSysfs(QString("%1/power/runtime_active_time").arg(path), false);
+        runtimeActiveTime = readSysfs(u"%1/power/runtime_active_time"_s.arg(path), false);
         if (runtimeActiveTime.isEmpty())
             return false;
 
@@ -377,36 +377,36 @@ namespace PWTD {
     }
 
     QString OSLinux::getBiosVendor() const {
-        return readSysfs(QString("%1bios_vendor").arg(sysfsDMI));
+        return readSysfs(u"%1bios_vendor"_s.arg(sysfsDMI));
     }
 
     QString OSLinux::getBiosVersion() const {
-        return readSysfs(QString("%1bios_version").arg(sysfsDMI));
+        return readSysfs(u"%1bios_version"_s.arg(sysfsDMI));
     }
 
     QString OSLinux::getBiosDate() const {
-        return readSysfs(QString("%1bios_date").arg(sysfsDMI));
+        return readSysfs(u"%1bios_date"_s.arg(sysfsDMI));
     }
 
     QString OSLinux::getECVersion() const {
-        return readSysfs(QString("%1ec_firmware_release").arg(sysfsDMI));
+        return readSysfs(u"%1ec_firmware_release"_s.arg(sysfsDMI));
     }
 
     QString OSLinux::getProductName() const {
-        return readSysfs(QString("%1product_name").arg(sysfsDMI));
+        return readSysfs(u"%1product_name"_s.arg(sysfsDMI));
     }
 
     QString OSLinux::getManufacturer() const {
-        QString vendorDmi = readSysfs(QString("%1sys_vendor").arg(sysfsDMI), false);
+        QString vendorDmi = readSysfs(u"%1sys_vendor"_s.arg(sysfsDMI), false);
 
         if (vendorDmi.isEmpty())
-            return readSysfs(QString("%1board_vendor").arg(sysfsDMI));
+            return readSysfs(u"%1board_vendor"_s.arg(sysfsDMI));
 
         return vendorDmi;
     }
 
     QString OSLinux::getMicrocodeRevision(const int cpu) const {
-        return readSysfs(QString("%1cpu%2/microcode/version").arg(sysfsCPU).arg(cpu));
+        return readSysfs(u"%1cpu%2/microcode/version"_s.arg(sysfsCPU).arg(cpu));
     }
 
     quint64 OSLinux::getAvailableRam() const {
@@ -448,7 +448,7 @@ namespace PWTD {
     }
 
     PWTS::GPUVendor OSLinux::getGPUVendor(const int index) const {
-        const QString vendorID = readSysfs(QString("%1card%2/device/vendor").arg(sysfsDRM).arg(index)).toLower();
+        const QString vendorID = readSysfs(u"%1card%2/device/vendor"_s.arg(sysfsDRM).arg(index)).toLower();
 
         if (vendorID.isEmpty())
             return PWTS::GPUVendor::Unknown;
@@ -463,15 +463,15 @@ namespace PWTD {
     }
 
     QString OSLinux::getGPUDeviceID(const int index) const {
-        return readSysfs(QString("%1card%2/device/device").arg(sysfsDRM).arg(index));
+        return readSysfs(u"%1card%2/device/device"_s.arg(sysfsDRM).arg(index));
     }
 
     QString OSLinux::getGPURevisionID(const int index) const {
-        return readSysfs(QString("%1card%2/device/revision").arg(sysfsDRM).arg(index));
+        return readSysfs(u"%1card%2/device/revision"_s.arg(sysfsDRM).arg(index));
     }
 
     QString OSLinux::getGPUVBiosVersion(const int index) const {
-        return readSysfs(QString("%1card%2/device/vbios_version").arg(sysfsDRM).arg(index));
+        return readSysfs(u"%1card%2/device/vbios_version"_s.arg(sysfsDRM).arg(index));
     }
 
     QString OSLinux::getFanControlPath(const FanBoard board) const {
@@ -560,7 +560,7 @@ namespace PWTD {
     }
 
     PWTS::ROData<int> OSLinux::getCoreID(const int cpu) const {
-        const QString coreID = readSysfs(QString("%1cpu%2/topology/core_id").arg(sysfsCPU).arg(cpu));
+        const QString coreID = readSysfs(u"%1cpu%2/topology/core_id"_s.arg(sysfsCPU).arg(cpu));
         bool res;
         int id;
 
@@ -583,14 +583,14 @@ namespace PWTD {
             if (!match.hasMatch())
                 continue;
 
-            const QString id = readSysfs(QString("%1/topology/core_id").arg(entry.filePath()));
+            const QString id = readSysfs(u"%1/topology/core_id"_s.arg(entry.filePath()));
             const QString cpu = match.captured(1);
             bool idRes, cpuRes;
             const int idI = id.toInt(&idRes);
             const int cpuI = cpu.toInt(&cpuRes);
 
             if (logger.isLevel(PWTS::LogLevel::Info))
-                logger.write(QString("found: cpu %1, core id %2").arg(cpu, id));
+                logger.write(u"found: cpu %1, core id %2"_s.arg(cpu, id));
 
             if (!idRes || !cpuRes) {
                 if (logger.isLevel(PWTS::LogLevel::Error))
@@ -601,7 +601,7 @@ namespace PWTD {
 
             if (!coreMap.contains(idI)) {
                 if (logger.isLevel(PWTS::LogLevel::Info))
-                    logger.write(QString("added core %1").arg(id));
+                    logger.write(u"added core %1"_s.arg(id));
 
                 coreMap.insert(idI, cpuI);
             }
@@ -611,10 +611,10 @@ namespace PWTD {
     }
 
     PWTS::ROData<PWTS::LNX::CPUFrequencyLimits> OSLinux::getCPUFrequencyLimits(const int cpu) const {
-        const QString cpufreqPath = QString("%1cpu%2/cpufreq").arg(sysfsCPU).arg(cpu);
-        const QString minFreq = readSysfs(QString("%1/cpuinfo_min_freq").arg(cpufreqPath));
-        const QString maxFreq = readSysfs(QString("%1/cpuinfo_max_freq").arg(cpufreqPath));
-        const QString relatedCpus = readSysfs(QString("%1/related_cpus").arg(cpufreqPath));
+        const QString cpufreqPath = u"%1cpu%2/cpufreq"_s.arg(sysfsCPU).arg(cpu);
+        const QString minFreq = readSysfs(u"%1/cpuinfo_min_freq"_s.arg(cpufreqPath));
+        const QString maxFreq = readSysfs(u"%1/cpuinfo_max_freq"_s.arg(cpufreqPath));
+        const QString relatedCpus = readSysfs(u"%1/related_cpus"_s.arg(cpufreqPath));
         PWTS::LNX::CPUFrequencyLimits data;
         bool minRes, maxRes;
 
@@ -633,9 +633,9 @@ namespace PWTD {
     }
 
     PWTS::RWData<PWTS::MinMax> OSLinux::getCPUFrequency(const int cpu) const {
-        const QString cpufreqPath = QString("%1cpu%2/cpufreq").arg(sysfsCPU).arg(cpu);
-        const QString minFreq = readSysfs(QString("%1/scaling_min_freq").arg(cpufreqPath));
-        const QString maxFreq = readSysfs(QString("%1/scaling_max_freq").arg(cpufreqPath));
+        const QString cpufreqPath = u"%1cpu%2/cpufreq"_s.arg(sysfsCPU).arg(cpu);
+        const QString minFreq = readSysfs(u"%1/scaling_min_freq"_s.arg(cpufreqPath));
+        const QString maxFreq = readSysfs(u"%1/scaling_max_freq"_s.arg(cpufreqPath));
         bool minRes, maxRes;
         int min, max;
 
@@ -658,7 +658,7 @@ namespace PWTD {
     }
 
     PWTS::RWData<int> OSLinux::getCPUOnlineStatus(const int cpu) const {
-        QFile online {QString("%1cpu%2/online").arg(sysfsCPU).arg(cpu)};
+        QFile online {u"%1cpu%2/online"_s.arg(sysfsCPU).arg(cpu)};
         const bool isValid = !online.exists() || online.open(ROTextOpenFlags);
         const int isOn = !online.exists() || (online.isOpen() && QString::fromUtf8(online.readAll()).trimmed() == "1");
 
@@ -666,9 +666,9 @@ namespace PWTD {
     }
 
     PWTS::ROData<PWTS::LNX::CPUScalingAvailableGovernors> OSLinux::getCPUScalingAvailableGovernors(const int cpu) const {
-        const QString cpufreqPath = QString("%1cpu%2/cpufreq").arg(sysfsCPU).arg(cpu);
-        const QString availGovernors = readSysfs(QString("%1/scaling_available_governors").arg(cpufreqPath));
-        const QString relatedCpus = readSysfs(QString("%1/related_cpus").arg(cpufreqPath));
+        const QString cpufreqPath = u"%1cpu%2/cpufreq"_s.arg(sysfsCPU).arg(cpu);
+        const QString availGovernors = readSysfs(u"%1/scaling_available_governors"_s.arg(cpufreqPath));
+        const QString relatedCpus = readSysfs(u"%1/related_cpus"_s.arg(cpufreqPath));
         PWTS::LNX::CPUScalingAvailableGovernors data;
 
         if (availGovernors.isEmpty() || relatedCpus.isEmpty())
@@ -683,13 +683,13 @@ namespace PWTD {
     }
 
     PWTS::RWData<QString> OSLinux::getCPUScalingGovernor(const int cpu) const {
-        const QString scalingGov = readSysfs(QString("%1cpu%2/cpufreq/scaling_governor").arg(sysfsCPU).arg(cpu));
+        const QString scalingGov = readSysfs(u"%1cpu%2/cpufreq/scaling_governor"_s.arg(sysfsCPU).arg(cpu));
 
         return PWTS::RWData<QString>(scalingGov, !scalingGov.isEmpty());
     }
 
     PWTS::ROData<QList<QString>> OSLinux::getAvailableCPUIdleGovernors() const {
-        const QString availIdleGov = readSysfs(QString("%1available_governors").arg(sysfsCPUIdle));
+        const QString availIdleGov = readSysfs(u"%1available_governors"_s.arg(sysfsCPUIdle));
 
         if (availIdleGov.isEmpty())
             return {};
@@ -700,7 +700,7 @@ namespace PWTD {
     }
 
     PWTS::RWData<QString> OSLinux::getCPUIdleGovernor() const {
-        const QString idleGov = readSysfs(QString("%1current_governor").arg(sysfsCPUIdle));
+        const QString idleGov = readSysfs(u"%1current_governor"_s.arg(sysfsCPUIdle));
 
         return PWTS::RWData<QString>(idleGov, !idleGov.isEmpty());
     }
@@ -711,18 +711,18 @@ namespace PWTD {
 
         for (const QDirListing::DirEntry &entry: dit) {
             const QString devPath = entry.filePath();
-            const QString schedPath = QString("%1/queue/scheduler").arg(devPath);
+            const QString schedPath = u"%1/queue/scheduler"_s.arg(devPath);
 
             if (!QFile::exists(schedPath))
                 continue;
 
-            const QString model = readSysfs(QString("%1/device/model").arg(devPath), false);
-            const QString vendor = readSysfs(QString("%1/device/vendor").arg(devPath), false);
+            const QString model = readSysfs(u"%1/device/model"_s.arg(devPath), false);
+            const QString vendor = readSysfs(u"%1/device/vendor"_s.arg(devPath), false);
             const QString device = devPath.split('/', Qt::SkipEmptyParts).last().trimmed();
             const QString scheduler = readSysfs(schedPath);
             PWTS::LNX::BlockDeviceQueSched blkDev;
 
-            blkDev.name = QString("%1 %2").arg(vendor, model).trimmed();
+            blkDev.name = u"%1 %2"_s.arg(vendor, model).trimmed();
 
             for (const QString &sched: scheduler.split(' ', Qt::SkipEmptyParts)) {
                 const bool isSelected = sched.startsWith('[');
@@ -735,7 +735,7 @@ namespace PWTD {
 
             if (device.isEmpty() || blkDev.availableQueueSchedulers.isEmpty()) {
                 if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(QString("invalid block device %1, or no schedulers available").arg(device));
+                    logger.write(u"invalid block device %1, or no schedulers available"_s.arg(device));
 
                 continue;
             }
@@ -752,16 +752,16 @@ namespace PWTD {
 
         for (const QDirListing::DirEntry &entry: dit) {
             const QString devPath = entry.filePath();
-            const bool isAdapter = QFile::exists(QString("%1/new_device").arg(devPath));
-            const QString controlPath = QString("%1/%2power/control").arg(devPath, isAdapter ? "device/":"");
-            const QString name = readSysfs(QString("%1/name").arg(devPath), false);
+            const bool isAdapter = QFile::exists(u"%1/new_device"_s.arg(devPath));
+            const QString controlPath = u"%1/%2power/control"_s.arg(devPath, isAdapter ? "device/":"");
+            const QString name = readSysfs(u"%1/name"_s.arg(devPath), false);
             const QString control = readSysfs(controlPath, false);
 
-            if (name.isEmpty() || control.isEmpty() || !deviceHasRuntimePM(QString("%1/device").arg(devPath)))
+            if (name.isEmpty() || control.isEmpty() || !deviceHasRuntimePM(u"%1/device"_s.arg(devPath)))
                 continue;
 
             i2cDevs.append({
-                .name = QString("%1 [I2C %2]").arg(name, isAdapter ? "Adapter":"Device"),
+                .name = u"%1 [I2C %2]"_s.arg(name, isAdapter ? "Adapter":"Device"),
                 .control = controlPath,
                 .controlValue = control
             });
@@ -780,7 +780,7 @@ namespace PWTD {
 
         for (const QDirListing::DirEntry &entry: dit) {
             const QString devPath = entry.filePath();
-            const QString controlPath = QString("%1/power/control").arg(devPath);
+            const QString controlPath = u"%1/power/control"_s.arg(devPath);
             const QString control = readSysfs(controlPath, false);
             QString device;
             QString vendor;
@@ -789,8 +789,8 @@ namespace PWTD {
             if (control.isEmpty() || !deviceHasRuntimePM(devPath))
                 continue;
 
-            device = readSysfs(QString("%1/device").arg(devPath), false);
-            vendor = readSysfs(QString("%1/vendor").arg(devPath), false);
+            device = readSysfs(u"%1/device"_s.arg(devPath), false);
+            vendor = readSysfs(u"%1/vendor"_s.arg(devPath), false);
 
             if (pacc != nullptr && !device.isEmpty() && !vendor.isEmpty()) {
                 char nameBuf[1024] = {};
@@ -817,14 +817,14 @@ namespace PWTD {
 
             for (const QDirListing::DirEntry &ataEntry: QDirListing(devPath, {"ata*"}, QDirListing::IteratorFlag::DirsOnly | QDirListing::IteratorFlag::ResolveSymlinks)) {
                 const QString ataDev = ataEntry.filePath();
-                const QString ataControlPath = QString("%1/power/control").arg(ataDev);
+                const QString ataControlPath = u"%1/power/control"_s.arg(ataDev);
                 const QString ataControl = readSysfs(ataControlPath, false);
 
                 if (ataControl.isEmpty() || !deviceHasRuntimePM(ataDev))
                     continue;
 
                 pciDevs.append({
-                    .name = QString("%1 [%2 port]").arg(devName, ataEntry.baseName()),
+                    .name = u"%1 [%2 port]"_s.arg(devName, ataEntry.baseName()),
                     .control = ataControlPath,
                     .controlValue = ataControl
                 });
@@ -843,14 +843,14 @@ namespace PWTD {
 
         for (const QDirListing::DirEntry &entry: dit) {
             const QString blkPath = entry.filePath();
-            const QString controlPath = QString("%1/device/power/control").arg(blkPath);
+            const QString controlPath = u"%1/device/power/control"_s.arg(blkPath);
             const QString control = readSysfs(controlPath, false);
 
-            if (control.isEmpty() || !deviceHasRuntimePM(QString("%1/device").arg(blkPath)))
+            if (control.isEmpty() || !deviceHasRuntimePM(u"%1/device"_s.arg(blkPath)))
                 continue;
 
             blkDevs.append({
-                .name = QString("Disk [%1]").arg(entry.baseName()),
+                .name = u"Disk [%1]"_s.arg(entry.baseName()),
                 .control = controlPath,
                 .controlValue = control
             });
@@ -864,11 +864,11 @@ namespace PWTD {
         QList<PWTS::LNX::MiscPMDevice> usbDevs;
 
         for (const QDirListing::DirEntry &entry: dit) {
-            if (!QFile::exists(QString("%1/power/active_duration").arg(entry.filePath())))
+            if (!QFile::exists(u"%1/power/active_duration"_s.arg(entry.filePath())))
                 continue;
 
             const QString devPath = entry.filePath();
-            const QString controlPath = QString("%1/power/control").arg(devPath);
+            const QString controlPath = u"%1/power/control"_s.arg(devPath);
             const QString control = readSysfs(controlPath, false);
             bool hasUSBPM = true;
             QString idProduct;
@@ -882,7 +882,7 @@ namespace PWTD {
                 if (!usbEntry.baseName().at(0).isDigit())
                     continue;
 
-                const QString autosuspend = readSysfs(QString("%1/supports_autosuspend").arg(usbEntry.filePath()), false);
+                const QString autosuspend = readSysfs(u"%1/supports_autosuspend"_s.arg(usbEntry.filePath()), false);
 
                 if (autosuspend != "0")
                     continue;
@@ -894,16 +894,16 @@ namespace PWTD {
             if (!hasUSBPM)
                 continue;
 
-            idProduct = readSysfs(QString("%1/idProduct").arg(devPath), false);
-            idVendor = readSysfs(QString("%1/idVendor").arg(devPath), false);
+            idProduct = readSysfs(u"%1/idProduct"_s.arg(devPath), false);
+            idVendor = readSysfs(u"%1/idVendor"_s.arg(devPath), false);
 
             if (idProduct.isEmpty() || idVendor.isEmpty())
                 continue;
 
-            devName = readSysfs(QString("%1/product").arg(devPath), false);
+            devName = readSysfs(u"%1/product"_s.arg(devPath), false);
 
             usbDevs.append({
-                .name = QString("%1 [%2:%3]").arg(devName.isEmpty() ? "Unknown USB device" : devName, idVendor, idProduct),
+                .name = u"%1 [%2:%3]"_s.arg(devName.isEmpty() ? "Unknown USB device" : devName, idVendor, idProduct),
                 .control = controlPath,
                 .controlValue = control
             });
@@ -928,8 +928,8 @@ namespace PWTD {
             return true;
 
         const PWTS::MinMax freq = data.getValue();
-        const bool minWriteRes = writeSysfs(QString("%1cpu%2/cpufreq/scaling_min_freq").arg(sysfsCPU).arg(cpu), QString::number(freq.min * 1000));
-        const bool maxWriteRes = writeSysfs(QString("%1cpu%2/cpufreq/scaling_max_freq").arg(sysfsCPU).arg(cpu), QString::number(freq.max * 1000));
+        const bool minWriteRes = writeSysfs(u"%1cpu%2/cpufreq/scaling_min_freq"_s.arg(sysfsCPU).arg(cpu), QString::number(freq.min * 1000));
+        const bool maxWriteRes = writeSysfs(u"%1cpu%2/cpufreq/scaling_max_freq"_s.arg(sysfsCPU).arg(cpu), QString::number(freq.max * 1000));
 
         return minWriteRes && maxWriteRes;
     }
@@ -942,7 +942,7 @@ namespace PWTD {
     }
 
     bool OSLinux::setCPUOnlineStatus(const int cpu, const PWTS::RWData<int> &data) const {
-        const QString onlinePath = QString("%1cpu%2/online").arg(sysfsCPU).arg(cpu);
+        const QString onlinePath = u"%1cpu%2/online"_s.arg(sysfsCPU).arg(cpu);
 
         if (!QFile::exists(onlinePath) || !data.isValid())
             return true;
@@ -954,21 +954,21 @@ namespace PWTD {
         if (!data.isValid())
             return true;
 
-        return writeSysfs(QString("%1cpu%2/cpufreq/scaling_governor").arg(sysfsCPU).arg(cpu), data.getValue());
+        return writeSysfs(u"%1cpu%2/cpufreq/scaling_governor"_s.arg(sysfsCPU).arg(cpu), data.getValue());
     }
 
     bool OSLinux::setCPUIdleGovernor(const PWTS::RWData<QString> &data) const {
         if (!data.isValid())
             return true;
 
-        return writeSysfs(QString("%1current_governor").arg(sysfsCPUIdle), data.getValue());
+        return writeSysfs(u"%1current_governor"_s.arg(sysfsCPUIdle), data.getValue());
     }
 
     bool OSLinux::setBlockDevices(const QMap<QString, PWTS::LNX::BlockDeviceQueSched> &blockDevList) const {
         bool success = true;
 
         for (const auto &[dev, data]: blockDevList.asKeyValueRange()) {
-            const QString schedPath = QString("%1/%2/queue/scheduler").arg(sysfsBlock, dev);
+            const QString schedPath = u"%1/%2/queue/scheduler"_s.arg(sysfsBlock, dev);
 
             if (!QFile::exists(schedPath)) // probably detached device, no error
                 continue;
@@ -986,7 +986,7 @@ namespace PWTD {
         for (const PWTS::LNX::MiscPMDevice &miscPMDev: miscPMDevList) {
             if (!miscPmDevPathRex.match(miscPMDev.control).hasMatch() && !miscPmBlockPathRex.match(miscPMDev.control).hasMatch()) {
                 if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(QString("invalid control path: %1").arg(miscPMDev.control));
+                    logger.write(u"invalid control path: %1"_s.arg(miscPMDev.control));
 
                 continue;
             }
@@ -1005,7 +1005,7 @@ namespace PWTD {
     QSet<PWTS::Feature> OSLinux::getAMDCPUFeatures() const {
         QSet<PWTS::Feature> features;
 
-        if (QFile::exists(QString("%1/amd_pstate").arg(sysfsCPU)))
+        if (QFile::exists(u"%1/amd_pstate"_s.arg(sysfsCPU)))
             features.unite({PWTS::Feature::AMD_PSTATE_SYSFS, PWTS::Feature::SYSFS_GROUP});
 
         return features;
@@ -1075,7 +1075,7 @@ namespace PWTD {
 
         } else if (numLogicalCPUs != ldata->threadData.size()) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("thread count mismatch: %1 / %2").arg(numLogicalCPUs).arg(ldata->threadData.size()));
+                logger.write(u"thread count mismatch: %1 / %2"_s.arg(numLogicalCPUs).arg(ldata->threadData.size()));
 
             errors.insert(PWTS::DError::THREAD_DATA_MISMATCH);
             return;
@@ -1088,7 +1088,7 @@ namespace PWTD {
     }
 
      PWTS::ROData<PWTS::LNX::AMD::AMDPStateData> OSLinux::getAMDPStateData(const int cpu) const { //todo partial impl
-        const QString eppPrefs = readSysfs(QString("%1cpu%2/cpufreq/energy_performance_available_preferences").arg(sysfsCPU).arg(cpu));
+        const QString eppPrefs = readSysfs(u"%1cpu%2/cpufreq/energy_performance_available_preferences"_s.arg(sysfsCPU).arg(cpu));
         PWTS::LNX::AMD::AMDPStateData data;
 
          if (eppPrefs.isEmpty())
@@ -1100,13 +1100,13 @@ namespace PWTD {
     }
 
     PWTS::RWData<QString> OSLinux::getAMDPStateStatus() const {
-        const QString status = readSysfs(QString("%1amd_pstate/status").arg(sysfsCPU));
+        const QString status = readSysfs(u"%1amd_pstate/status"_s.arg(sysfsCPU));
 
         return PWTS::RWData<QString>(status, !status.isEmpty());
     }
 
     PWTS::RWData<QString> OSLinux::getAMDPStateEPPPreference(const int cpu) const {
-        const QString epp = readSysfs(QString("%1cpu%2/cpufreq/energy_performance_preference").arg(sysfsCPU).arg(cpu));
+        const QString epp = readSysfs(u"%1cpu%2/cpufreq/energy_performance_preference"_s.arg(sysfsCPU).arg(cpu));
 
         return PWTS::RWData<QString>(epp, !epp.isEmpty());
     }
@@ -1115,11 +1115,11 @@ namespace PWTD {
         if (!data.isValid())
             return true;
 
-        return writeSysfs(QString("%1amd_pstate/status").arg(sysfsCPU), data.getValue());
+        return writeSysfs(u"%1amd_pstate/status"_s.arg(sysfsCPU), data.getValue());
     }
 
     bool OSLinux::setAMDPStateEPPPreference(const int cpu, const PWTS::RWData<QString> &data) const {
-        const QString eppPath = QString("%1cpu%2/cpufreq/energy_performance_preference").arg(sysfsCPU).arg(cpu);
+        const QString eppPath = u"%1cpu%2/cpufreq/energy_performance_preference"_s.arg(sysfsCPU).arg(cpu);
 
         if (!QFile::exists(eppPath) || !data.isValid())
             return true;
@@ -1129,17 +1129,17 @@ namespace PWTD {
 #endif
 
     bool OSLinux::hasIntelGPURPSFreq(const int index) const {
-        return QFile::exists(QString("%1card%2/gt_RP0_freq_mhz").arg(sysfsDRM).arg(index)) &&
-                QFile::exists(QString("%1card%2/gt_RPn_freq_mhz").arg(sysfsDRM).arg(index));
+        return QFile::exists(u"%1card%2/gt_RP0_freq_mhz"_s.arg(sysfsDRM).arg(index)) &&
+                QFile::exists(u"%1card%2/gt_RPn_freq_mhz"_s.arg(sysfsDRM).arg(index));
     }
 
     bool OSLinux::hasIntelGPUBoost(const int index) const {
-        return QFile::exists(QString("%1card%2/gt_boost_freq_mhz").arg(sysfsDRM).arg(index));
+        return QFile::exists(u"%1card%2/gt_boost_freq_mhz"_s.arg(sysfsDRM).arg(index));
     }
 
     PWTS::ROData<PWTS::LNX::Intel::GPURPSLimits> OSLinux::getIntelGPURPSLimits(const int index) const {
-        const QString rp0 = readSysfs(QString("%1card%2/gt_RP0_freq_mhz").arg(sysfsDRM).arg(index));
-        const QString rpn = readSysfs(QString("%1card%2/gt_RPn_freq_mhz").arg(sysfsDRM).arg(index));
+        const QString rp0 = readSysfs(u"%1card%2/gt_RP0_freq_mhz"_s.arg(sysfsDRM).arg(index));
+        const QString rpn = readSysfs(u"%1card%2/gt_RPn_freq_mhz"_s.arg(sysfsDRM).arg(index));
         bool res0, resN;
         int rp0I, rpnI;
 
@@ -1156,8 +1156,8 @@ namespace PWTD {
     }
 
     PWTS::RWData<PWTS::MinMax> OSLinux::getIntelGPUFrequency(const int index) const {
-        const QString min = readSysfs(QString("%1card%2/gt_min_freq_mhz").arg(sysfsDRM).arg(index));
-        const QString max = readSysfs(QString("%1card%2/gt_max_freq_mhz").arg(sysfsDRM).arg(index));
+        const QString min = readSysfs(u"%1card%2/gt_min_freq_mhz"_s.arg(sysfsDRM).arg(index));
+        const QString max = readSysfs(u"%1card%2/gt_max_freq_mhz"_s.arg(sysfsDRM).arg(index));
         bool resMin, resMax;
         int minI, maxI;
 
@@ -1178,14 +1178,14 @@ namespace PWTD {
             return true;
 
         const PWTS::MinMax freq = data.getValue();
-        const QString minPath = QString("%1card%2/gt_min_freq_mhz").arg(sysfsDRM).arg(index);
-        const QString maxPath = QString("%1card%2/gt_max_freq_mhz").arg(sysfsDRM).arg(index);
+        const QString minPath = u"%1card%2/gt_min_freq_mhz"_s.arg(sysfsDRM).arg(index);
+        const QString maxPath = u"%1card%2/gt_max_freq_mhz"_s.arg(sysfsDRM).arg(index);
 
         return writeSysfs(minPath, QString::number(freq.min)) && writeSysfs(maxPath, QString::number(freq.max));
     }
 
     PWTS::RWData<int> OSLinux::getIntelGPUBoost(const int index) const {
-        const QString boost = readSysfs(QString("%1card%2/gt_boost_freq_mhz").arg(sysfsDRM).arg(index));
+        const QString boost = readSysfs(u"%1card%2/gt_boost_freq_mhz"_s.arg(sysfsDRM).arg(index));
         int boostI;
         bool res;
 
@@ -1201,19 +1201,19 @@ namespace PWTD {
         if (!data.isValid())
             return true;
 
-        return writeSysfs(QString("%1card%2/gt_boost_freq_mhz").arg(sysfsDRM).arg(index), QString::number(data.getValue()));
+        return writeSysfs(u"%1card%2/gt_boost_freq_mhz"_s.arg(sysfsDRM).arg(index), QString::number(data.getValue()));
     }
 
     bool OSLinux::hasAMDGPUDpmForcePerfLevel(const int index) const {
-        return QFile::exists(QString("%1card%2/device/power_dpm_force_performance_level").arg(sysfsDRM).arg(index));
+        return QFile::exists(u"%1card%2/device/power_dpm_force_performance_level"_s.arg(sysfsDRM).arg(index));
     }
 
     bool OSLinux::hasAMDGPUPowerDpmState(int index) const {
-        return QFile::exists(QString("%1card%2/device/power_dpm_state").arg(sysfsDRM).arg(index));
+        return QFile::exists(u"%1card%2/device/power_dpm_state"_s.arg(sysfsDRM).arg(index));
     }
 
     PWTS::ROData<PWTS::LNX::AMD::GPUODRanges> OSLinux::getAMDGPUODRanges(const int index) const {
-        QString odclk = readSysfs(QString("%1card%2/device/pp_od_clk_voltage").arg(sysfsDRM).arg(index));
+        QString odclk = readSysfs(u"%1card%2/device/pp_od_clk_voltage"_s.arg(sysfsDRM).arg(index));
         QTextStream ts {&odclk};
         bool sclkValid = false;
         int sclkMin = 0, sclkMax = 0;
@@ -1245,8 +1245,8 @@ namespace PWTD {
     }
 
     PWTS::RWData<PWTS::LNX::AMD::GPUDPMForcePerfLevel> OSLinux::getAMDGPUDpmForcePerfLevel(const int index) const {
-        const QString dpmForcePerfLvl = readSysfs(QString("%1card%2/device/power_dpm_force_performance_level").arg(sysfsDRM).arg(index));
-        QString ppod = readSysfs(QString("%1card%2/device/pp_od_clk_voltage").arg(sysfsDRM).arg(index));
+        const QString dpmForcePerfLvl = readSysfs(u"%1card%2/device/power_dpm_force_performance_level"_s.arg(sysfsDRM).arg(index));
+        QString ppod = readSysfs(u"%1card%2/device/pp_od_clk_voltage"_s.arg(sysfsDRM).arg(index));
         QTextStream ts {&ppod};
         bool validSclk = true;
         PWTS::LNX::AMD::GPUDPMForcePerfLevel data;
@@ -1283,7 +1283,7 @@ namespace PWTD {
     }
 
     PWTS::RWData<QString> OSLinux::getAMDGPUPowerDpmState(const int index) const {
-        const QString dpmState = readSysfs(QString("%1card%2/device/power_dpm_state").arg(sysfsDRM).arg(index));
+        const QString dpmState = readSysfs(u"%1card%2/device/power_dpm_state"_s.arg(sysfsDRM).arg(index));
 
         return PWTS::RWData<QString>(dpmState, !dpmState.isEmpty());
     }
@@ -1293,15 +1293,15 @@ namespace PWTD {
             return true;
 
         const PWTS::LNX::AMD::GPUDPMForcePerfLevel dpmData = data.getValue();
-        const QString dpmForcePerfLvlPath = QString("%1card%2/device/power_dpm_force_performance_level").arg(sysfsDRM).arg(index);
+        const QString dpmForcePerfLvlPath = u"%1card%2/device/power_dpm_force_performance_level"_s.arg(sysfsDRM).arg(index);
 
         if (dpmData.level == "manual") {
-            QFile ppodF {QString("%1card%2/device/pp_od_clk_voltage").arg(sysfsDRM).arg(index)};
+            QFile ppodF {u"%1card%2/device/pp_od_clk_voltage"_s.arg(sysfsDRM).arg(index)};
             QTextStream tsPP {&ppodF};
 
             if (!ppodF.open(WOTextOpenFlags)) {
                 if (logger.isLevel(PWTS::LogLevel::Error))
-                    logger.write(QString("failed to open: %1").arg(ppodF.errorString()));
+                    logger.write(u"failed to open: %1"_s.arg(ppodF.errorString()));
 
                 return false;
             }
@@ -1314,9 +1314,9 @@ namespace PWTD {
                 tsPP.flush();
             }
 
-            tsPP << QString("s 0 %1").arg(dpmData.sclk.min).toUtf8();
+            tsPP << u"s 0 %1"_s.arg(dpmData.sclk.min).toUtf8();
             tsPP.flush();
-            tsPP << QString("s 1 %1").arg(dpmData.sclk.max).toUtf8();
+            tsPP << u"s 1 %1"_s.arg(dpmData.sclk.max).toUtf8();
             tsPP.flush();
             tsPP << 'c';
             tsPP.flush();
@@ -1331,7 +1331,7 @@ namespace PWTD {
         if (!data.isValid())
             return true;
 
-        return writeSysfs(QString("%1card%2/device/power_dpm_state").arg(sysfsDRM).arg(index), data.getValue());
+        return writeSysfs(u"%1card%2/device/power_dpm_state"_s.arg(sysfsDRM).arg(index), data.getValue());
     }
 
 #ifdef WITH_GPD_FAN
@@ -1345,7 +1345,7 @@ namespace PWTD {
     }
 
     PWTS::RWData<int> OSLinux::getGPDFanMode(const QString &hwmon) const {
-        const QString gpdMode = readSysfs(QString("%1/%2/pwm1_enable").arg(sysfsGpdfan, hwmon));
+        const QString gpdMode = readSysfs(u"%1/%2/pwm1_enable"_s.arg(sysfsGpdfan, hwmon));
         bool res;
         const int gpdModeI = gpdMode.toInt(&res);
         const int mode = gpdModeI == 2 ? 0:1;
@@ -1354,7 +1354,7 @@ namespace PWTD {
     }
 
     PWTS::ROData<int> OSLinux::getGPDFanSpeed(const QString &hwmon) const {
-        const QString speed = readSysfs(QString("%1/%2/fan1_input").arg(sysfsGpdfan, hwmon));
+        const QString speed = readSysfs(u"%1/%2/fan1_input"_s.arg(sysfsGpdfan, hwmon));
         bool res;
         const int speedI = speed.toInt(&res);
         const int perc = res ? (speedI * 100 / 255) : 0;
@@ -1369,7 +1369,7 @@ namespace PWTD {
         const int fanMode = mode.getValue();
         const int gpdMode = fanMode == 0 ? 2:1;
 
-        return writeSysfs(QString("%1/%2/pwm1_enable").arg(sysfsGpdfan, hwmon), QString::number(gpdMode));
+        return writeSysfs(u"%1/%2/pwm1_enable"_s.arg(sysfsGpdfan, hwmon), QString::number(gpdMode));
     }
 
     bool OSLinux::setGPDFanSpeed(const int speed, const QString &hwmon) const {
@@ -1379,7 +1379,7 @@ namespace PWTD {
         if (!mode.isValid() || mode.getValue() == 0)
             return true;
 
-        return writeSysfs(QString("%1/%2/pwm1").arg(sysfsGpdfan, hwmon), QString::number(val));
+        return writeSysfs(u"%1/%2/pwm1"_s.arg(sysfsGpdfan, hwmon), QString::number(val));
     }
 #endif
 }

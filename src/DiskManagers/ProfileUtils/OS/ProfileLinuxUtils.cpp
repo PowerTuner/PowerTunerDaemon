@@ -81,7 +81,7 @@ namespace PWTD {
         for (const auto &[dev, data]: profile->blockDevicesQueSched.asKeyValueRange()) {
             if (!packet->blockDevicesQueSched.contains(dev)) {
                 if (FileLogger::get().isLevel(PWTS::LogLevel::Warning))
-                    FileLogger::get().write(QString("Cannot load queue scheduler for block device: %1, no such device").arg(dev));
+                    FileLogger::get().write(u"Cannot load queue scheduler for block device: %1, no such device"_s.arg(dev));
 
                 continue;
             }
@@ -92,7 +92,7 @@ namespace PWTD {
         for (const auto &[gpuIdx, gpuData]: profile->intelGpuData.asKeyValueRange()) {
             if (!packet->intelGpuData.contains(gpuIdx)) {
                 if (FileLogger::get().isLevel(PWTS::LogLevel::Warning))
-                    FileLogger::get().write(QString("Cannot load Intel GPU data for card %1, no Intel card with this index").arg(gpuIdx));
+                    FileLogger::get().write(u"Cannot load Intel GPU data for card %1, no Intel card with this index"_s.arg(gpuIdx));
 
                 continue;
             }
@@ -104,7 +104,7 @@ namespace PWTD {
         for (const auto &[gpuIdx, gpuData]: profile->amdGpuData.asKeyValueRange()) {
             if (!packet->amdGpuData.contains(gpuIdx)) {
                 if (FileLogger::get().isLevel(PWTS::LogLevel::Warning))
-                    FileLogger::get().write(QString("Cannot load AMD GPU data for card %1, missing on device").arg(gpuIdx));
+                    FileLogger::get().write(u"Cannot load AMD GPU data for card %1, missing on device"_s.arg(gpuIdx));
 
                 continue;
             }

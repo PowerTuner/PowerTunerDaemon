@@ -39,15 +39,15 @@ namespace PWTD {
         if (level == PWTS::LogLevel::None)
             return;
 
-        const QString oldLog = QString("%1/powertunerd.log.old").arg(logDir);
-        const QString newLog = QString("%1/powertunerd.log").arg(logDir);
+        const QString oldLog = u"%1/powertunerd.log.old"_s.arg(logDir);
+        const QString newLog = u"%1/powertunerd.log"_s.arg(logDir);
 
         QFile::remove(oldLog);
         QFile::rename(newLog, oldLog);
         logFile.setFileName(newLog);
 
         if (!logFile.open(QFile::Text | QFile::WriteOnly)) {
-            qWarning() << QString("cannot open log file %1 for write: %2").arg(newLog, logFile.errorString());
+            qWarning() << u"cannot open log file %1 for write: %2"_s.arg(newLog, logFile.errorString());
             level = PWTS::LogLevel::None;
 
         } else {

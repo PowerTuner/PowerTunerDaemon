@@ -37,7 +37,7 @@ namespace PWTD {
                 return "Unknown";
         }
 
-        return QString("%1 %2").arg(QString::number(sz, 'g', 3), unitIt->data());
+        return u"%1 %2"_s.arg(QString::number(sz, 'g', 3), unitIt->data());
     }
 
     // from rdmsr: https://github.com/intel/msr-tools/blob/master/rdmsr.c

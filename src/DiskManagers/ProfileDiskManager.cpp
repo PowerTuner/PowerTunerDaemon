@@ -80,7 +80,7 @@ namespace PWTD {
 
         if (!profileF.open(QFile::ReadOnly)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("%1: failed to open file: %2").arg(profileF.fileName(), profileF.errorString()));
+                logger.write(u"%1: failed to open file: %2"_s.arg(profileF.fileName(), profileF.errorString()));
 
             return {};
         }
@@ -88,7 +88,7 @@ namespace PWTD {
         ds >> psignature;
         if (psignature != signature) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("%1: failed to load, invalid signature").arg(profileF.fileName()));
+                logger.write(u"%1: failed to load, invalid signature"_s.arg(profileF.fileName()));
 
             return {};
         }
@@ -96,7 +96,7 @@ namespace PWTD {
         ds >> fversion;
         if (fversion > fileVersion) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("%1: failed to load, future version %2 vs %3").arg(profileF.fileName()).arg(fversion).arg(fileVersion));
+                logger.write(u"%1: failed to load, future version %2 vs %3"_s.arg(profileF.fileName()).arg(fversion).arg(fileVersion));
 
             return {};
         }
@@ -104,7 +104,7 @@ namespace PWTD {
         ds >> hash;
         if (hash != deviceHash) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("%1: device hash mismatch, cannot load").arg(profileF.fileName()));
+                logger.write(u"%1: device hash mismatch, cannot load"_s.arg(profileF.fileName()));
 
             return {};
         }
@@ -112,7 +112,7 @@ namespace PWTD {
         ds >> checksum >> data;
         if (checksum != QCryptographicHash::hash(data, QCryptographicHash::Sha256)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("%1: checksum failed, cannot load").arg(profileF.fileName()));
+                logger.write(u"%1: checksum failed, cannot load"_s.arg(profileF.fileName()));
 
             return {};
         }
@@ -198,7 +198,7 @@ namespace PWTD {
     bool ProfileDiskManager::load(const QString &name, PWTS::ClientPacket &packet) const {
         if (path.isEmpty()) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("profiles folder is not available, cannot load %1").arg(name));
+                logger.write(u"profiles folder is not available, cannot load %1"_s.arg(name));
 
             return false;
         }
@@ -234,7 +234,7 @@ namespace PWTD {
     bool ProfileDiskManager::load(const QString &name, PWTS::DaemonPacket &packet) const {
         if (path.isEmpty()) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("profiles folder is not available, cannot load %1").arg(name));
+                logger.write(u"profiles folder is not available, cannot load %1"_s.arg(name));
 
             return false;
         }
@@ -252,7 +252,7 @@ namespace PWTD {
 #ifdef __linux__
         if (profile.linuxD->threadData.size() != packet.linuxData->threadData.size()) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("%1: linux thread data count mismatch").arg(name));
+                logger.write(u"%1: linux thread data count mismatch"_s.arg(name));
 
             return false;
         }
@@ -267,14 +267,14 @@ namespace PWTD {
             case PWTS::CPUVendor::Intel: {
                 if (profile.intelD->coreData.size() != packet.intelData->coreData.size()) {
                     if (logger.isLevel(PWTS::LogLevel::Error))
-                        logger.write(QString("%1: intel core data count mismatch").arg(name));
+                        logger.write(u"%1: intel core data count mismatch"_s.arg(name));
 
                     return false;
                 }
 
                 if (profile.intelD->threadData.size() != packet.intelData->threadData.size()) {
                     if (logger.isLevel(PWTS::LogLevel::Error))
-                        logger.write(QString("%1: intel thread data count mismatch").arg(name));
+                        logger.write(u"%1: intel thread data count mismatch"_s.arg(name));
 
                     return false;
                 }
@@ -287,14 +287,14 @@ namespace PWTD {
             case PWTS::CPUVendor::AMD: {
                 if (profile.amdD->coreData.size() != packet.amdData->coreData.size()) {
                     if (logger.isLevel(PWTS::LogLevel::Error))
-                        logger.write(QString("%1: amd core data count mismatch").arg(name));
+                        logger.write(u"%1: amd core data count mismatch"_s.arg(name));
 
                     return false;
                 }
 
                 if (profile.amdD->threadData.size() != packet.amdData->threadData.size()) {
                     if (logger.isLevel(PWTS::LogLevel::Error))
-                        logger.write(QString("%1: amd thread data count mismatch").arg(name));
+                        logger.write(u"%1: amd thread data count mismatch"_s.arg(name));
 
                     return false;
                 }
@@ -303,7 +303,7 @@ namespace PWTD {
 #ifdef __linux__
                 if (profile.linuxAmdD->threadData.size() != packet.linuxAmdData->threadData.size()) {
                     if (logger.isLevel(PWTS::LogLevel::Error))
-                        logger.write(QString("%1: linux amd thread data count mismatch").arg(name));
+                        logger.write(u"%1: linux amd thread data count mismatch"_s.arg(name));
 
                     return false;
                 }
@@ -338,7 +338,7 @@ namespace PWTD {
         if (path.isEmpty())
             return {};
 
-        const QDirListing dit(path, {QString("*.%1").arg(ext)}, QDirListing::IteratorFlag::FilesOnly);
+        const QDirListing dit(path, {u"*.%1"_s.arg(ext)}, QDirListing::IteratorFlag::FilesOnly);
         QList<QString> list;
 
         for (const QDirListing::DirEntry &entry: dit)
@@ -359,10 +359,10 @@ namespace PWTD {
             if (!profile.open(QFile::ReadOnly))
                 return {};
 
-            exported.insert(QString("%1.%2").arg(name, ext), profile.readAll());
+            exported.insert(u"%1.%2"_s.arg(name, ext), profile.readAll());
 
         } else {
-            const QDirListing dit(path, {QString("*.%1").arg(ext)}, QDirListing::IteratorFlag::FilesOnly);
+            const QDirListing dit(path, {u"*.%1"_s.arg(ext)}, QDirListing::IteratorFlag::FilesOnly);
 
             for (const QDirListing::DirEntry &entry: dit) {
                 QFile profile {entry.filePath()};
@@ -378,7 +378,7 @@ namespace PWTD {
     bool ProfileDiskManager::importProfile(const QString &name, const QByteArray &data) const {
         if (path.isEmpty() || name.isEmpty()) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("%1: failed to import: invalid file name or no profiles folder").arg(name));
+                logger.write(u"%1: failed to import: invalid file name or no profiles folder"_s.arg(name));
 
             return false;
         }
@@ -391,14 +391,14 @@ namespace PWTD {
         ds >> psignature;
         if (psignature != signature) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("%1: failed to import: invalid signature").arg(name));
+                logger.write(u"%1: failed to import: invalid signature"_s.arg(name));
 
             return false;
         }
 
         if (!profile.open(QFile::WriteOnly | QFile::Truncate)) {
             if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(QString("%1: failed to import: %2").arg(name, profile.errorString()));
+                logger.write(u"%1: failed to import: %2"_s.arg(name, profile.errorString()));
 
             return false;
         }

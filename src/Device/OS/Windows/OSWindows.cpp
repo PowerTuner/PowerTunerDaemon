@@ -47,7 +47,7 @@ namespace PWTD {
 
     	ret = GetDllStatus();
     	if (ret != OLS_DLL_NO_ERROR && logger.isLevel(PWTS::LogLevel::Error))
-    		logger.write(QString("failed to load winring dll, code %1").arg(ret));
+    		logger.write(u"failed to load winring dll, code %1"_s.arg(ret));
 
     	return ret == OLS_DLL_NO_ERROR;
 	}
@@ -100,7 +100,7 @@ namespace PWTD {
 
     			if (ret != ERROR_SUCCESS) {
     				if (logger.isLevel(PWTS::LogLevel::Error))
-    					logger.write(QString("failed to restore default schemes, code: %1").arg(ret));
+    					logger.write(u"failed to restore default schemes, code: %1"_s.arg(ret));
 
     				schemeErrs.insert(PWTS::DError::W_PWR_RESET_SCHEMES_DEFAULT);
     			}
@@ -114,7 +114,7 @@ namespace PWTD {
 
     			if (ret != ERROR_SUCCESS) {
     				if (logger.isLevel(PWTS::LogLevel::Error))
-    					logger.write(QString("failed to replace default schemes, code: %1").arg(ret));
+    					logger.write(u"failed to replace default schemes, code: %1"_s.arg(ret));
 
     				schemeErrs.insert(PWTS::DError::W_PWR_REPLACE_WIN_DEFAULT_SCHEMES);
     			}
@@ -195,7 +195,7 @@ namespace PWTD {
 				const QString subg = subgroupGuid != nullptr ? GUIDToQString(*subgroupGuid):"";
 				const QString sett = settingGuid != nullptr ? GUIDToQString(*settingGuid):"";
 
-				logger.write(QString("failed to read buf size: scheme: %1, subgroup: %2, setting: %3, code: %4").arg(scheme, subg, sett).arg(ret));
+				logger.write(u"failed to read buf size: scheme: %1, subgroup: %2, setting: %3, code: %4"_s.arg(scheme, subg, sett).arg(ret));
 			}
 
 			return {};
@@ -211,7 +211,7 @@ namespace PWTD {
 				const QString subg = subgroupGuid != nullptr ? GUIDToQString(*subgroupGuid):"";
 				const QString sett = settingGuid != nullptr ? GUIDToQString(*settingGuid):"";
 
-				logger.write(QString("failed to read friendly name: scheme: %1, subgroup: %2, setting: %3, code: %4").arg(scheme, subg, sett).arg(ret));
+				logger.write(u"failed to read friendly name: scheme: %1, subgroup: %2, setting: %3, code: %4"_s.arg(scheme, subg, sett).arg(ret));
 			}
 
 			return {};
@@ -282,14 +282,14 @@ namespace PWTD {
 
 		if ((psetting.ac == -1 && hasPowerSettingAC(setting)) || PowerWriteACValueIndex(nullptr, &scheme, &subGroup, &setting, psetting.ac) != ERROR_SUCCESS) {
 			if (logger.isLevel(PWTS::LogLevel::Error))
-				logger.write(QString("failed to set AC value '%1'").arg(psetting.ac));
+				logger.write(u"failed to set AC value '%1'"_s.arg(psetting.ac));
 
 			success = false;
 		}
 
 		if (psetting.dc == -1 && hasPowerSettingDC(setting) || PowerWriteDCValueIndex(nullptr, &scheme, &subGroup, &setting, psetting.dc) != ERROR_SUCCESS) {
 			if (logger.isLevel(PWTS::LogLevel::Error))
-				logger.write(QString("failed to set DC value '%1'").arg(psetting.ac));
+				logger.write(u"failed to set DC value '%1'"_s.arg(psetting.ac));
 
 			success = false;
 		}
@@ -307,7 +307,7 @@ namespace PWTD {
     	ret = RegQueryInfoKey(hkey, nullptr, nullptr, nullptr, nullptr, &maxKeySz, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr);
     	if (ret != ERROR_SUCCESS) {
     		if (logger.isLevel(PWTS::LogLevel::Error))
-    			logger.write(QString("failed to query max key size, code %1").arg(ret));
+    			logger.write(u"failed to query max key size, code %1"_s.arg(ret));
 
     		RegCloseKey(hkey);
     		return {};
@@ -392,7 +392,7 @@ namespace PWTD {
 		ret = PowerSettingAccessCheck(ACCESS_CREATE_SCHEME, nullptr);
 		if (ret != ERROR_SUCCESS) {
 			if (logger.isLevel(PWTS::LogLevel::Error))
-				logger.write(QString("cannot create %1, no access to %2, code %3").arg(name, GUIDToQString(sourceScheme)).arg(ret));
+				logger.write(u"cannot create %1, no access to %2, code %3"_s.arg(name, GUIDToQString(sourceScheme)).arg(ret));
 
 			return nullptr;
 		}
@@ -400,7 +400,7 @@ namespace PWTD {
 		ret = PowerDuplicateScheme(nullptr, &sourceScheme, &guid);
 		if (ret != ERROR_SUCCESS) {
 			if (logger.isLevel(PWTS::LogLevel::Error))
-				logger.write(QString("cannot create %1, cannot duplicate %2, code %3").arg(name, GUIDToQString(sourceScheme)).arg(ret));
+				logger.write(u"cannot create %1, cannot duplicate %2, code %3"_s.arg(name, GUIDToQString(sourceScheme)).arg(ret));
 
 			return nullptr;
 		}
@@ -408,7 +408,7 @@ namespace PWTD {
 		ret = PowerWriteFriendlyName(nullptr, guid, nullptr, nullptr, reinterpret_cast<PUCHAR>(wname.data()), (wname.size() + 1) * sizeof(wchar_t));
 		if (ret != ERROR_SUCCESS) {
 			if (logger.isLevel(PWTS::LogLevel::Error))
-				logger.write(QString("cannot write friendly name for %1, code %2").arg(name).arg(ret));
+				logger.write(u"cannot write friendly name for %1, code %2"_s.arg(name).arg(ret));
 
 			LocalFree(guid);
 			return nullptr;
@@ -421,7 +421,7 @@ namespace PWTD {
     	const DWORD ret = PowerDeleteScheme(nullptr, &guid);
 
 		if (ret != ERROR_SUCCESS && logger.isLevel(PWTS::LogLevel::Error))
-			logger.write(QString("failed to delete scheme '%1', code: %2").arg(GUIDToQString(guid)).arg(ret));
+			logger.write(u"failed to delete scheme '%1', code: %2"_s.arg(GUIDToQString(guid)).arg(ret));
 
 		return ret == ERROR_SUCCESS;
 	}
@@ -429,7 +429,7 @@ namespace PWTD {
 	bool OSWindows::CreatePowerScheme(QMap<QString, SchemeGUID> &guidMap, const GUID &baseGuid, const QString &duplicateTmpGuid, const QString &duplicateName) const {
 		if (baseGuid.Data1 == 0) {
 			if (logger.isLevel(PWTS::LogLevel::Error))
-				logger.write(QString("cannot create scheme '%1': no base scheme available").arg(duplicateName));
+				logger.write(u"cannot create scheme '%1': no base scheme available"_s.arg(duplicateName));
 
 			return false;
 		}
@@ -438,7 +438,7 @@ namespace PWTD {
 
 		if (duplicateGuid == nullptr) {
 			if (logger.isLevel(PWTS::LogLevel::Error))
-				logger.write(QString("failed to create scheme '%1'").arg(duplicateName));
+				logger.write(u"failed to create scheme '%1'"_s.arg(duplicateName));
 
 			return false;
 		}
@@ -521,7 +521,7 @@ namespace PWTD {
 
     	if (ret != ERROR_SUCCESS) {
     		if (logger.isLevel(PWTS::LogLevel::Error))
-    			logger.write(QString("failed to get active power scheme, code: %1").arg(ret));
+    			logger.write(u"failed to get active power scheme, code: %1"_s.arg(ret));
 
     		return nullptr;
     	}
@@ -573,7 +573,7 @@ namespace PWTD {
         if (displayGUID.isEmpty())
             return "";
 
-    	const std::wstring subKey = QString("%1%2\\%3").arg(regSystemClass, displayGUID, QString::number(index).rightJustified(4, '0')).toStdWString();
+    	const std::wstring subKey = u"%1%2\\%3"_s.arg(regSystemClass, displayGUID, QString::number(index).rightJustified(4, '0')).toStdWString();
 		const std::optional<std::wstring> ret = PWTREG::regReadSZ(HKEY_LOCAL_MACHINE, subKey.c_str(), L"MatchingDeviceId", pwtW32Log);
 
         return QString::fromStdWString(ret.value_or(L""));
@@ -604,7 +604,7 @@ namespace PWTD {
         if (!major)
             return "";
 
-        return QString("%1.%2").arg(major.value()).arg(minor.value_or(0));
+        return u"%1.%2"_s.arg(major.value()).arg(minor.value_or(0));
     }
 
     QString OSWindows::getProductName() const {
@@ -631,7 +631,7 @@ namespace PWTD {
     	lastErr = GetLastError();
     	if (lastErr != ERROR_INSUFFICIENT_BUFFER) {
     		if (logger.isLevel(PWTS::LogLevel::Error))
-    			logger.write(QString("failed to query buffer size, code: %1").arg(lastErr));
+    			logger.write(u"failed to query buffer size, code: %1"_s.arg(lastErr));
 
     		return {};
     	}
@@ -640,7 +640,7 @@ namespace PWTD {
 
     	if (GetSystemCpuSetInformation(reinterpret_cast<PSYSTEM_CPU_SET_INFORMATION>(buff.get()), buffSz, &returnedSz, nullptr, 0) == FALSE) {
     		if (logger.isLevel(PWTS::LogLevel::Error))
-    			logger.write(QString("failed to get cpu set information, code: %1").arg(GetLastError()));
+    			logger.write(u"failed to get cpu set information, code: %1"_s.arg(GetLastError()));
 
     		return {};
     	}
@@ -658,11 +658,11 @@ namespace PWTD {
     		logicalIdx = cpuSet->CpuSet.LogicalProcessorIndex;
 
     		if (logger.isLevel(PWTS::LogLevel::Info))
-    			logger.write(QString("found: core index %1, logical index %2").arg(coreIdx).arg(logicalIdx));
+    			logger.write(u"found: core index %1, logical index %2"_s.arg(coreIdx).arg(logicalIdx));
 
     		if (!coreMap.contains(coreIdx)) {
     			if (logger.isLevel(PWTS::LogLevel::Info))
-    				logger.write(QString("added core %1").arg(coreIdx));
+    				logger.write(u"added core %1"_s.arg(coreIdx));
 
     			coreMap.insert(coreIdx, logicalIdx);
     		}
@@ -718,7 +718,7 @@ namespace PWTD {
         HKEY hkey;
         LSTATUS ret;
 
-        ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, QString("%1%2").arg(regSystemClass, displayGUID).toStdWString().c_str(), 0, KEY_ENUMERATE_SUB_KEYS, &hkey);
+        ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, u"%1%2"_s.arg(regSystemClass, displayGUID).toStdWString().c_str(), 0, KEY_ENUMERATE_SUB_KEYS, &hkey);
         if (ret != ERROR_SUCCESS)
             return {};
 
@@ -764,7 +764,7 @@ namespace PWTD {
         if (!match.hasMatch())
             return "";
 
-        return QString("0x%1").arg(match.captured(1));
+        return u"0x%1"_s.arg(match.captured(1));
     }
 
     QString OSWindows::getGPURevisionID(const int index) const {
@@ -774,7 +774,7 @@ namespace PWTD {
         if (!match.hasMatch())
             return "";
 
-        return QString("0x%1").arg(match.captured(1));
+        return u"0x%1"_s.arg(match.captured(1));
     }
 
 	QString OSWindows::getGPUVBiosVersion(int index) const {
@@ -838,7 +838,7 @@ namespace PWTD {
 
 				if (settingName.isEmpty()) {
 					if (logger.isLevel(PWTS::LogLevel::Error))
-						logger.write(QString("collect static data: empty name for setting: %1, skip").arg(settingGuidStr));
+						logger.write(u"collect static data: empty name for setting: %1, skip"_s.arg(settingGuidStr));
 
 					continue;
 				}
@@ -854,7 +854,7 @@ namespace PWTD {
 
 				if (ret != ERROR_SUCCESS) {
 					if (logger.isLevel(PWTS::LogLevel::Error))
-						logger.write(QString("failed to check setting type, setting: %1, group: %2, code %3").arg(settingGuidStr, settingGroupGuidStr).arg(ret));
+						logger.write(u"failed to check setting type, setting: %1, group: %2, code %3"_s.arg(settingGuidStr, settingGroupGuidStr).arg(ret));
 
 					continue;
 				}
@@ -924,7 +924,7 @@ namespace PWTD {
 				ret = PowerCanRestoreIndividualDefaultPowerScheme(&guid);
 				if (ret != ERROR_SUCCESS) {
 					if (logger.isLevel(PWTS::LogLevel::Error))
-						logger.write(QString("cannot restore %1 to defaults, code: %2").arg(guidStr).arg(ret));
+						logger.write(u"cannot restore %1 to defaults, code: %2"_s.arg(guidStr).arg(ret));
 
 					errors.insert(PWTS::DError::W_PWR_RESET_INDIVIDUAL_DEFAULT);
 					continue;
@@ -933,7 +933,7 @@ namespace PWTD {
 				ret = PowerRestoreIndividualDefaultPowerScheme(&guid);
 				if (ret != ERROR_SUCCESS) {
 					if (logger.isLevel(PWTS::LogLevel::Error))
-						logger.write(QString("failed to restore %1 to defaults, code: %2").arg(guidStr).arg(ret));
+						logger.write(u"failed to restore %1 to defaults, code: %2"_s.arg(guidStr).arg(ret));
 
 					errors.insert(PWTS::DError::W_PWR_RESET_INDIVIDUAL_DEFAULT);
 				}
@@ -952,7 +952,7 @@ namespace PWTD {
 				errors.insert(PWTS::DError::W_PWR_NO_SCHEME_ACCESS);
 
 				if (logger.isLevel(PWTS::LogLevel::Error))
-					logger.write(QString("no access to scheme: %1").arg(scheme.friendlyName));
+					logger.write(u"no access to scheme: %1"_s.arg(scheme.friendlyName));
 
 				continue;
 			}
@@ -965,7 +965,7 @@ namespace PWTD {
 					errors.insert(PWTS::DError::W_PWR_SCHEME);
 
 					if (logger.isLevel(PWTS::LogLevel::Error))
-						logger.write(QString("failed to write '%1' setting in group '%2' for scheme '%3'").arg(settGuid, settData.groupGuid, scheme.friendlyName));
+						logger.write(u"failed to write '%1' setting in group '%2' for scheme '%3'"_s.arg(settGuid, settData.groupGuid, scheme.friendlyName));
 				}
 			}
 		}
@@ -977,7 +977,7 @@ namespace PWTD {
 
     		if (ret != ERROR_SUCCESS) {
     			if (logger.isLevel(PWTS::LogLevel::Error))
-    				logger.write(QString("failed to set active scheme '%1', code %2").arg(activeScheme).arg(ret));
+    				logger.write(u"failed to set active scheme '%1', code %2"_s.arg(activeScheme).arg(ret));
 
     			errors.insert(PWTS::DError::W_PWR_ACTIVE_SCHEME);
     		}
