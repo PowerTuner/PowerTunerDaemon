@@ -16,22 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-#include "pwtShared/Include/OSType.h"
+#include "../../external/libPowerTuner/src/enums/OSType.h"
 
 namespace PWTD {
-    [[nodiscard]] consteval PWTS::OSType getOS() {
+    [[nodiscard]] consteval LIBPWT::OSType getOS() {
 #ifdef __linux__
-        return PWTS::OSType::Linux;
+        return LIBPWT::OSType::Linux;
 #elifdef _WIN32
-        return PWTS::OSType::Windows;
+        return LIBPWT::OSType::Windows;
 #else
-        return PWTS::OSType::Unknown;
+        return LIBPWT::OSType::Unknown;
 #endif
     }
 
-    [[nodiscard]] consteval bool isLinux() { return getOS() == PWTS::OSType::Linux; }
-    [[nodiscard]] consteval bool isWindows() { return getOS() == PWTS::OSType::Windows; }
-    [[nodiscard]] consteval bool isUnknownOS() { return getOS() == PWTS::OSType::Unknown; }
+    [[nodiscard]] consteval bool isLinux() { return getOS() == LIBPWT::OSType::Linux; }
+    [[nodiscard]] consteval bool isWindows() { return getOS() == LIBPWT::OSType::Windows; }
+    [[nodiscard]] consteval bool isUnknownOS() { return getOS() == LIBPWT::OSType::Unknown; }
 
     [[nodiscard]] QString getMemorySizeStr(quint64 size);
     [[nodiscard]] uint64_t getBitfield(unsigned high, unsigned low, uint64_t data);
