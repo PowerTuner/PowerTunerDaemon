@@ -17,6 +17,7 @@
  */
 #pragma once
 #include "../CPUDevice.h"
+#include "../../external/libcpuid/libcpuid/libcpuid.h"
 #include "Includes/RegistersInlcudes.h"
 #include "SMU/RyzenAdj.h"
 
@@ -31,21 +32,17 @@ namespace PWTD::AMD {
         std::unique_ptr<MSR_CPPC_ENABLE> msrCppcEnable;
         std::unique_ptr<MSR_CPPC_REQUEST> msrCppcRequest;
 
-        [[nodiscard]] bool hasCorePerformanceBoostBit() const;
-        [[nodiscard]] bool hasHWPStateBit() const;
-        [[nodiscard]] bool hasCPPCBit() const;
-        void fillPackageData(const QSet<PWTS::Feature> &features, PWTS::DaemonPacket &packet) const;
-        void fillCoreData(int cpu, const QSet<PWTS::Feature> &features, PWTS::DaemonPacket &packet) const;
-        void fillThreadData(int cpu, const QSet<PWTS::Feature> &features, PWTS::DaemonPacket &packet) const;
-        void applyPackageSettings(const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) const;
-        void applyThreadSettings(int cpu, const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) const;
+        [[nodiscard]] bool hasCorePerformanceBoostBit(const cpu_raw_data_t &cpuidRaw) const;
+        [[nodiscard]] bool hasHWPStateBit(const cpu_raw_data_t &cpuidRaw) const;
+        [[nodiscard]] bool hasCPPCBit(const cpu_raw_data_t &cpuidRaw) const;
+        void readThread(int cpu, LIBPWT::DeviceData &devData) const;
+        void writeThread(int cpu, const LIBPWT::DeviceData &clientData, std::vector<LIBPWT::Error> &errors) const;
 
     public:
-        AMDCPU(const std::shared_ptr<cpu_id_t> &cpuid, const std::shared_ptr<cpu_raw_data_t> &cpuRawData);
+        AMDCPU(const cpu_raw_data_t &cpuidRaw, LIBPWT::DeviceData &devData);
 
-        [[nodiscard]] QSet<PWTS::Feature> getFeatures() const override;
-        void fillDaemonPacket(const QSet<PWTS::Feature> &features, const QList<int> &coreIdxList, PWTS::DaemonPacket &packet) const override;
-        [[nodiscard]] QSet<PWTS::DError> applySettings(const QSet<PWTS::Feature> &features, const QList<int> &coreIdxList, const PWTS::ClientPacket &packet) const override;
-        [[nodiscard]] PWTS::ROData<int> getTemperature() const override;
+        void read(LIBPWT::DeviceData &devData) const override;
+        [[nodiscard]] std::vector<LIBPWT::Error> write(LIBPWT::DeviceData &devData, const LIBPWT::DeviceData &clientData) const override;
+        [[nodiscard]] std::optional<int> getTemperature() const override;
     };
 }

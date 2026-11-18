@@ -20,246 +20,168 @@
 namespace PWTD::AMD {
     using namespace Qt::StringLiterals;
 
-    AMDCPU::AMDCPU(const std::shared_ptr<cpu_id_t> &cpuid, const std::shared_ptr<cpu_raw_data_t> &cpuRawData): CPUDevice(cpuid, cpuRawData) {
-        cpuInfo->vendor = PWTS::CPUVendor::AMD;
-        ryzenAdj = std::make_unique<RyzenAdj>();
+    AMDCPU::AMDCPU(const cpu_raw_data_t &cpuidRaw, LIBPWT::DeviceData &devData) {
+        std::unordered_set<LIBPWT::Feature> &features = devData.daemonInfo->features.cpu;
 
-        if (!ryzenAdj->init(cpuid->num_cores))
+        devData.cpu = LIBPWT::CPUVendor::AMD;
+        devData.amdMsr = LIBPWT::AMD::MSR{
+            .cores = std::vector<LIBPWT::AMD::MSRCore>(devData.cpuInfo->cores),
+            .threads = std::vector<LIBPWT::AMD::MSRThread>(devData.cpuInfo->threads)
+        };
+        ryzenAdj = std::make_unique<RyzenAdj>(devData);
+
+        if (!ryzenAdj->isRunning())
             ryzenAdj.reset();
 
-        if (hasHWPStateBit()) {
+        if (hasHWPStateBit(cpuidRaw)) {
+            features.insert(LIBPWT::Feature::AMD_HWPSTATE);
             msrPStateCurrentLimit = std::make_unique<MSR_PSTATE_CURRENT_LIMIT>();
             msrPStateControl = std::make_unique<MSR_PSTATE_CONTROL>();
         }
 
-        if (hasCorePerformanceBoostBit())
+        if (hasCorePerformanceBoostBit(cpuidRaw)) {
+            features.insert(LIBPWT::Feature::AMD_CORE_PERFORMANCE_BOOST);
             msrCorePerformanceBoost = std::make_unique<MSR_CORE_PERFORMANCE_BOOST>();
+        }
 
-        if (hasCPPCBit()) {
+        if (hasCPPCBit(cpuidRaw)) {
+            features.insert(LIBPWT::Feature::AMD_CPPC);
             msrCppcCapability1 = std::make_unique<MSR_CPPC_CAPABILITY_1>();
             msrCppcEnable = std::make_unique<MSR_CPPC_ENABLE>();
             msrCppcRequest = std::make_unique<MSR_CPPC_REQUEST>();
         }
     }
 
-    bool AMDCPU::hasHWPStateBit() const {
-        const uint32_t edx = cpuidRaw->ext_cpuid[7][cpu_registers_t::EDX];
+    bool AMDCPU::hasHWPStateBit(const cpu_raw_data_t &cpuidRaw) const {
+        const uint32_t edx = cpuidRaw.ext_cpuid[7][cpu_registers_t::EDX];
 
         return getBitfield(7, 7, edx) == 1;
     }
-
-    bool AMDCPU::hasCorePerformanceBoostBit() const {
-        const uint32_t edx = cpuidRaw->ext_cpuid[7][cpu_registers_t::EDX];
+    bool AMDCPU::hasCorePerformanceBoostBit(const cpu_raw_data_t &cpuidRaw) const {
+        const uint32_t edx = cpuidRaw.ext_cpuid[7][cpu_registers_t::EDX];
 
         return getBitfield(9, 9, edx) == 1;
     }
 
-    bool AMDCPU::hasCPPCBit() const {
-        const uint32_t ebx = cpuidRaw->ext_cpuid[8][cpu_registers_t::EBX];
+    bool AMDCPU::hasCPPCBit(const cpu_raw_data_t &cpuidRaw) const {
+        const uint32_t ebx = cpuidRaw.ext_cpuid[8][cpu_registers_t::EBX];
 
         return getBitfield(27, 27, ebx) == 1;
     }
 
-    QSet<PWTS::Feature> AMDCPU::getFeatures() const {
-        if (!msrDev->openFd(0)) {
-            if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(u"failed to open msr fd"_s);
-
-            return {};
-        }
-
-        QSet<PWTS::Feature> features;
-
-        if (msrPStateCurrentLimit)
-            features.unite({PWTS::Feature::AMD_HWPSTATE, PWTS::Feature::AMD_CPU_GROUP});
-
-        if (msrCorePerformanceBoost)
-            features.unite({PWTS::Feature::AMD_CORE_PERFORMANCE_BOOST, PWTS::Feature::AMD_CPU_GROUP});
-
-        if (msrCppcEnable)
-            features.unite({PWTS::Feature::AMD_CPPC, PWTS::Feature::AMD_CPU_GROUP});
-
-        msrDev->closeFd(0);
-
-        if (ryzenAdj)
-            features.unite(ryzenAdj->getFeatures());
-
-        return features;
-    }
-
-    void AMDCPU::fillPackageData(const QSet<PWTS::Feature> &features, PWTS::DaemonPacket &packet) const {
-        if (!features.contains(PWTS::Feature::AMD_CPU_GROUP))
-            return;
-
-        if (!msrDev->openFd(0)) {
-            if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(u"failed to open msr fd"_s);
-
-            packet.errors.insert(PWTS::DError::NO_MSR_FD);
-            return;
-        }
-
-        if (features.contains(PWTS::Feature::AMD_HWPSTATE))
-            packet.amdData->pstateCurrentLimit = msrPStateCurrentLimit->get();
-
-        if (features.contains(PWTS::Feature::AMD_CPPC))
-            packet.amdData->cppcEnableBit = msrCppcEnable->get();
-
-        msrDev->closeFd(0);
-    }
-
-    void AMDCPU::fillCoreData(const int cpu, const QSet<PWTS::Feature> &features, PWTS::DaemonPacket &packet) const {
-        PWTS::AMD::AMDCoreData coreData {};
-
-        packet.amdData->coreData.append(coreData);
-    }
-
-    void AMDCPU::fillThreadData(const int cpu, const QSet<PWTS::Feature> &features, PWTS::DaemonPacket &packet) const {
-        PWTS::AMD::AMDThreadData thdData {};
-
-        if (!features.contains(PWTS::Feature::AMD_CPU_GROUP)) {
-            packet.amdData->threadData.append(thdData);
-            return;
-        }
+    void AMDCPU::readThread(const int cpu, LIBPWT::DeviceData &devData) const {
+        LIBPWT::AMD::MSRThread &thd = devData.amdMsr->threads[cpu];
 
         if (!msrDev->openFd(cpu)) {
-            if (logger.isLevel(PWTS::LogLevel::Error))
+            if (logger.isLevel(LIBPWT::LogLevel::Error))
                 logger.write(u"failed to open msr fd for cpu %1"_s.arg(cpu));
 
-            packet.errors.insert(PWTS::DError::NO_MSR_FD);
-            packet.amdData->threadData.append(thdData);
-            return;
+            return devData.errors.push_back(LIBPWT::Error::NO_MSR_FD);
         }
 
-        if (features.contains(PWTS::Feature::AMD_CPPC)) {
-            thdData.cppcCapability1 = msrCppcCapability1->get(cpu);
-            thdData.cppcRequest = msrCppcRequest->get(cpu);
+        if (msrCppcCapability1 && msrCppcRequest) {
+            thd.cppcCapability1 = msrCppcCapability1->get(cpu);
+            thd.cppcRequest = msrCppcRequest->get(cpu);
+
+            if (!thd.cppcCapability1)
+                devData.errors.push_back(LIBPWT::Error::R_AMD_CPPC_CAP1);
+
+            if (!thd.cppcRequest)
+                devData.errors.push_back(LIBPWT::Error::R_AMD_CPPC_REQ);
         }
 
-        if (features.contains(PWTS::Feature::AMD_HWPSTATE))
-            thdData.pstateCmd = msrPStateControl->get(cpu);
+        if (msrPStateControl) {
+            thd.pstateCmd = msrPStateControl->get(cpu);
 
-        if (features.contains(PWTS::Feature::AMD_CORE_PERFORMANCE_BOOST))
-            thdData.corePerfBoost = msrCorePerformanceBoost->get(cpu);
-
-        msrDev->closeFd(cpu);
-        packet.amdData->threadData.append(thdData);
-    }
-
-    void AMDCPU::fillDaemonPacket(const QSet<PWTS::Feature> &features, const QList<int> &coreIdxList, PWTS::DaemonPacket &packet) const {
-        packet.amdData = QSharedPointer<PWTS::AMD::AMDData>::create();
-
-        if (cpuInfo->numCores != coreIdxList.size()) {
-            if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(u"core index count mismatch: %1 / %2"_s.arg(coreIdxList.size()).arg(cpuInfo->numCores));
-
-            packet.errors.insert(PWTS::DError::CORE_IDX_MISMATCH);
-            return;
+            if (!thd.pstateCmd)
+                devData.errors.push_back(LIBPWT::Error::R_AMD_HWPSTATE_CMD);
         }
 
-        fillPackageData(features, packet);
+        if (msrCorePerformanceBoost) {
+            thd.corePerfBoost = msrCorePerformanceBoost->get(cpu);
 
-        for (int i=0,l=cpuInfo->numCores; i<l; ++i)
-            fillCoreData(coreIdxList[i], features, packet);
-
-        for (int i=0,l=cpuInfo->numLogicalCpus; i<l; ++i)
-            fillThreadData(i, features, packet);
-
-        if (ryzenAdj)
-            ryzenAdj->fillPacketData(features, packet);
-    }
-
-    void AMDCPU::applyPackageSettings(const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) const {
-        if (!features.contains(PWTS::Feature::AMD_CPU_GROUP))
-            return;
-
-        if (!msrDev->openFd(0)) {
-            if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(u"failed to open msr fd"_s);
-
-            errors.insert(PWTS::DError::NO_MSR_FD);
-            return;
+            if (!thd.corePerfBoost)
+                devData.errors.push_back(LIBPWT::Error::R_AMD_CORE_PERFORMANCE_BOOST);
         }
-
-        const QSharedPointer<PWTS::AMD::AMDData> data = packet.amdData;
-
-        if (features.contains(PWTS::Feature::AMD_CPPC)) {
-            if (msrCppcEnable->get().getValue() == 0 && !msrCppcEnable->set(data->cppcEnableBit))
-                errors.insert(PWTS::DError::W_AMD_CPPC_ENBL_BIT);
-        }
-
-        msrDev->closeFd(0);
-    }
-
-    void AMDCPU::applyThreadSettings(const int cpu, const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) const {
-        if (!features.contains(PWTS::Feature::AMD_CPU_GROUP))
-            return;
-
-        if (!msrDev->openFd(cpu)) {
-            if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(u"failed to open msr fd for cpu %1"_s.arg(cpu));
-
-            return;
-        }
-
-        const PWTS::AMD::AMDThreadData &data = packet.amdData->threadData[cpu];
-
-        if (features.contains(PWTS::Feature::AMD_HWPSTATE) && !msrPStateControl->set(cpu, data.pstateCmd))
-            errors.insert(PWTS::DError::W_AMD_HWPSTATE_CMD);
-
-        if (features.contains(PWTS::Feature::AMD_CORE_PERFORMANCE_BOOST) && !msrCorePerformanceBoost->set(cpu, data.corePerfBoost))
-            errors.insert(PWTS::DError::W_AMD_CORE_PERFORMANCE_BOOST);
-
-        if (features.contains(PWTS::Feature::AMD_CPPC) && !msrCppcRequest->set(cpu, data.cppcRequest))
-            errors.insert(PWTS::DError::W_AMD_CPPC_REQ);
 
         msrDev->closeFd(cpu);
     }
 
-    QSet<PWTS::DError> AMDCPU::applySettings(const QSet<PWTS::Feature> &features, const QList<int> &coreIdxList, const PWTS::ClientPacket &packet) const {
-        const QSharedPointer<PWTS::AMD::AMDData> adata = packet.amdData;
-        QSet<PWTS::DError> errors;
+    void AMDCPU::read(LIBPWT::DeviceData &devData) const {
+        if (ryzenAdj)
+            ryzenAdj->read(devData);
 
-        if (adata.isNull()) {
-            if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(u"empty data"_s);
+        if (!msrDev->openFd(0))
+            return devData.errors.push_back(LIBPWT::Error::NO_MSR_FD);
 
-            return {};
+        if (msrPStateCurrentLimit) {
+            devData.amdMsr->pstateCurrentLimit = msrPStateCurrentLimit->get();
 
-        } else if (cpuInfo->numCores != adata->coreData.size()) {
-            if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(u"core count mismatch: %1 / %2"_s.arg(cpuInfo->numCores).arg(adata->coreData.size()));
+            if (!devData.amdMsr->pstateCurrentLimit)
+                devData.errors.push_back(LIBPWT::Error::R_AMD_PSTATE_CUR_LIMIT);
+        }
 
-            errors.insert(PWTS::DError::CORE_DATA_MISMATCH);
-            return errors;
+        if (msrCppcEnable) {
+            devData.amdMsr->cppcEnableBit = msrCppcEnable->get();
 
-        } else if (cpuInfo->numLogicalCpus != adata->threadData.size()) {
-            if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(u"thread count mismatch: %1 / %2"_s.arg(cpuInfo->numLogicalCpus).arg(adata->threadData.size()));
+            if (!devData.amdMsr->cppcEnableBit)
+                devData.errors.push_back(LIBPWT::Error::R_AMD_CPPC_ENBL_BIT);
+        }
 
-            errors.insert(PWTS::DError::THREAD_DATA_MISMATCH);
-            return errors;
+        msrDev->closeFd(0);
 
-        } else if (cpuInfo->numCores != coreIdxList.size()) {
-            if (logger.isLevel(PWTS::LogLevel::Error))
-                logger.write(u"core index count mismatch: %1 / %2"_s.arg(coreIdxList.size()).arg(cpuInfo->numCores));
+        for (int i=0,l=devData.cpuInfo->threads; i<l; ++i)
+            readThread(i, devData);
+    }
 
-            errors.insert(PWTS::DError::CORE_IDX_MISMATCH);
+    void AMDCPU::writeThread(const int cpu, const LIBPWT::DeviceData &clientData, std::vector<LIBPWT::Error> &errors) const {
+        const LIBPWT::AMD::MSRThread &thread = clientData.amdMsr->threads[cpu];
+
+        if (!msrDev->openFd(cpu)) {
+            if (logger.isLevel(LIBPWT::LogLevel::Error))
+                logger.write(u"failed to open msr fd for cpu %1"_s.arg(cpu));
+            return;
+        }
+
+        if (msrPStateControl && thread.pstateCmd && !msrPStateControl->set(cpu, *thread.pstateCmd))
+            errors.push_back(LIBPWT::Error::W_AMD_HWPSTATE_CMD);
+
+        if (msrCorePerformanceBoost && thread.corePerfBoost && !msrCorePerformanceBoost->set(cpu, *thread.corePerfBoost))
+            errors.push_back(LIBPWT::Error::W_AMD_CORE_PERFORMANCE_BOOST);
+
+        if (msrCppcRequest && thread.cppcRequest && !msrCppcRequest->set(cpu, *thread.cppcRequest))
+            errors.push_back(LIBPWT::Error::W_AMD_CPPC_REQ);
+
+        msrDev->closeFd(cpu);
+    }
+
+    std::vector<LIBPWT::Error> AMDCPU::write(LIBPWT::DeviceData &devData, const LIBPWT::DeviceData &clientData) const {
+        std::vector<LIBPWT::Error> errors;
+
+        if (ryzenAdj)
+            errors.append_range(ryzenAdj->write(devData, clientData));
+
+        if (!msrDev->openFd(0)) {
+            errors.push_back(LIBPWT::Error::NO_MSR_FD);
             return errors;
         }
 
-        applyPackageSettings(features, packet, errors);
+        if (msrCppcEnable && clientData.amdMsr->cppcEnableBit) {
+            const std::optional<int> enableBit = msrCppcEnable->get();
 
-        for (int i=0,l=cpuInfo->numLogicalCpus; i<l; ++i)
-            applyThreadSettings(i, features, packet, errors);
+            if (enableBit && *enableBit == 0 && !msrCppcEnable->set(*clientData.amdMsr->cppcEnableBit))
+                errors.push_back(LIBPWT::Error::W_AMD_CPPC_ENBL_BIT);
+        }
 
-        if (ryzenAdj)
-            errors.unite(ryzenAdj->applySettings(features, coreIdxList, packet));
+        msrDev->closeFd(0);
+
+        for (int i=0,l=devData.cpuInfo->threads; i<l; ++i)
+            writeThread(i, clientData, errors);
 
         return errors;
     }
 
-    PWTS::ROData<int> AMDCPU::getTemperature() const {
+    std::optional<int> AMDCPU::getTemperature() const {
         return ryzenAdj->getTemperature();
     }
 }
