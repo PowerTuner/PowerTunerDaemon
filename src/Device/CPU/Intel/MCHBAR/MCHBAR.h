@@ -17,29 +17,25 @@
  */
 #pragma once
 #include "../Include/RegistersIncludes.h"
-#include "pwtShared/Include/Feature.h"
-#include "pwtShared/Include/Packets/DaemonPacket.h"
-#include "pwtShared/Include/Packets/ClientPacket.h"
+#include "../../../../external/libPowerTuner/src/DeviceData.h"
 
 namespace PWTD::Intel {
     class MCHBAR final {
     private:
-        struct RegistersCache final {
-            std::optional<MCHBAR_PACKAGE_POWER_SKU_UNIT::Units> pkgPowerSkuUnit;
-        };
-
-        RegistersCache regsCache {};
         uint32_t baseAddress;
+        MCHBAR_PACKAGE_POWER_SKU_UNIT::Units powerSkuUnit;
         std::unique_ptr<MCHBAR_PACKAGE_RAPL_LIMIT> mchbarPackageRaplLimit;
+        bool initialized = false;
 
-        void buildRegistersCache();
+        void setupCPUModelRegisters(int family, int extModel);
+        void setFeatures(LIBPWT::DeviceData &devData);
 
     public:
-        explicit MCHBAR(int cpuModel);
+        MCHBAR(int cpuFamily, int cpuExtModel, LIBPWT::DeviceData &devData);
 
-        [[nodiscard]] bool init(int cpuFamily, int cpuModel);
-        [[nodiscard]] QSet<PWTS::Feature> getFeatures() const;
-        void fillPacketData(const QSet<PWTS::Feature> &features, const PWTS::DaemonPacket &packet) const;
-        [[nodiscard]] QSet<PWTS::DError> applySettings(const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet) const;
+        [[nodiscard]] bool isAccessible() const { return initialized; }
+
+        void read(LIBPWT::DeviceData &devData) const;
+        [[nodiscard]] std::vector<LIBPWT::Error> write(const LIBPWT::DeviceData &clientData) const;
     };
 }

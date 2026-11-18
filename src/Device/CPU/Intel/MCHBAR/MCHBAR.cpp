@@ -23,17 +23,22 @@
 #include "../IntelUtils.h"
 
 namespace PWTD::Intel {
-    MCHBAR::MCHBAR(const int cpuModel) {
-        baseAddress = getMCHBARBaseAddress(cpuModel);
+    MCHBAR::MCHBAR(const int cpuFamily, const int cpuExtModel, LIBPWT::DeviceData &devData) {
+        baseAddress = getMCHBARBaseAddress(cpuExtModel);
+
+        if (baseAddress == 0 || MEM::factory()->forbidden())
+            return;
+
+        initialized = true;
+
+        setupCPUModelRegisters(cpuFamily, cpuExtModel);
+        setFeatures(devData);
     }
 
-    bool MCHBAR::init(const int cpuFamily, const int cpuModel) {
-        if (baseAddress == 0 || MEM::factory()->forbidden())
-            return false;
-
-        switch (cpuFamily) {
+    void MCHBAR::setupCPUModelRegisters(const int family, const int extModel) {
+        switch (family) {
             case Family6: {
-                switch (cpuModel) {
+                switch (extModel) {
                     case IvyBridge:
                     case IceLakeU: {
                         mchbarPackageRaplLimit = std::make_unique<MCHBAR_PACKAGE_RAPL_LIMIT_IVB>(baseAddress);
@@ -52,48 +57,42 @@ namespace PWTD::Intel {
             default:
                 break;
         }
-
-        buildRegistersCache();
-        return true;
     }
 
-    void MCHBAR::buildRegistersCache() {
-        if (mchbarPackageRaplLimit)
-            regsCache.pkgPowerSkuUnit = MCHBAR_PACKAGE_POWER_SKU_UNIT(baseAddress).get();
-    }
-
-    QSet<PWTS::Feature> MCHBAR::getFeatures() const {
-        QSet<PWTS::Feature> features;
+    void MCHBAR::setFeatures(LIBPWT::DeviceData &devData) {
+        std::unordered_set<LIBPWT::Feature> &features = devData.daemonInfo->features.cpu;
 
         if (mchbarPackageRaplLimit) {
-            features.unite({PWTS::Feature::INTEL_MCHBAR_PKG_RAPL_LIMIT, PWTS::Feature::INTEL_MCHBAR_GROUP});
+            const std::optional<MCHBAR_PACKAGE_POWER_SKU_UNIT::Units> pu = MCHBAR_PACKAGE_POWER_SKU_UNIT(baseAddress).get();
 
-            if (dynamic_cast<MCHBAR_PACKAGE_RAPL_LIMIT_IVB *>(mchbarPackageRaplLimit.get()) != nullptr)
-                features.insert(PWTS::Feature::INTEL_MCHBAR_PKG_RAPL_LIMIT_IVB);
-            else if (dynamic_cast<MCHBAR_PACKAGE_RAPL_LIMIT_TGL *>(mchbarPackageRaplLimit.get()) != nullptr)
-                features.insert(PWTS::Feature::INTEL_MCHBAR_PKG_RAPL_LIMIT_TGL);
+            if (pu) {
+                features.insert(LIBPWT::Feature::INTEL_MCHBAR_PKG_RAPL_LIMIT);
+                powerSkuUnit = *pu;
+
+                if (dynamic_cast<MCHBAR_PACKAGE_RAPL_LIMIT_IVB *>(mchbarPackageRaplLimit.get()) != nullptr)
+                    features.insert(LIBPWT::Feature::INTEL_MCHBAR_PKG_RAPL_LIMIT_IVB);
+                else if (dynamic_cast<MCHBAR_PACKAGE_RAPL_LIMIT_TGL *>(mchbarPackageRaplLimit.get()) != nullptr)
+                    features.insert(LIBPWT::Feature::INTEL_MCHBAR_PKG_RAPL_LIMIT_TGL);
+            } else {
+                mchbarPackageRaplLimit.reset();
+            }
         }
-
-        return features;
     }
 
-    void MCHBAR::fillPacketData(const QSet<PWTS::Feature> &features, const PWTS::DaemonPacket &packet) const {
-        if (!features.contains(PWTS::Feature::INTEL_MCHBAR_GROUP))
-            return;
+    void MCHBAR::read(LIBPWT::DeviceData &devData) const {
+        if (mchbarPackageRaplLimit) {
+            devData.intelMsr->mchbarPkgRaplLimit = mchbarPackageRaplLimit->get(powerSkuUnit);
 
-        if (features.contains(PWTS::Feature::INTEL_MCHBAR_PKG_RAPL_LIMIT))
-            packet.intelData->mchbarPkgRaplLimit = mchbarPackageRaplLimit->get(regsCache.pkgPowerSkuUnit);
+            if (!devData.intelMsr->mchbarPkgRaplLimit)
+                devData.errors.push_back(LIBPWT::Error::R_POWER_LIMIT_MCHBAR);
+        }
     }
 
-    QSet<PWTS::DError> MCHBAR::applySettings(const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet) const {
-        if (!features.contains(PWTS::Feature::INTEL_MCHBAR_GROUP))
-            return {};
+    std::vector<LIBPWT::Error> MCHBAR::write(const LIBPWT::DeviceData &clientData) const {
+        std::vector<LIBPWT::Error> errors;
 
-        const QSharedPointer<PWTS::Intel::IntelData> data = packet.intelData;
-        QSet<PWTS::DError> errors;
-
-        if (features.contains(PWTS::Feature::INTEL_MCHBAR_PKG_RAPL_LIMIT) && !mchbarPackageRaplLimit->set(data->mchbarPkgRaplLimit, regsCache.pkgPowerSkuUnit))
-            errors.insert(PWTS::DError::W_POWER_LIMIT_MCHBAR);
+        if (mchbarPackageRaplLimit && clientData.intelMsr->mchbarPkgRaplLimit && !mchbarPackageRaplLimit->set(*clientData.intelMsr->mchbarPkgRaplLimit, powerSkuUnit))
+            errors.push_back(LIBPWT::Error::W_POWER_LIMIT_MCHBAR);
 
         return errors;
     }
