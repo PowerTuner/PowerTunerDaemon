@@ -17,18 +17,14 @@
  */
 #pragma once
 #include "../CPUDevice.h"
+#include "../../external/libcpuid/libcpuid/libcpuid.h"
 #include "MCHBAR/MCHBAR.h"
 
 namespace PWTD::Intel {
     class IntelCPU final: public CPUDevice {
     private:
-        struct RegistersCache final {
-            std::optional<MSR_RAPL_POWER_UNIT::Units> raplPowerUnit;
-            PWTS::ROData<int> temperatureTarget;
-        };
-
-        mutable PWTS::Intel::FIVRControlUV fivr {0, 0, 0, 0, 0};
-        RegistersCache regsCache {};
+        MSR_RAPL_POWER_UNIT::Units powerUnits;
+        int baseTCCTemperatureTarget;
         std::unique_ptr<MCHBAR> mchbar;
         std::unique_ptr<IA32_ENERGY_PERF_BIAS> ia32EnergyPerfBias;
         std::unique_ptr<IA32_MISC_ENABLE> ia32MiscEnable;
@@ -48,35 +44,32 @@ namespace PWTD::Intel {
         std::unique_ptr<MSR_TURBO_RATIO_LIMIT> msrTurboRatioLimit;
         std::unique_ptr<MSR_POWER_CTL> msrPowerCtl;
         std::unique_ptr<MSR_MISC_PWR_MGMT> msrMiscPwrMgmt;
-        std::unique_ptr<MSR_UNK_FIVR_CONTROL> msrUnkFivrControl;
+        std::unique_ptr<MSR_UNK_FIVR_CONTROL> msrFivrControl;
         std::unique_ptr<MSR_PKG_CST_CONFIG_CONTROL> msrPkgCstConfigControl;
         std::unique_ptr<MSR_TEMPERATURE_TARGET> msrTemperatureTarget;
 
-        void setupCPUModelRegisters();
-        void buildRegistersCache();
-        [[nodiscard]] bool hasIA32PkgThermStatusBit() const;
-        [[nodiscard]] bool hasTurboBoostTechBit() const;
-        [[nodiscard]] bool hasEnhancedSpeedStepBit() const;
-        [[nodiscard]] bool hasEnergyPerfBiasBit() const;
-        [[nodiscard]] bool hasHWPBit() const;
-        [[nodiscard]] bool hasHWPRequestPkgBit() const;
-        [[nodiscard]] bool hasHWPReqEPPBit() const;
-        [[nodiscard]] bool hasHWPReqActivityWindowBit() const;
-        [[nodiscard]] bool hasHWPReqValidBitsBit() const;
-        [[nodiscard]] bool hasHWPCtlBit() const;
-        void fillPackageData(const QSet<PWTS::Feature> &features, PWTS::DaemonPacket &packet) const;
-        void fillCoreData(int cpu, const QSet<PWTS::Feature> &features, PWTS::DaemonPacket &packet) const;
-        void fillThreadData(int cpu, const QSet<PWTS::Feature> &features, PWTS::DaemonPacket &packet) const;
-        void applyPackageSettings(const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) const;
-        void applyCoreSettings(int cpu, int coreIdx, const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) const;
-        void applyThreadSettings(int cpu, const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) const;
+        void setupCPUModelRegisters(int family, int extModel);
+        [[nodiscard]] bool hasIA32PkgThermStatusBit(const cpu_raw_data_t &cpuidRaw) const;
+        [[nodiscard]] bool hasTurboBoostTechBit(const cpu_raw_data_t &cpuidRaw) const;
+        [[nodiscard]] bool hasEnhancedSpeedStepBit(const cpu_raw_data_t &cpuidRaw) const;
+        [[nodiscard]] bool hasEnergyPerfBiasBit(const cpu_raw_data_t &cpuidRaw) const;
+        [[nodiscard]] bool hasHWPBit(const cpu_raw_data_t &cpuidRaw) const;
+        [[nodiscard]] bool hasHWPRequestPkgBit(const cpu_raw_data_t &cpuidRaw) const;
+        [[nodiscard]] bool hasHWPReqEPPBit(const cpu_raw_data_t &cpuidRaw) const;
+        [[nodiscard]] bool hasHWPReqActivityWindowBit(const cpu_raw_data_t &cpuidRaw) const;
+        [[nodiscard]] bool hasHWPReqValidBitsBit(const cpu_raw_data_t &cpuidRaw) const;
+        [[nodiscard]] bool hasHWPCtlBit(const cpu_raw_data_t &cpuidRaw) const;
+        void setFeatures(const cpu_raw_data_t &cpuidRaw, LIBPWT::DeviceData &devData);
+        void readCore(int cpu, LIBPWT::DeviceData &devData) const;
+        void readThread(int cpu, LIBPWT::DeviceData &devData) const;
+        void writeCore(int cpu, const LIBPWT::DeviceData &clientData, std::vector<LIBPWT::Error> &errors) const;
+        void writeThread(int cpu, const LIBPWT::DeviceData &clientData, std::vector<LIBPWT::Error> &errors) const;
 
     public:
-        IntelCPU(const std::shared_ptr<cpu_id_t> &cpuid, const std::shared_ptr<cpu_raw_data_t> &cpuRawData);
+        IntelCPU(const cpu_id_t &cpuid, const cpu_raw_data_t &cpuidRaw, LIBPWT::DeviceData &devData);
 
-        [[nodiscard]] QSet<PWTS::Feature> getFeatures() const override;
-        void fillDaemonPacket(const QSet<PWTS::Feature> &features, const QList<int> &coreIdxList, PWTS::DaemonPacket &packet) const override;
-        [[nodiscard]] QSet<PWTS::DError> applySettings(const QSet<PWTS::Feature> &features, const QList<int> &coreIdxList, const PWTS::ClientPacket &packet) const override;
-        [[nodiscard]] PWTS::ROData<int> getTemperature() const override;
+        void read(LIBPWT::DeviceData &devData) const override;
+        [[nodiscard]] std::vector<LIBPWT::Error> write(LIBPWT::DeviceData &devData, const LIBPWT::DeviceData &clientData) const override;
+        [[nodiscard]] std::optional<int> getTemperature() const override;
     };
 }
