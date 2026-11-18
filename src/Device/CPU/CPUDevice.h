@@ -16,11 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-#include "libcpuid.h"
-#include "pwtShared/Include/CPU/CpuInfo.h"
-#include "pwtShared/Include/Feature.h"
-#include "pwtShared/Include/Packets/DaemonPacket.h"
-#include "pwtShared/Include/Packets/ClientPacket.h"
+#include "../../external/libPowerTuner/src/DeviceData.h"
 #include "../../Utils/FileLogger/FileLogger.h"
 #include "Utils/MSR/MSR.h"
 
@@ -28,19 +24,14 @@ namespace PWTD {
     class CPUDevice {
     protected:
         FileLogger &logger = FileLogger::get();
-        QSharedPointer<PWTS::CpuInfo> cpuInfo;
-        std::shared_ptr<cpu_raw_data_t> cpuidRaw;
         std::shared_ptr<MSR::MSR> msrDev;
 
     public:
-        CPUDevice(const std::shared_ptr<cpu_id_t> &cpuid, const std::shared_ptr<cpu_raw_data_t> &cpuRawData);
+        CPUDevice();
         virtual ~CPUDevice() = default;
 
-        [[nodiscard]] virtual QSet<PWTS::Feature> getFeatures() const = 0;
-        virtual void fillDaemonPacket(const QSet<PWTS::Feature> &features, const QList<int> &coreIdxList, PWTS::DaemonPacket &packet) const = 0;
-        [[nodiscard]] virtual QSet<PWTS::DError> applySettings(const QSet<PWTS::Feature> &features, const QList<int> &coreIdxList, const PWTS::ClientPacket &packet) const = 0;
-        [[nodiscard]] virtual PWTS::ROData<int> getTemperature() const = 0;
-
-        [[nodiscard]] QSharedPointer<PWTS::CpuInfo> getCpuInfo() const { return cpuInfo; }
+        virtual void read(LIBPWT::DeviceData &devData) const = 0;
+        [[nodiscard]] virtual std::vector<LIBPWT::Error> write(LIBPWT::DeviceData &devData, const LIBPWT::DeviceData &clientData) const = 0;
+        [[nodiscard]] virtual std::optional<int> getTemperature() const = 0;
     };
 }

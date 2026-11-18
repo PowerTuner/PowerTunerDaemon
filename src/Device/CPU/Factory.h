@@ -19,5 +19,5 @@
 #include "CPUDevice.h"
 
 namespace PWTD::CPU {
-    [[nodiscard]] std::unique_ptr<CPUDevice> factory();
+    [[nodiscard]] std::unique_ptr<CPUDevice> factory(LIBPWT::DeviceData &devData);
 }
