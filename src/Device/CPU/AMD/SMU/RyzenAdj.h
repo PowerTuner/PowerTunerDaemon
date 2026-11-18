@@ -18,40 +18,30 @@
 #pragma once
 #include "libryzenadj/ryzenadj.h"
 #include "../../Utils/FileLogger/FileLogger.h"
-#include "pwtShared/Include/Feature.h"
-#include "pwtShared/Include/Packets/DaemonPacket.h"
-#include "pwtShared/Include/Packets/ClientPacket.h"
+#include "../../../../external/libPowerTuner/src/DeviceData.h"
 
 namespace PWTD::AMD {
     class RyzenAdj final {
     private:
         static constexpr uint32_t curveOptimizerBase = 0x100000;
         FileLogger &logger = FileLogger::get();
-        mutable std::unordered_map<ADJ_OPT, std::variant<int, uint32_t, std::vector<int>>> tableCache; // cache for values that may not have a read cmd
-        int cpuCoreCount = 0;
+        bool initialized = false;
 
-        void buildTableCache() const;
-        [[nodiscard]] bool set(ADJ_OPT opt, uint32_t value) const;
-        [[nodiscard]] bool set(ADJ_OPT opt, const PWTS::RWData<int> &data) const;
-        [[nodiscard]] bool set(ADJ_OPT opt, const PWTS::RWData<uint32_t> &data) const;
-        PWTS::RWData<int> get(ADJ_OPT opt, float valueMult) const;
-        PWTS::ROData<int> read(ADJ_OPT opt, float valueMult) const;
+        [[nodiscard]] bool set(ADJ_OPT opt, int value) const;
+        [[nodiscard]] std::optional<int> get(ADJ_OPT opt, float valueMult) const;
+        [[nodiscard]] std::optional<int> getValue(ADJ_OPT opt, float valueMult) const;
         [[nodiscard]] bool refreshTable() const;
-        void fillPackageData(const QSet<PWTS::Feature> &features, const PWTS::DaemonPacket &packet) const;
-        void fillCoreData(int cpu, const QSet<PWTS::Feature> &features, const PWTS::DaemonPacket &packet) const;
-        void applyPackageSettings(const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) const;
-        void applyCoreSettings(int cpu, int coreIdx, const QSet<PWTS::Feature> &features, const PWTS::ClientPacket &packet, QSet<PWTS::DError> &errors) const;
-        [[nodiscard]] bool setPowerProfile(const PWTS::RWData<int> &data) const;
-        [[nodiscard]] bool setCurveOptimizerAll(const PWTS::RWData<int> &data) const;
-        [[nodiscard]] bool setCurveOptimizerCore(int cpu, const PWTS::RWData<int> &data) const;
+        void writeCore(int cpu, LIBPWT::DeviceData &devData, const LIBPWT::DeviceData &clientData, std::vector<LIBPWT::Error> &errors) const;
+        [[nodiscard]] bool setCurveOptimizerAll(int value) const;
 
     public:
+        explicit RyzenAdj(LIBPWT::DeviceData &devData);
         ~RyzenAdj();
 
-        [[nodiscard]] bool init(int numCores);
-        [[nodiscard]] QSet<PWTS::Feature> getFeatures();
-        void fillPacketData(const QSet<PWTS::Feature> &features, PWTS::DaemonPacket &packet) const;
-        [[nodiscard]] QSet<PWTS::DError> applySettings(const QSet<PWTS::Feature> &features, const QList<int> &coreIdxList, const PWTS::ClientPacket &packet) const;
-        [[nodiscard]] PWTS::ROData<int> getTemperature() const;
+        [[nodiscard]] bool isRunning() const { return initialized; }
+
+        void read(LIBPWT::DeviceData &devData) const;
+        [[nodiscard]] std::vector<LIBPWT::Error> write(LIBPWT::DeviceData &devData, const LIBPWT::DeviceData &clientData) const;
+        [[nodiscard]] std::optional<int> getTemperature() const;
     };
 }
