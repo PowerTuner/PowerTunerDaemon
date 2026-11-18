@@ -15,21 +15,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <QString>
 #include <array>
+#include <format>
 
 #include "Utils.h"
 
 namespace PWTD {
-    QString getMemorySizeStr(const quint64 size) {
-        static constexpr std::array<std::string_view, 6> memUnits {"Bytes", "KB", "MB", "GB", "PB", "TB"};
+    std::string getMemorySizeStr(const unsigned long size) {
+        static constexpr std::array<std::string_view, 6> memUnits {"Bytes", "KB", "MB", "GB", "TB", "PB"};
         double sz = static_cast<double>(size);
         auto unitIt = memUnits.cbegin();
 
         if (size == 0)
             return "";
 
-        while (static_cast<quint64>(sz / 1024) > 0) {
+        while (static_cast<uint64_t>(sz / 1024) > 0) {
             sz /= 1024;
             ++unitIt;
 
@@ -37,7 +37,7 @@ namespace PWTD {
                 return "Unknown";
         }
 
-        return u"%1 %2"_s.arg(QString::number(sz, 'g', 3), unitIt->data());
+        return std::format("{:.3g} {}", sz, unitIt->data());
     }
 
     // from rdmsr: https://github.com/intel/msr-tools/blob/master/rdmsr.c

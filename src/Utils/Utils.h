@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+#include <string>
+#include <cstdint>
+
 #include "../../external/libPowerTuner/src/enums/OSType.h"
 
 namespace PWTD {
@@ -33,7 +36,7 @@ namespace PWTD {
     [[nodiscard]] consteval bool isWindows() { return getOS() == LIBPWT::OSType::Windows; }
     [[nodiscard]] consteval bool isUnknownOS() { return getOS() == LIBPWT::OSType::Unknown; }
 
-    [[nodiscard]] QString getMemorySizeStr(quint64 size);
+    [[nodiscard]] std::string getMemorySizeStr(unsigned long size);
     [[nodiscard]] uint64_t getBitfield(unsigned high, unsigned low, uint64_t data);
     [[nodiscard]] uint32_t getBitfield(unsigned high, unsigned low, uint32_t data);
     [[nodiscard]] uint64_t setBitfield(unsigned high, unsigned low, uint64_t value, uint64_t data);
